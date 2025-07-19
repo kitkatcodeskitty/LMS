@@ -11,11 +11,11 @@ await connectDB();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+
 
 // Routes
 app.get("/", (req, res) => res.send("Api working"));
-app.post("/clerk", clearWebhooks);
+app.post("/clerk", express.json(), clearWebhooks);
 
 // Start server
 const PORT = process.env.PORT || 5000;
