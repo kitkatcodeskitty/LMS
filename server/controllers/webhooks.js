@@ -20,9 +20,10 @@ export const clearWebhooks = async (req, res) => {
           email: data.email_addresses[0].email_address,
           name: data.first_name + " " + data.last_name,
           imageUrl: data.image_url,
-        };
+        }
         await User.create(userData);
-        return res.json({});
+        res.json({});
+        break;
       }
 
       case "user.updated": {
@@ -32,19 +33,21 @@ export const clearWebhooks = async (req, res) => {
           imageUrl: data.image_url,
         };
         await User.findByIdAndUpdate(data.id, userData);
-        return res.json({});
+         res.json({});
+         break;
       }
 
       case "user.deleted": {
         await User.findByIdAndDelete(data.id);
-        return res.json({});
+        res.json({});
+        break;
       }
 
       default:
         return res.json({});
     }
   } catch (error) {
-    console.error("❌ Clerk Webhook Error:", error);
-    return res.json({ success: false, message: error.message });
+
+    res.json({ success: false, message: error.message });
   }
 };
