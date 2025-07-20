@@ -10,16 +10,14 @@ const app = express()
 // connect to db
 await connecDB()
 
-// middlewares
+// middlewares roidinxu ma 
 app.use(cors())
-app.use(express.json()); 
-
-// Clerk webhook must use raw body
-app.post('/clerk', express.raw({ type: 'application/json' }), clerkWebhooks);
 
 // route
 app.get('/', (req,res)=> res.send("api working"))
+app.post('/clerk', express.json(),clerkWebhooks);
 
 // port number
 const PORT = process.env.PORT || 5000 
+
 app.listen(PORT, ()=> console.log(`server is running on ${PORT}`))

@@ -1,22 +1,23 @@
 import { Webhook } from "svix";
 import User from "../models/User.js";
 
-// Clerk webhook handler
-export const clerkWebhooks = async (req, res) => {
-    console.log("🔔 Webhook called");
-  try {
-    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
-    const evt = wh.verify(
-      JSON.stringify(req.body),
+export const clerkWebhooks = async (req, res) => {
+
+  try {
+    const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+
+      await whook.verify(
+              JSON.stringify(req.body),
       {
         "svix-id": req.headers["svix-id"],
         "svix-timestamp": req.headers["svix-timestamp"],
         "svix-signature": req.headers["svix-signature"],
-      }
-    );
+      })
 
-    const { data, type } = evt;
+
+
+    const {data,type} = req.body
 
     switch (type) {
       case "user.created": {
@@ -27,7 +28,8 @@ export const clerkWebhooks = async (req, res) => {
           imageUrl: data.image_url,
         };
         await User.create(userData);
-        return res.status(200).json({ success: true });
+        res.json({});
+        break;
       }
 
       case "user.updated": {
@@ -37,19 +39,20 @@ export const clerkWebhooks = async (req, res) => {
           imageUrl: data.image_url,
         };
         await User.findByIdAndUpdate(data.id, userData);
-        return res.status(200).json({ success: true });
+        return res.json({ });
+        break;
       }
 
       case "user.deleted": {
         await User.findByIdAndDelete(data.id);
-        return res.status(200).json({ success: true });
+        return res.json({  });
+        break;
       }
 
       default:
-        return res.status(200).json({ success: true, message: "No action taken" });
+        break;
     }
   } catch (error) {
-    console.error("Webhook error:", error.message);
-    return res.status(400).json({ success: false, message: error.message });
+    res.json({success:false});
   }
 };
