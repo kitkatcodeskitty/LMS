@@ -16,10 +16,10 @@ app.use(express.json());
 
 app.post('/clerk', clerkWebhooks);
 
-
+app.post('/clerk',express.json(), clerkWebhooks)
 // route
 app.get('/', (req,res)=> res.send("api working"))
-app.post('/clerk',express.json(), clerkWebhooks)
+
 
 // port number
 const PORT = process.env.PORT || 5000 

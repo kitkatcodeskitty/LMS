@@ -3,6 +3,7 @@ import User from "../models/User.js";
 
 // Clerk webhook handler
 export const clerkWebhooks = async (req, res) => {
+    console.log("🔔 Webhook called");
   try {
     const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
