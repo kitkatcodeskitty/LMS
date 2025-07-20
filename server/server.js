@@ -12,6 +12,10 @@ await connecDB()
 
 // middlewares
 app.use(cors())
+app.use(express.json()); 
+
+app.post('/clerk', clerkWebhooks);
+
 
 // route
 app.get('/', (req,res)=> res.send("api working"))
