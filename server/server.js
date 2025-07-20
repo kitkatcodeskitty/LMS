@@ -14,17 +14,12 @@ await connecDB()
 app.use(cors())
 app.use(express.json()); 
 
-app.post('/clerk', clerkWebhooks);
+// Clerk webhook must use raw body
+app.post('/clerk', express.raw({ type: 'application/json' }), clerkWebhooks);
 
-app.post('/clerk',express.json(), clerkWebhooks)
 // route
 app.get('/', (req,res)=> res.send("api working"))
 
-
 // port number
 const PORT = process.env.PORT || 5000 
-
-app.listen(PORT,()=>{
-    console.log(`server is runing on ${PORT}`)
-})
-
+app.listen(PORT, ()=> console.log(`server is running on ${PORT}`))
