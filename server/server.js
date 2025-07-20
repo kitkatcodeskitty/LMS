@@ -1,44 +1,26 @@
-// controllers/webhooks.js
-import { Webhook } from "svix";
-import User from "../models/user.model.js"; // Make sure path is correct
+import express from 'express'
+import cors from 'cors'
+import 'dotenv/config'
+import connecDB from './configs/mongodb.js'
+import { clerkWebhooks } from './controllers/webhooks.js'
 
-export const clerkWebhooks = async (req, res) => {
-  try {
-    const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+// initialize express
+const app = express()
 
-    if (!WEBHOOK_SECRET) {
-      throw new Error("CLERK_WEBHOOK_SECRET is not defined in env");
-    }
+// connect to db
+await connecDB()
 
-    const svix = new Webhook(WEBHOOK_SECRET);
-    const payload = req.body;
-    const headers = req.headers;
+// middlewares
+app.use(cors())
 
-    // Verify signature
-    const event = svix.verify(payload, headers);
+// route
+app.get('/', (req,res)=> res.send("api working"))
+app.post('/clerk',express.json(), clerkWebhooks)
 
-    const { id, email_addresses, first_name, last_name } = event.data;
+// port number
+const PORT = process.env.PORT || 5000 
 
-    if (event.type === "user.created") {
-      // Check if user already exists (avoid duplicates)
-      const existingUser = await User.findById(id);
-      if (!existingUser) {
-        const newUser = new User({
-          _id: id,
-          name: `${first_name || ""} ${last_name || ""}`.trim(),
-          email: email_addresses[0].email_address,
-        });
+app.listen(PORT,()=>{
+    console.log(`server is runing on ${PORT}`)
+})
 
-        await newUser.save();
-        console.log("✅ User saved:", newUser);
-      } else {
-        console.log("ℹ️ User already exists:", existingUser.email);
-      }
-    }
-
-    res.status(200).json({ message: "Webhook received" });
-  } catch (error) {
-    console.error("❌ Webhook error:", error);
-    res.status(400).json({ error: "Webhook handler failed" });
-  }
-};
