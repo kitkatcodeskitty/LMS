@@ -1,10 +1,12 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-// connect to mgdb 
-const connecDB = async () =>{
-    mongoose.connection.on('connected',()=>console.log('database connected'))
+const connecDB = async () => {
+  mongoose.connection.on('connected', () => console.log('MongoDB connected'));
+  
+  await mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+};
 
-    await mongoose.connect(`${process.env.MONGODB_URI}/SkillGrow`)
-}
-
-export default connecDB
+export default connecDB;
