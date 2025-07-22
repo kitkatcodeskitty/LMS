@@ -8,6 +8,7 @@ import { clerkMiddleware } from '@clerk/express'
 import connectCloudinary from './configs/cloudinary.js'
 
 // initialize express
+process.removeAllListeners('warning');
 const app = express()
 
 // connect to db
@@ -30,4 +31,6 @@ const PORT = process.env.PORT || 5000
 app.listen(PORT,()=>{
     console.log(`server is runing on ${PORT}`)
 })
+
+
 
