@@ -1,24 +1,24 @@
-import { clerkClient } from '@clerk/express'
+import { clerkClient } from '@clerk/express';
 import Course from '../models/Course.js';
-import { v2 as cloudinary } from 'cloudinary'
+import { v2 as cloudinary } from 'cloudinary';
 import { Purchase } from '../models/Purchase.js';
+import User from '../models/User.js'; // Make sure this is imported
 
-export const updateRoleToEducator = async (req,res) => {
+// Update user role to educator
+export const updateRoleToEducator = async (req, res) => {
     try {
         const { userId } = req.auth();
-
-
-        await clerkClient.users.updateUserMetadata(userId,{
+        await clerkClient.users.updateUserMetadata(userId, {
             publicMetadata: {
                 role: 'educator',
             }
-        })
+        });
 
-        res.json({success:true, message: "You can publish a course now"})
+        res.json({ success: true, message: "You can publish a course now" });
     } catch (error) {
-        res.json({success:false, message: error.message}) 
+        res.json({ success: false, message: error.message });
     }
-}
+};
 
 // Add new course
 export const addCourse = async (req, res) => {
@@ -33,12 +33,11 @@ export const addCourse = async (req, res) => {
         if (typeof body.coursedata === 'string') {
             parsedCourseData = JSON.parse(body.coursedata);
         } else {
-            parsedCourseData = body.coursedata || body; // fallback
+            parsedCourseData = body.coursedata || body;
         }
 
         parsedCourseData.educator = auth.userId;
 
-        // Set required fields if they aren't present by default
         if (parsedCourseData.isPublished === undefined) {
             parsedCourseData.isPublished = false;
         }
@@ -50,51 +49,36 @@ export const addCourse = async (req, res) => {
         await newCourse.save();
 
         res.json({ success: true, message: 'Course Added' });
-
     } catch (error) {
         res.json({ success: false, message: error.message });
     }
 };
 
-
-
-export const getEducatorCourses = async ( req,res) => {
-    try{
-        const educator = req.auth.userId
-
-        const courses = await Course.find({educator})
-
-        res.json({success: true, courses})
-    }catch (error){
-
-        res.json({success: false, message: error.message})
-    }
-}
-
-
-// dashboard data { total earning , rnrolled student s not of course }
-
-
-const educatorDashboardData = async (req, res) => {
+// Get courses for educator
+export const getEducatorCourses = async (req, res) => {
     try {
         const educator = req.auth.userId;
+        const courses = await Course.find({ educator });
+        res.json({ success: true, courses });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};
 
-        // Fetch all courses by this educator
+// Dashboard data: total earnings, total courses, enrolled students
+export const educatorDashboardData = async (req, res) => {
+    try {
+        const educator = req.auth.userId;
         const courses = await Course.find({ educator });
         const totalCourses = courses.length;
-
-        // Get all course IDs
         const courseIds = courses.map(course => course._id);
 
-        // Fetch completed purchases
         const purchases = await Purchase.find({
             courseId: { $in: courseIds },
             status: 'completed'
         });
 
         const totalEarnings = purchases.reduce((sum, purchase) => sum + purchase.amount, 0);
-
-        // Collect enrolled students for each course
         const enrolledStudentsData = [];
 
         for (const course of courses) {
@@ -119,13 +103,12 @@ const educatorDashboardData = async (req, res) => {
                 enrolledStudentsData
             }
         });
-
     } catch (error) {
         res.json({ success: false, message: error.message });
     }
 };
 
-// get enrolled students data 
+// Get enrolled students with purchase info
 export const getEnrolledStudentsData = async (req, res) => {
     try {
         const educator = req.auth.userId;
@@ -135,7 +118,9 @@ export const getEnrolledStudentsData = async (req, res) => {
         const purchases = await Purchase.find({
             courseId: { $in: courseIds },
             status: 'completed'
-        }).populate('userId', 'name imageUrl').populate('courseId', 'courseTitle');
+        })
+            .populate('userId', 'name imageUrl')
+            .populate('courseId', 'courseTitle');
 
         const enrolledStudents = purchases.map(purchase => ({
             student: purchase.userId,
