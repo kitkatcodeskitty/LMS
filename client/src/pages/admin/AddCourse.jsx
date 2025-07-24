@@ -1,9 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import uniqid from 'uniqid';
 import Quill from 'quill';
 import { assets } from '../../assets/assets';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import { AppContext } from '../../context/AppContext';
 
 const AddCourse = () => {
+  const { backendUrl, getToken } = useContext(AppContext);
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -22,6 +26,7 @@ const AddCourse = () => {
     isPreviewFree: false,
   });
 
+  // Chapter handlers (add, remove, toggle)
   const handleChapter = (action, chapterId) => {
     if (action === 'add') {
       const title = prompt('Enter Chapter name:');
@@ -40,14 +45,13 @@ const AddCourse = () => {
     } else if (action === 'toggle') {
       setChapters(
         chapters.map((chapter) =>
-          chapter.chapterId === chapterId
-            ? { ...chapter, collapsed: !chapter.collapsed }
-            : chapter
+          chapter.chapterId === chapterId ? { ...chapter, collapsed: !chapter.collapsed } : chapter
         )
       );
     }
   };
 
+  // Lecture handlers (add, remove)
   const handleLecture = (action, chapterId, lectureIndex) => {
     if (action === 'add') {
       setCurrentChapterId(chapterId);
@@ -58,9 +62,7 @@ const AddCourse = () => {
           chapter.chapterId === chapterId
             ? {
                 ...chapter,
-                chapterContent: chapter.chapterContent.filter(
-                  (_, index) => index !== lectureIndex
-                ),
+                chapterContent: chapter.chapterContent.filter((_, index) => index !== lectureIndex),
               }
             : chapter
         )
@@ -68,6 +70,7 @@ const AddCourse = () => {
     }
   };
 
+  // Add lecture to chapter
   const addLecture = () => {
     setChapters(
       chapters.map((chapter) => {
@@ -88,7 +91,6 @@ const AddCourse = () => {
         return chapter;
       })
     );
-
     setShowPopup(false);
     setLectureDetails({
       lectureTitle: '',
@@ -98,22 +100,64 @@ const AddCourse = () => {
     });
   };
 
+  // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Submission logic here
+    try {
+      if (!image) {
+        toast.error('Please upload a course thumbnail');
+        return;
+      }
+
+      const courseData = {
+        courseTitle,
+        courseDescription: quillRef.current.root.innerHTML,
+        coursePrice: parseFloat(coursePrice),
+        discount: parseInt(discount),
+        courseContent: chapters,
+      };
+
+      const formData = new FormData();
+      formData.append('courseData', JSON.stringify(courseData)); // **Must match backend exactly**
+      formData.append('image', image);
+
+      const token = await getToken();
+      const { data } = await axios.post(`${backendUrl}/api/educator/add-course`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data', // best to explicitly set this for file upload
+        },
+      });
+
+      if (data.success) {
+        toast.success('Course added successfully');
+        setCourseTitle('');
+        setCoursePrice(0);
+        setDiscount(0);
+        setImage(null);
+        setChapters([]);
+        quillRef.current.root.innerHTML = '';
+      } else {
+        toast.error(data.message || 'Failed to add course');
+      }
+    } catch (error) {
+      toast.error(error.message || 'An error occurred while adding the course');
+    }
   };
 
   useEffect(() => {
     if (!quillRef.current && editorRef.current) {
-      quillRef.current = new Quill(editorRef.current, {
-        theme: 'snow',
-      });
+      quillRef.current = new Quill(editorRef.current, { theme: 'snow' });
     }
   }, []);
 
   return (
     <div className='h-screen overflow-scroll flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
-      <form onSubmit={handleSubmit} className='flex flex-col gap-4 max-w-md w-full text-gray-500'>
+      <form
+        onSubmit={handleSubmit}
+        className='flex flex-col gap-4 max-w-md w-full text-gray-500'
+      >
+        {/* Course Title */}
         <div className='flex flex-col gap-1'>
           <p>Course Title</p>
           <input
@@ -126,11 +170,13 @@ const AddCourse = () => {
           />
         </div>
 
+        {/* Course Description (Quill editor) */}
         <div className='flex flex-col gap-1'>
           <p>Course Description</p>
           <div ref={editorRef}></div>
         </div>
 
+        {/* Course Price and Thumbnail */}
         <div className='flex items-center justify-between flex-wrap'>
           <div className='flex flex-col gap-1'>
             <p>Course Price</p>
@@ -146,7 +192,7 @@ const AddCourse = () => {
 
           <div className='flex md:flex-row flex-col items-center gap-3'>
             <p>Course Thumbnail</p>
-            <label htmlFor='thumbnailImage' className='flex items-center gap-3'>
+            <label htmlFor='thumbnailImage' className='flex items-center gap-3 cursor-pointer'>
               <img src={assets.file_upload_icon} alt='' className='p-3 bg-blue-500 rounded' />
               <input
                 type='file'
@@ -158,12 +204,13 @@ const AddCourse = () => {
               <img
                 className='max-h-10'
                 src={image ? URL.createObjectURL(image) : ''}
-                alt=''
+                alt='Thumbnail preview'
               />
             </label>
           </div>
         </div>
 
+        {/* Discount % */}
         <div className='flex flex-col gap-1'>
           <p>Discount %</p>
           <input
@@ -178,20 +225,20 @@ const AddCourse = () => {
           />
         </div>
 
-        {/* Chapter list */}
+        {/* Chapters List */}
         <div>
           {chapters.map((chapter, index) => (
-            <div key={index} className='bg-white border rounded-lg mb-4'>
+            <div key={chapter.chapterId} className='bg-white border rounded-lg mb-4'>
               <div className='flex justify-between items-center p-4 border-b'>
                 <div className='flex items-center'>
                   <img
                     src={assets.dropdown_icon}
                     onClick={() => handleChapter('toggle', chapter.chapterId)}
                     className={`mr-2 cursor-pointer transition-all ${
-                      chapter.collapsed && '-rotate-90'
+                      chapter.collapsed ? '-rotate-90' : ''
                     }`}
                     width={14}
-                    alt=''
+                    alt='Toggle Chapter'
                   />
                   <span className='font-semibold'>
                     {index + 1}. {chapter.chapterTitle}
@@ -201,7 +248,7 @@ const AddCourse = () => {
                 <img
                   src={assets.cross_icon}
                   onClick={() => handleChapter('remove', chapter.chapterId)}
-                  alt=''
+                  alt='Remove Chapter'
                   className='cursor-pointer'
                 />
               </div>
@@ -209,7 +256,10 @@ const AddCourse = () => {
               {!chapter.collapsed && (
                 <div className='p-4'>
                   {chapter.chapterContent.map((lecture, lectureIndex) => (
-                    <div key={lectureIndex} className='flex justify-between items-center mb-2'>
+                    <div
+                      key={lecture.lectureId}
+                      className='flex justify-between items-center mb-2'
+                    >
                       <span>
                         {lectureIndex + 1}. {lecture.lectureTitle} - {lecture.lectureDuration} mins -{' '}
                         <a
@@ -224,7 +274,7 @@ const AddCourse = () => {
                       </span>
                       <img
                         src={assets.cross_icon}
-                        alt=''
+                        alt='Remove Lecture'
                         className='cursor-pointer'
                         onClick={() => handleLecture('remove', chapter.chapterId, lectureIndex)}
                       />
@@ -314,7 +364,7 @@ const AddCourse = () => {
                   onClick={() => setShowPopup(false)}
                   src={assets.cross_icon}
                   className='absolute top-4 right-4 w-4 cursor-pointer'
-                  alt=''
+                  alt='Close popup'
                 />
               </div>
             </div>
