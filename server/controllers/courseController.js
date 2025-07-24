@@ -1,5 +1,6 @@
 import Course from "../models/Course.js";
 
+
 // Get all published courses
 export const getAllCourse = async (req, res) => {
     try {
@@ -8,6 +9,7 @@ export const getAllCourse = async (req, res) => {
             .populate({ path: 'educator' });
 
         res.json({ success: true, courses });
+        
     } catch (error) {
         res.json({ success: false, message: error.message });
     }
@@ -36,3 +38,7 @@ export const getCourseById = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 };
+
+
+
+
