@@ -1,6 +1,7 @@
 import { CourseProgress } from "../models/CourseProgress.js";
 import User from "../models/User.js";
 
+
 export const getUserData = async (req,res)=> {
     try {
         const userId = req.auth.userId
@@ -21,7 +22,9 @@ export const getUserData = async (req,res)=> {
 
 export const userEnrolledCourses = async (req, res) => {
   try {
-    const userId = req.auth.userId; // make sure this exists
+    console.log('req.auth:', req.auth); // Add this line
+    
+    const userId = req.auth.userId; 
     
     const userData = await User.findById(userId).populate('enrolledCourses');
     
@@ -35,6 +38,7 @@ export const userEnrolledCourses = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 // update user course progress

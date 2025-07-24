@@ -2,7 +2,7 @@ import { clerkClient } from '@clerk/express';
 import Course from '../models/Course.js';
 import { v2 as cloudinary } from 'cloudinary';
 import { Purchase } from '../models/Purchase.js';
-import User from '../models/User.js'; // Make sure this is imported
+import User from '../models/User.js'; 
 
 // Update user role to educator
 export const updateRoleToEducator = async (req, res) => {
@@ -22,36 +22,39 @@ export const updateRoleToEducator = async (req, res) => {
 
 // Add new course
 export const addCourse = async (req, res) => {
-    try {
-        const { file: imageFile, body, auth } = req;
+  try {
+    const imageFile = req.file;
+    const userId = req.auth().userId; // <-- Use as function now
+    const body = req.body;
 
-        if (!imageFile) {
-            return res.json({ success: false, message: 'Thumbnail not Attached' });
-        }
-
-        let parsedCourseData;
-        if (typeof body.coursedata === 'string') {
-            parsedCourseData = JSON.parse(body.coursedata);
-        } else {
-            parsedCourseData = body.coursedata || body;
-        }
-
-        parsedCourseData.educator = auth.userId;
-
-        if (parsedCourseData.isPublished === undefined) {
-            parsedCourseData.isPublished = false;
-        }
-
-        const newCourse = await Course.create(parsedCourseData);
-
-        const imageUpload = await cloudinary.uploader.upload(imageFile.path);
-        newCourse.courseThumbnail = imageUpload.secure_url;
-        await newCourse.save();
-
-        res.json({ success: true, message: 'Course Added' });
-    } catch (error) {
-        res.json({ success: false, message: error.message });
+    if (!imageFile) {
+      return res.json({ success: false, message: 'Thumbnail not Attached' });
     }
+
+    let parsedCourseData;
+    if (typeof body.courseData === 'string') {
+      parsedCourseData = JSON.parse(body.courseData);
+    } else {
+      parsedCourseData = body.courseData || body;
+    }
+
+    parsedCourseData.educator = userId;
+
+    if (parsedCourseData.isPublished === undefined) {
+      parsedCourseData.isPublished = false;
+    }
+
+    const newCourse = await Course.create(parsedCourseData);
+
+    // Upload image to Cloudinary
+    const imageUpload = await cloudinary.uploader.upload(imageFile.path);
+    newCourse.courseThumbnail = imageUpload.secure_url;
+    await newCourse.save();
+
+    res.json({ success: true, message: 'Course Added' });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
 };
 
 // Get courses for educator
