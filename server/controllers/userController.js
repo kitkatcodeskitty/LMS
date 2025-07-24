@@ -18,16 +18,23 @@ export const getUserData = async (req,res)=> {
 
 
 // user enrolled courses
-export const userEnrolledCourses = async () =>{
-    try {
-        const userId = req.auth.userId
-        const userData = await userEnrolledCourses.findById(userId).populate('enrolledCourses')
 
-        res.json({success:true, enrolledCourses: userData.enrolledCourses})
-    } catch (error) {
-        res.json({success: false, message: error.message})
+export const userEnrolledCourses = async (req, res) => {
+  try {
+    const userId = req.auth.userId; // make sure this exists
+    
+    const userData = await User.findById(userId).populate('enrolledCourses');
+    
+    if (!userData) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
-}
+    
+    res.json({ success: true, enrolledCourses: userData.enrolledCourses });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 
 // update user course progress
