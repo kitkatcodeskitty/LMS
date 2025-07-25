@@ -1,76 +1,57 @@
-import React, { useEffect, useState } from 'react'
-import { dummyStudentEnrolled } from '../../assets/assets'
-import Loading from '../../components/users/Loading'
+import React, { useEffect, useState, useContext } from 'react'
+import { useParams } from 'react-router-dom'
+import axios from 'axios'
 import { toast } from 'react-toastify'
+import { AppContext } from '../../context/AppContext'
+import Loading from '../../components/users/Loading'
 
-const StudentsEnrolled = () => {
-  
-  const {backendUrl, getToken,isEducator} = useContext(AppContext)
-  const [enrolledStudents, setEnrolledStudents] = useState(null)
+const CourseDetails = () => {
+  const { id } = useParams() 
+  const { backendUrl, getToken } = useContext(AppContext)
+  const [courseData, setCourseData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const fetchEnrolledStudents = async () =>{
-    try{
-      const token = await getToken()
-      const {data} = await axios.get(`${backendUrl}/educator/enrolled-students`,{Headers: { Authorization: `Bearer ${token}` }})
-      
-      if(data.success)  {
-        setEnrolledStudents(data.enrolledStudents.reverse())
-      }else{
-        toast.error(data.message || 'Failed to fetch enrolled students. Please try again later.')
+  useEffect(() => {
+    // Check if id is valid
+    if (!id) {
+      toast.error("A valid course ID is required.")
+      setLoading(false)
+      return
+    }
+
+    const fetchCourse = async () => {
+      try {
+        const token = await getToken()
+        const { data } = await axios.get(
+          `${backendUrl}/api/course/${id}`, 
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+
+        if (data.success) {
+          setCourseData(data.courseData)
+        } else {
+          toast.error(data.message || "Failed to load course data.")
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || error.message || "Something went wrong.")
+      } finally {
+        setLoading(false)
       }
-    }catch(error){
-      toast.error('Failed to fetch enrolled students. Please try again later.')
     }
-  }
 
-  useEffect(()=>{
-    if(isEducator){
-      fetchEnrolledStudents()
-    }
-    
-  },[isEducator])
-  
-  return enrolledStudents ?  (
-    <div className='min-h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
-        <div className='flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20 '>
-          <table className='table-fixed md:table-auto w-full overflow-hidden pb-4'>
-            <thead className='text-gray-900 border-b border-gray-500/20 text-sm text-left'>
-              <tr>
-                <th className='px-4 py-3 font-semibold text-center hidden sm:table-cell'>#</th>
-                <th className='px-4 py-3 font-semibold'>Student Name</th>
-                <th className='px-4 py-3 font-semibold'>Course Title</th>
-                <th className='px-4 py-3 font-semibold hidden sm:table-cell'>Date</th>
-              </tr>
-            </thead>
+    fetchCourse()
+  }, [id, backendUrl, getToken])
 
-            {/* table body  */}
-            <tbody className='text-sm text-gray-500'>
-              {enrolledStudents.map((item,index) => (
-                <tr key={index} className='border-b border-gray-500/20'>
-                  <td className='px-4 py-3 text-center hidden sm:table-cell'>{index + 1}</td>
-                  <td className='md:px-4 px-2 py-3 flex items-center space-x-3'>
-                    <img
-                      src={item.student.imageUrl}
-                      alt='student'
-                      className='w-9 h-9 rounded-full'
-                    />
-                    <span className='truncate'>{item.student.name}</span>
-                  </td>
-                  <td className='px-4 py-3 truncate'>{item.courseTitle}</td>
-                  <td className='px-4 py-3 hidden sm:table-cell'>
-                    {new Date(item.purchaseDate).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  if (loading) return <Loading />
 
+  if (!courseData) return <div className="text-center p-10">No course found.</div>
 
-
-
-          </table>
-        </div>
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold">{courseData.courseTitle}</h1>
+      <p>{courseData.courseDescription}</p>
     </div>
-  ) : <Loading />
+  )
 }
 
-export default StudentsEnrolled
+export default CourseDetails
