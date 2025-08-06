@@ -1,8 +1,9 @@
 import Cart from '../models/Cart.js';
 import User from '../models/User.js';
 import Course from '../models/Course.js';
+import { Purchase } from '../models/Purchase.js';
 
-// add to card for user
+// upload card to web ma ni aru kaha upload garxa rw 
 export const addToCart = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -75,16 +76,18 @@ export const addToCart = async (req, res) => {
   }
 };
 
-// validate purchase for user it is like user get bought courses 
-
+// yesle course like green signal dinxa mero matlab ki payment vayasi complete vanyara validatwe garaidinxa 
 export const validatePurchase = async (req, res) => {
   try {
     const { userId, courseId } = req.body;
 
+
     const userCart = await Cart.findOne({ "user._id": userId });
+
     if (!userCart) {
       return res.status(404).json({ success: false, message: "User cart not found" });
     }
+
 
     const courseItem = userCart.courses.find(
       (item) => item.course._id.toString() === courseId
@@ -95,9 +98,11 @@ export const validatePurchase = async (req, res) => {
     }
 
     courseItem.isValidated = true;
-
     const purchasingUser = await User.findById(userId);
 
+    if (!purchasingUser.enrolledCourses.includes(courseId)) {
+      purchasingUser.enrolledCourses.push(courseId);
+    }
 
     if (!purchasingUser.affiliateCode) {
       const generatedCode = purchasingUser._id.toString().slice(-6);
@@ -110,7 +115,6 @@ export const validatePurchase = async (req, res) => {
       if (referrer && referrer._id.toString() !== userId) {
         referrer.affiliateEarnings += courseItem.course.coursePrice / 2;
 
-
         if (!purchasingUser.referredBy) {
           purchasingUser.referredBy = courseItem.referralCode;
         }
@@ -120,17 +124,22 @@ export const validatePurchase = async (req, res) => {
     }
 
     await purchasingUser.save();
+
+    await new Purchase({
+      courseId,
+      userId,
+      amount: courseItem.course.coursePrice,
+      status: "completed"
+    }).save();
+
+    userCart.courses = userCart.courses.filter(
+      (item) => item.course._id.toString() !== courseId
+    );
+
     await userCart.save();
 
-    res.status(200).json({ success: true, message: "Course marked as purchased" });
+    res.status(200).json({ success: true, message: "Course validated, purchased, and removed from cart" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
-
-
-
-
-
-

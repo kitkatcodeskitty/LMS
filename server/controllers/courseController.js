@@ -44,3 +44,48 @@ export const getCourseById = async (req, res) => {
 
 
 
+// // course delete garni controller 
+// export const deleteCourse = async (req, res) => {
+//   try {
+//     const { courseId } = req.params;
+
+//     const course = await Course.findByIdAndDelete(courseId);
+//     if (!course) {
+//       return res.status(404).json({ success: false, message: "Course not found" });
+//     }
+
+//     // Optional cleanup: remove this course from all users' enrolledCourses and carts
+//     await User.updateMany(
+//       { enrolledCourses: courseId },
+//       { $pull: { enrolledCourses: courseId } }
+//     );
+
+//     await Cart.updateMany(
+//       {},
+//       { $pull: { courses: { "course._id": courseId } } }
+//     );
+
+//     res.status(200).json({ success: true, message: "Course deleted successfully" });
+//   } catch (err) {
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+
+// // update controller 
+// export const updateCourse = async (req, res) => {
+//   try {
+//     const { courseId } = req.params;
+//     const updates = req.body;
+
+//     const course = await Course.findByIdAndUpdate(courseId, updates, { new: true });
+
+//     if (!course) {
+//       return res.status(404).json({ success: false, message: "Course not found" });
+//     }
+
+//     res.status(200).json({ success: true, data: course, message: "Course updated successfully" });
+//   } catch (err) {
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };

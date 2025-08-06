@@ -19,7 +19,7 @@ export const register = (req, res) => {
   User.findOne({ email })
     .then(existingUser => {
       if (existingUser) {
-        throw { status: 400, message: "User already exists" };  // <=== Stop chain here
+        throw { status: 400, message: "User already exists" };
       }
 
       const hashedPassword = bcrypt.hashSync(password, 10);
@@ -61,7 +61,7 @@ export const login = async (req, res) => {
 };
 
 
-// get user details 
+// get user details with id  profile ma kam lauxa yo 
 export const getUserData = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -75,7 +75,7 @@ export const getUserData = async (req, res) => {
   }
 };
 
-// reset password
+// reset password 
 export const resetPassword = async (req, res) => {
   try {
     const { email, newPassword } = req.body;
@@ -113,20 +113,19 @@ export const makeUserAdmin = async (req, res) => {
     errorHandler(error, req, res, null);
   }
 };
-
-// get purchased courses
+ 
+// get purchased courses with id yesle chai specific person ko matra dinxa 
 export const getPurchasedCourses = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Find cart by embedded user._id field
     const userCart = await Cart.findOne({ "user._id": userId });
 
     if (!userCart) {
       return res.status(404).json({ success: false, message: "Cart not found" });
     }
 
-    // Filter courses where isValidated is true
+
     const purchasedCourses = userCart.courses
       .filter(courseItem => courseItem.isValidated)
       .map(courseItem => courseItem.course);

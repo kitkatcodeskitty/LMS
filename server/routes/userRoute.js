@@ -15,15 +15,8 @@ const userRouter = express.Router();
 
 userRouter.post('/register', register);
 userRouter.post('/login', login);
-
-// Protected routes - require auth token
 userRouter.get('/getUserData', verify, getUserData);
-
-// purchase course
 userRouter.get('/purchased-courses', verify, getPurchasedCourses);
-
-
-// Admin only route
 userRouter.patch('/makeUserAdmin', verify, verifyAdmin, makeUserAdmin);
 
 export default userRouter;
