@@ -1,121 +1,139 @@
-import { CourseProgress } from "../models/CourseProgress.js";
+import bcrypt from "bcrypt";
+import mongoose from "mongoose";
 import User from "../models/User.js";
+import Cart from '../models/Cart.js';  
+import { verify, verifyAdmin, createAccessToken, errorHandler } from "../auth.js";
+
+// register 
+export const register = (req, res) => {
+  const { firstName, lastName, email, password, imageUrl } = req.body;
+
+  if (!email.includes("@")) {
+    return res.status(400).send({ message: "Email invalid" });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).send({ message: "Password must be at least 8 characters" });
+  }
+
+  User.findOne({ email })
+    .then(existingUser => {
+      if (existingUser) {
+        throw { status: 400, message: "User already exists" };  // <=== Stop chain here
+      }
+
+      const hashedPassword = bcrypt.hashSync(password, 10);
+
+      const newUser = new User({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        imageUrl,
+      });
+
+      return newUser.save();
+    })
+    .then(newUser => {
+      res.status(201).json({ user: newUser });
+    })
+    .catch(error => errorHandler(error, req, res, null));
+};
 
 
-export const getUserData = async (req,res)=> {
-    try {
-        const userId = req.auth.userId
-        const user = await User.findById(userId);
-
-        if(!user){
-            res.json({success: false, message: "user not found"})
-        }
-
-        res.json({success: true, user})
-    } catch (error) {
-        res.json({success: false, message: error.message});
-    }
-}
-
-
-// user enrolled courses
-
-export const userEnrolledCourses = async (req, res) => {
+// login
+export const login = async (req, res) => {
   try {
-    console.log('req.auth:', req.auth); // Add this line
-    
-    const userId = req.auth.userId; 
-    
-    const userData = await User.findById(userId).populate('enrolledCourses');
-    
-    if (!userData) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    
-    res.json({ success: true, enrolledCourses: userData.enrolledCourses });
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+    const passwordMatch = bcrypt.compareSync(password, user.password);
+    if (!passwordMatch) return res.status(401).json({ error: "Invalid credentials" });
+
+    const token = createAccessToken(user);
+
+    res.json({ message: "Login successful", token });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: error.message });
+    errorHandler(error, req, res, null);
   }
 };
 
 
+// get user details 
+export const getUserData = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).populate("enrolledCourses");
 
-// update user course progress
-export const updateUserCourseProgress = async(req,res)=> {
-    try {
-        const userId = req.auth.userId
-        const {courseId, lectureId} = req.body
-        const progressData = await CourseProgress.findOne({userId, courseId})
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-        if(progressData){
-            if(progressData.lectureCompleted.includes(lectureId)){
-                return res.json({success: true, message: 'lecture Already Completed'})
-            }
-
-            progressData.lectureCompleted.push(lectureId)
-            await progressData.save()
-        } else {
-            await CourseProgress.create({
-                userId,
-                courseId,
-                lectureCompleted: [lectureId]
-            })
-        }
-
-        res.json({success: true, message: 'Progress Update'})
-    } catch (error) {
-        res.json({success: false, message: error.message})
-    }
-}
-
-// get UserCourse Progress
-export const getUserCourseProgress = async(req,res)=> {
-    try{
-        const userId = req.auth.userId
-        const {courseId} = req.body
-        const progressData = await CourseProgress.findOne({userId,courseId})
-        res.json({success: true, progressData})
-    } catch (error){
-            res.json({success: false,message: error.message})
-    }
-}
-
-
-// Add user rating to course
-export const addUserRating = async (req, res) => {
-    const userId = req.auth.userId;
-    const { courseId, rating } = req.body;
-
-    if (!courseId || !userId || !rating || rating < 1 || rating > 5) {
-        return res.json({ success: false, message: 'Invalid details' });
-    }
-
-    try {
-        const course = await Course.findById(courseId);
-
-        if (!course) {
-            return res.json({ success: false, message: 'Course not found.' });
-        }
-
-        const user = await User.findById(userId);
-
-        if (!user || !user.enrolledCourses.includes(courseId)) {
-            return res.json({ success: false, message: 'User has not purchased this course.' });
-        }
-
-        const existingRatingIndex = course.courseRatings.findIndex(r => r.userId === userId);
-
-        if (existingRatingIndex > -1) {
-            course.courseRatings[existingRatingIndex].rating = rating;
-        } else {
-            course.courseRatings.push({ userId, rating });
-        }
-
-        await course.save();
-        return res.json({ success: true, message: 'Rating added' });
-
-    } catch (error) {
-        return res.json({ success: false, message: 'Something went wrong.' });
-    }
+    res.json(user);
+  } catch (error) {
+    errorHandler(error, req, res, null);
+  }
 };
+
+// reset password
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.password = bcrypt.hashSync(newPassword, 10);
+    await user.save();
+
+    res.json({ message: "Password reset successful" });
+  } catch (error) {
+    errorHandler(error, req, res, null);
+  }
+};
+
+// make admin
+export const makeUserAdmin = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    console.log('Headers:', req.headers);
+    console.log('Body:', req.body);
+
+    if (!mongoose.Types.ObjectId.isValid(userId))
+      return res.status(400).json({ error: "Invalid userId" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.isAdmin = true;
+    await user.save();
+
+    res.json({ message: "User is now an admin" });
+  } catch (error) {
+    errorHandler(error, req, res, null);
+  }
+};
+
+// get purchased courses
+export const getPurchasedCourses = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Find cart by embedded user._id field
+    const userCart = await Cart.findOne({ "user._id": userId });
+
+    if (!userCart) {
+      return res.status(404).json({ success: false, message: "Cart not found" });
+    }
+
+    // Filter courses where isValidated is true
+    const purchasedCourses = userCart.courses
+      .filter(courseItem => courseItem.isValidated)
+      .map(courseItem => courseItem.course);
+
+    res.status(200).json({ success: true, purchasedCourses });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+

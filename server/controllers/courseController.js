@@ -1,43 +1,44 @@
+import mongoose from "mongoose";
 import Course from "../models/Course.js";
+import User from "../models/User.js";
+
+import { errorHandler } from "../auth.js";
 
 
-// Get all published courses
-export const getAllCourse = async (req, res) => {
-    try {
-        const courses = await Course.find({})
-            .select(['-courseContent', '-enrolledStudents'])
-            .populate({ path: 'educator' });
-            console.log(courses);
+// get all courses
+export const getAllCourses = async (req, res) => {
+  try {
+    const courses = await Course.find()
+      .populate({ path: "admin", select: "firstName lastName imageUrl" })
+      .select("-courseContent -enrolledStudents");
 
-        res.json({ success: true, courses });
-        
-    } catch (error) {
-        res.json({ success: false, message: error.message });
-    }
+    res.json(courses);
+  } catch (error) {
+    res.status(500).json({
+      error: {
+        message: error.message,
+        errorCode: "SERVER_ERROR",
+        details: null,
+      },
+    });
+  }
 };
 
-// Get course by ID
+
+
+// get course details
 export const getCourseById = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const courseData = await Course.findById(id).populate({ path: 'educator' });
+  try {
+    const course = await Course.findById(req.params.id)   
+      .populate({ path: "admin", select: "firstName lastName imageUrl" })
+      .populate("enrolledStudents", "firstName lastName");
 
-        if (!courseData) {
-            return res.status(404).json({ success: false, message: "Course not found" });
-        }
+    if (!course) return res.status(404).json({ error: "Course not found" });
 
-        courseData.courseContent.forEach(chapter => {
-            chapter.chapterContent.forEach(lecture => {
-                if (!lecture.isPreviewFree) {
-                    lecture.lectureUrl = '';
-                }
-            });
-        });
-
-        res.json({ success: true, courseData });
-    } catch (error) {
-        res.json({ success: false, message: error.message });
-    }
+    res.json(course);
+  } catch (error) {
+    res.status(500).json({ error: { message: error.message }});
+  }
 };
 
 

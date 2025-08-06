@@ -1,30 +1,14 @@
-import { clerkClient } from '@clerk/express';
+
 import Course from '../models/Course.js';
 import { v2 as cloudinary } from 'cloudinary';
-import { Purchase } from '../models/Purchase.js';
 import User from '../models/User.js'; 
 
-// Update user role to educator
-export const updateRoleToEducator = async (req, res) => {
-    try {
-        const { userId } = req.auth();
-        await clerkClient.users.updateUserMetadata(userId, {
-            publicMetadata: {
-                role: 'educator',
-            }
-        });
-
-        res.json({ success: true, message: "You can publish a course now" });
-    } catch (error) {
-        res.json({ success: false, message: error.message });
-    }
-};
 
 // Add new course
 export const addCourse = async (req, res) => {
   try {
     const imageFile = req.file;
-    const userId = req.auth().userId; 
+    const userId = req.user.id; 
     const body = req.body;
 
     if (!imageFile) {
@@ -38,7 +22,7 @@ export const addCourse = async (req, res) => {
       parsedCourseData = body.courseData || body;
     }
 
-    parsedCourseData.educator = userId;
+    parsedCourseData.admin = userId;
 
     if (parsedCourseData.isPublished === undefined) {
       parsedCourseData.isPublished = false;
@@ -57,19 +41,11 @@ export const addCourse = async (req, res) => {
   }
 };
 
-// Get courses for educator
-export const getEducatorCourses = async (req, res) => {
-    try {
-        const educator = req.auth.userId;
-        const courses = await Course.find({ educator });
-        res.json({ success: true, courses });
-    } catch (error) {
-        res.json({ success: false, message: error.message });
-    }
-};
+// Get courses updated by admin 
+
 
 // Dashboard data: total earnings, total courses, enrolled students
-export const educatorDashboardData = async (req, res) => {
+export const adminDashboardData = async (req, res) => {
     try {
         const educator = req.auth.userId;
         const courses = await Course.find({ educator });
