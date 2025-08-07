@@ -12,17 +12,19 @@ export const getAllCourses = async (req, res) => {
       .populate({ path: "admin", select: "firstName lastName imageUrl" })
       .select("-courseContent -enrolledStudents");
 
-    res.json(courses);
+    res.json({
+      success: true,
+      courses,
+    });
   } catch (error) {
     res.status(500).json({
-      error: {
-        message: error.message,
-        errorCode: "SERVER_ERROR",
-        details: null,
-      },
+      success: false,
+      message: error.message,
+      errorCode: "SERVER_ERROR",
     });
   }
 };
+
 
 
 
