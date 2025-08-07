@@ -6,8 +6,8 @@ const courseRouter = express.Router();
 
 courseRouter.get('/all', getAllCourses);
 courseRouter.get('/:id', getCourseById);
-// courseRouter.delete("/delete-course/:courseId", verify, verifyAdmin, deleteCourse);
-// courseRouter.put("/update-course/:courseId", verify, verifyAdmin, updateCourse);
+courseRouter.delete("/delete-course/:courseId", verify, verifyAdmin, deleteCourse);
+courseRouter.put("/update-course/:courseId", verify, verifyAdmin, updateCourse);
 
 export default courseRouter;
 
