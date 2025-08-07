@@ -2,6 +2,7 @@ import { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import humanizeDuration from "humanize-duration";
 
 export const AppContext = createContext();
 
@@ -15,12 +16,12 @@ export const AppContextProvider = (props) => {
     const [enrolledCourses, setEnrolledCourses] = useState([]);
     const [userData, setUserData] = useState(null);
 
-    //  Get token from localStorage
+    // Get token from localStorage
     const getToken = () => {
         return localStorage.getItem("token");
     };
 
-    //  Fetch all courses
+    // Fetch all courses
     const fetchAllCourses = async () => {
         try {
             const { data } = await axios.get('http://localhost:5000/api/course/all');
@@ -35,7 +36,7 @@ export const AppContextProvider = (props) => {
         }
     };
 
-    //  Fetch user data
+    // Fetch user data
     const fetchUserData = async () => {
         const token = getToken();
         if (!token) return;
@@ -44,6 +45,7 @@ export const AppContextProvider = (props) => {
             const { data } = await axios.get(`${backendUrl}/api/user/getUserData`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            console.log("user data", data);
 
             if (data.success) {
                 setUserData(data.user);
@@ -56,7 +58,7 @@ export const AppContextProvider = (props) => {
         }
     };
 
-    //  Fetch enrolled courses
+    // Fetch enrolled courses
     const fetchUserEnrolledCourses = async () => {
         const token = getToken();
         if (!token) return;
@@ -76,7 +78,34 @@ export const AppContextProvider = (props) => {
         }
     };
 
-    //  Initial load
+    // Function to calculate total time for a chapter
+    const calculateChapterTime = (chapter) => {
+        let time = 0;
+        chapter.chapterContent.map((lecture) => time += lecture.lectureDuration);
+        return humanizeDuration(time * 60 * 1000, { units: ['h', 'm'] });
+    };
+
+    // Function to calculate total duration of a course
+    const calculateCourseDuration = (course) => {
+        let time = 0;
+        course.courseContent.map((chapter) =>
+            chapter.chapterContent.map((lecture) => time += lecture.lectureDuration)
+        );
+        return humanizeDuration(time * 60 * 1000, { units: ['h', 'm'] });
+    };
+
+    // Function to count total lectures in a course
+    const calculateNoOfLectures = (course) => {
+        let totalLectures = 0;
+        course.courseContent.forEach(chapter => {
+            if (Array.isArray(chapter.chapterContent)) {
+                totalLectures += chapter.chapterContent.length;
+            }
+        });
+        return totalLectures;
+    };
+
+    // Initial load
     useEffect(() => {
         fetchAllCourses();
     }, []);
@@ -88,6 +117,10 @@ export const AppContextProvider = (props) => {
             fetchUserEnrolledCourses();
         }
     }, []);
+
+    useEffect(() => {
+        console.log("allCourses in context: ", allCourses);
+    }, [allCourses]);
 
     const value = {
         currency,
@@ -102,6 +135,9 @@ export const AppContextProvider = (props) => {
         setUserData,
         getToken,
         fetchAllCourses,
+        calculateChapterTime,
+        calculateCourseDuration,
+        calculateNoOfLectures
     };
 
     return (

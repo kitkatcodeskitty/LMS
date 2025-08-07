@@ -17,10 +17,6 @@ const CourseDetails = () => {
   const [playerData, setPlayerData] = useState(null)
 
   const {
-    calculateRating,
-    calculateChapterTime,
-    calculateCourseDuration,
-    calculateNoOfLectures,
     currency,
     backendUrl,
     userData,
@@ -29,7 +25,7 @@ const CourseDetails = () => {
 
   const fetchCourseData = async () => {
     try {
-      const res = await fetch(`${backendUrl}/api/course/${id}`)
+      const res = await fetch(`http://localhost:5000/api/course/${id}`)
       if (!res.ok) throw new Error(`Failed to fetch course. Status: ${res.status}`)
 
       const data = await res.json()
@@ -95,6 +91,9 @@ const CourseDetails = () => {
     }
   }
 
+  // Hardcoded rating value
+  const fixedRating = 4
+
   return courseData ? (
     <>
       <div className="flex md:flex-row flex-col-reverse gap-10 relative items-start justify-between md:px-36 px-8 md:pt-30 pt-20 text-left">
@@ -111,12 +110,12 @@ const CourseDetails = () => {
           ></p>
 
           <div className="flex items-center space-x-2 pt-3 pb-1 text-sm ">
-            <p className="font-medium text-black">{calculateRating(courseData)}</p>
+            <p className="font-medium text-black">{fixedRating}</p>
             <div className="flex">
               {[...Array(5)].map((_, i) => (
                 <img
                   key={i}
-                  src={i < Math.floor(calculateRating(courseData)) ? assets.star : assets.star_blank}
+                  src={i < fixedRating ? assets.star : assets.star_blank}
                   alt=""
                   className="w-4 h-4"
                 />
@@ -227,10 +226,7 @@ const CourseDetails = () => {
             <div className="flex gap-3 items-center pt-2">
               <p className="text-gray-800 md:text-4xl text-2xl font-semibold">
                 {currency}{' '}
-                {(
-                  courseData.coursePrice -
-                  (courseData.discount * courseData.coursePrice) / 100
-                ).toFixed(2)}
+                {(courseData.coursePrice - (courseData.discount * courseData.coursePrice) / 100).toFixed(2)}
               </p>
               <p className="md:text-lg text-gray-500 line-through">
                 {currency}
@@ -242,7 +238,7 @@ const CourseDetails = () => {
             <div className="flex items-center text-sm md:text-default gap-4 pt-2 md:pt-4 text-gray-500">
               <div className="flex items-center gap-1">
                 <img src={assets.star} alt="star icon" />
-                <p>{calculateRating(courseData)}</p>
+                <p>{fixedRating}</p>
               </div>
 
               <div className="h-4 w-px bg-gray-500/40"></div>

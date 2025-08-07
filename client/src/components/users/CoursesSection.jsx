@@ -5,7 +5,7 @@ import CourseCard from './CourseCard';
 
 const CoursesSection = () => {
   const { allCourses } = useContext(AppContext);
-  console.log("All Courses: ", allCourses);
+
 
   return (
     <div className='py-16 md:px-40 px-8'>
