@@ -27,7 +27,6 @@ const handleLogin = async (e) => {
     localStorage.setItem("token", res.data.token);
     console.log("Login response:", res.data);
 
-    // Fetch user data in a separate try/catch so it doesn't trigger login fail toast
     try {
       await fetchUserData();
       await fetchUserEnrolledCourses();

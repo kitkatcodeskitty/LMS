@@ -57,24 +57,31 @@ export const AppContextProvider = (props) => {
 
 
     // Fetch enrolled courses
-    const fetchUserEnrolledCourses = async () => {
-        const token = getToken();
-        if (!token) return;
+const fetchUserEnrolledCourses = async () => {
+  const token = getToken();
+  if (!token) return;
 
-        try {
-            const { data } = await axios.get(`http://localhost:5000/api/admin/purchased-users`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+  try {
+    const { data } = await axios.get(`http://localhost:5000/api/user/purchased-courses`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("enrolled courses", data);
 
-            if (data.success) {
-                setEnrolledCourses(data.enrolledCourses.reverse());
-            } else {
-                toast.error(data.message);
-            }
-        } catch (error) {
-            toast.error(error.message);
-        }
-    };
+    if (data.success) {
+      if (Array.isArray(data.purchasedCourses) && data.purchasedCourses.length > 0) {
+        setEnrolledCourses(data.purchasedCourses.reverse());
+      } else {
+        setEnrolledCourses([]);
+      }
+    } else {
+      toast.error(data.message || "Failed to load enrolled courses");
+    }
+  } catch (error) {
+    toast.error(error.message);
+  }
+};
+
+
 
     // Function to calculate total time for a chapter
     const calculateChapterTime = (chapter) => {
