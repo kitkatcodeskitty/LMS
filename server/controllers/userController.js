@@ -1,44 +1,58 @@
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import User from "../models/User.js";
+
+import cloudinary from "cloudinary"; 
 import Cart from '../models/Cart.js';  
 import { verify, verifyAdmin, createAccessToken, errorHandler } from "../auth.js";
 
-// register 
-export const register = (req, res) => {
-  const { firstName, lastName, email, password, imageUrl } = req.body;
 
-  if (!email.includes("@")) {
-    return res.status(400).send({ message: "Email invalid" });
+// registration
+export const register = async (req, res) => {
+  try {
+    const { firstName, lastName, email, password } = req.body;
+    const imageFile = req.file;
+
+    if (!email.includes("@")) {
+      return res.status(400).json({ message: "Email invalid" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    let imageUrl = "";
+    if (imageFile) {
+      const uploadedImage = await cloudinary.uploader.upload(imageFile.path);
+      imageUrl = uploadedImage.secure_url;
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+
+    const newUser = new User({
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      imageUrl,
+    });
+
+    await newUser.save();
+
+
+    const token = createAccessToken(newUser);
+
+    res.status(201).json({ user: newUser, token, success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-
-  if (password.length < 8) {
-    return res.status(400).send({ message: "Password must be at least 8 characters" });
-  }
-
-  User.findOne({ email })
-    .then(existingUser => {
-      if (existingUser) {
-        throw { status: 400, message: "User already exists" };
-      }
-
-      const hashedPassword = bcrypt.hashSync(password, 10);
-
-      const newUser = new User({
-        firstName,
-        lastName,
-        email,
-        password: hashedPassword,
-        imageUrl,
-      });
-
-      return newUser.save();
-    })
-    .then(newUser => {
-      res.status(201).json({ user: newUser });
-    })
-    .catch(error => errorHandler(error, req, res, null));
 };
+
 
 
 // login
