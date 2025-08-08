@@ -38,25 +38,23 @@ export const AppContextProvider = (props) => {
 
     // Fetch user data
     const fetchUserData = async () => {
-        const token = getToken();
-        if (!token) return;
+    const token = getToken();
+    if (!token) return;
 
-        try {
-            const { data } = await axios.get(`${backendUrl}/api/user/getUserData`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            console.log("user data", data);
+    try {
+        const { data } = await axios.get(`http://localhost:5000/api/user/getUserData`, {
+        headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("user data", data);
 
-            if (data.success) {
-                setUserData(data.user);
-                setIsEducator(data.user.isAdmin || false);
-            } else {
-                toast.error(data.message);
-            }
-        } catch (error) {
-            toast.error(error.message);
-        }
+        // No data.success check since backend doesn't send it
+        setUserData(data);
+        setIsEducator(data.isAdmin || false);
+    } catch (error) {
+        toast.error(error.response?.data?.error || error.message || "Failed to fetch user data");
+    }
     };
+
 
     // Fetch enrolled courses
     const fetchUserEnrolledCourses = async () => {
@@ -64,7 +62,7 @@ export const AppContextProvider = (props) => {
         if (!token) return;
 
         try {
-            const { data } = await axios.get(`${backendUrl}/api/user/purchased-courses`, {
+            const { data } = await axios.get(`http://localhost:5000/api/admin/purchased-users`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -118,9 +116,7 @@ export const AppContextProvider = (props) => {
         }
     }, []);
 
-    useEffect(() => {
-        console.log("allCourses in context: ", allCourses);
-    }, [allCourses]);
+
 
     const value = {
         currency,
@@ -130,6 +126,7 @@ export const AppContextProvider = (props) => {
         setIsEducator,
         enrolledCourses,
         fetchUserEnrolledCourses,
+        fetchUserData,
         backendUrl,
         userData,
         setUserData,
