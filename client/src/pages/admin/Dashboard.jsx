@@ -8,12 +8,20 @@ import { toast } from 'react-toastify'
 const Dashboard = () => {
   const { currency, backendUrl, isEducator, getToken } = useContext(AppContext)
   const [dashboardData, setDashboardData] = useState(null)
+  const [purchasesData, setPurchasesData] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const fetchDashboardData = async () => {
     try {
       const token = await getToken()
-      const { data } = await axios.get(`${backendUrl}/api/educator/dashboard`, {
+
+      // Fetch educator dashboard data
+      const { data } = await axios.get(`${backendUrl}/api/admin/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      // Fetch purchases data
+      const purchasesRes = await axios.get(`http://localhost:5000/api/admin/purchased-users`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -21,6 +29,12 @@ const Dashboard = () => {
         setDashboardData(data.dashboardData)
       } else {
         toast.error(data.message || 'Failed to fetch dashboard data.')
+      }
+
+      if (purchasesRes.data.success) {
+        setPurchasesData(purchasesRes.data)
+      } else {
+        toast.error(purchasesRes.data.message || 'Failed to fetch purchases data.')
       }
     } catch (error) {
       toast.error(
@@ -35,7 +49,7 @@ const Dashboard = () => {
     if (isEducator) {
       fetchDashboardData()
     } else {
-      setLoading(false) // If not educator, stop loading spinner
+      setLoading(false)
     }
   }, [isEducator])
 
@@ -49,13 +63,17 @@ const Dashboard = () => {
     )
   }
 
-  if (!dashboardData) {
+  if (!dashboardData || !purchasesData) {
     return (
       <div className="p-8 text-center text-gray-600">
         No dashboard data available.
       </div>
     )
   }
+
+  // Calculate totals from purchases
+  const totalEnrollments = purchasesData.totalPurchases || 0
+  const totalEarnings = purchasesData.purchases?.reduce((sum, purchase) => sum + (purchase.amount || 0), 0) || 0
 
   return (
     <div className="min-h-screen flex flex-col items-start justify-between gap-8 md:p-8 md:pb-0 p-4 pt-8 pb-0">
@@ -70,7 +88,7 @@ const Dashboard = () => {
             />
             <div>
               <p className="text-2xl font-medium text-gray-600">
-                {dashboardData.enrolledStudentsData.length}
+                {totalEnrollments}
               </p>
               <p className="text-base text-gray-500">Total Enrollments</p>
             </div>
@@ -100,14 +118,14 @@ const Dashboard = () => {
             />
             <div>
               <p className="text-2xl font-medium text-gray-600">
-                {currency}
-                {dashboardData.totalEarnings}
+                {currency}{totalEarnings}
               </p>
               <p className="text-base text-gray-500">Total Earnings</p>
             </div>
           </div>
         </div>
 
+        {/* Latest Enrolments */}
         <div>
           <h2 className="pb-4 text-lg font-medium">Latest Enrolments</h2>
           <div className="flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20">
@@ -119,23 +137,20 @@ const Dashboard = () => {
                   </th>
                   <th className="px-4 py-3 font-semibold">Student Name</th>
                   <th className="px-4 py-3 font-semibold">Course Title</th>
+                  <th className="px-4 py-3 font-semibold">Amount</th>
                 </tr>
               </thead>
               <tbody className="text-sm text-gray-500">
-                {dashboardData.enrolledStudentsData.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-500/20">
+                {purchasesData.purchases?.map((purchase, index) => (
+                  <tr key={purchase._id} className="border-b border-gray-500/20">
                     <td className="px-4 py-3 text-center hidden sm:table-cell">
                       {index + 1}
                     </td>
-                    <td className="md:px-4 px-2 py-3 flex items-center space-x-3">
-                      <img
-                        src={item.student.imageUrl}
-                        alt="Profile"
-                        className="w-9 h-9 rounded-full"
-                      />
-                      <span className="truncate">{item.student.name}</span>
+                    <td className="md:px-4 px-2 py-3">
+                      {purchase.userId?.firstName} {purchase.userId?.lastName}
                     </td>
-                    <td className="px-4 py-3 truncate">{item.courseTitle}</td>
+                    <td className="px-4 py-3">{purchase.courseId?.courseTitle}</td>
+                    <td className="px-4 py-3">{currency}{purchase.amount}</td>
                   </tr>
                 ))}
               </tbody>
