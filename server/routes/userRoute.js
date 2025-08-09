@@ -4,7 +4,9 @@ import {
   register,
   login,
   makeUserAdmin,
-  getPurchasedCourses
+  getPurchasedCourses,
+  getUserById,
+  updateUser
 } from "../controllers/userController.js";
 import upload from '../configs/multer.js';
 
@@ -17,6 +19,8 @@ const userRouter = express.Router();
 userRouter.post('/register', upload.single('image'), register);
 userRouter.post('/login', login);
 userRouter.get('/getUserData', verify, getUserData);
+userRouter.put('/update/:id', verify, verifyAdmin, updateUser);
+userRouter.get('/:userId', verify, verifyAdmin, getUserById);
 userRouter.get('/purchased-courses', verify, getPurchasedCourses);
 userRouter.patch('/makeUserAdmin', verify, verifyAdmin, makeUserAdmin);
 

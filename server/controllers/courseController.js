@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import Course from "../models/Course.js";
 import User from "../models/User.js";
+import Cart from "../models/Cart.js";
+import { v2 as cloudinary } from 'cloudinary';
 
 import { errorHandler } from "../auth.js";
 
@@ -78,15 +80,33 @@ export const deleteCourse = async (req, res) => {
 export const updateCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const updates = req.body;
+    const body = req.body;
 
-    const course = await Course.findByIdAndUpdate(courseId, updates, { new: true });
-
-    if (!course) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+    // Parse courseData JSON string from body
+    let parsedCourseData;
+    if (typeof body.courseData === 'string') {
+      parsedCourseData = JSON.parse(body.courseData);
+    } else {
+      parsedCourseData = body.courseData || body;
     }
 
-    res.status(200).json({ success: true, data: course, message: "Course updated successfully" });
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    if (req.file) {
+      const imageUpload = await cloudinary.uploader.upload(req.file.path);
+      parsedCourseData.courseThumbnail = imageUpload.secure_url;
+    }
+
+    Object.keys(parsedCourseData).forEach((key) => {
+      course[key] = parsedCourseData[key];
+    });
+
+    await course.save();
+
+    res.status(200).json({ success: true, data: course, message: 'Course updated successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

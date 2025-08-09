@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     imageUrl: { type: String },
-    isAdmin: { type: Boolean, default: true },
+    isAdmin: { type: Boolean, default: false },
     enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
     affiliateCode: { type: String, unique: true, sparse: true }, 
     referredBy: { type: String, default: null },

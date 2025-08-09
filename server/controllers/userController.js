@@ -89,6 +89,58 @@ export const getUserData = async (req, res) => {
   }
 };
 
+// update user info by admin
+export const updateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { firstName, lastName, email, affiliateEarnings } = req.body;
+
+    if (!firstName || !lastName || !email) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
+    // Check if email is already used by another user
+    const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email already in use by another user" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { firstName, lastName, email, affiliateEarnings },
+      { new: true, runValidators: true }
+    ).select('-password'); // exclude password
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, data: updatedUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
+// get user by id
+export const getUserById = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select('-password'); // exclude password
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 // reset password 
 export const resetPassword = async (req, res) => {
   try {
