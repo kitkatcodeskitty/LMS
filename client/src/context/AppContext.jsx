@@ -62,7 +62,7 @@ export const AppContextProvider = (props) => {
     if (!token) return;
 
     try {
-        const { data } = await axios.get(`http://localhost:5000/api/user/purchased-courses`, {
+        const { data } = await axios.get(`http://localhost:5000/api/admin/purchased-users`, {
         headers: { Authorization: `Bearer ${token}` },
         });
         console.log("enrolled courses", data);
