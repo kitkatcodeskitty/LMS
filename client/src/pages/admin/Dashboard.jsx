@@ -137,7 +137,7 @@ const Dashboard = () => {
                   </th>
                   <th className="px-4 py-3 font-semibold">Student Name</th>
                   <th className="px-4 py-3 font-semibold">Course Title</th>
-                  <th className="px-4 py-3 font-semibold">Amount</th>
+                  <th className="px-4 py-3 font-semibold">Course Amount</th>
                 </tr>
               </thead>
               <tbody className="text-sm text-gray-500">
@@ -149,7 +149,7 @@ const Dashboard = () => {
                     <td className="md:px-4 px-2 py-3">
                       {purchase.userId?.firstName} {purchase.userId?.lastName}
                     </td>
-                    <td className="px-4 py-3">{purchase.courseId?.courseTitle}</td>
+                    <td className="px-4 py-3">{purchase.courseId?.courseTitle || "Course not found"} </td>
                     <td className="px-4 py-3">{currency}{purchase.amount}</td>
                   </tr>
                 ))}

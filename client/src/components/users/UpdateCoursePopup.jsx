@@ -11,15 +11,24 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
   const quillRef = useRef(null)
   const editorRef = useRef(null)
 
+  // Course state
   const [courseTitle, setCourseTitle] = useState('')
   const [coursePrice, setCoursePrice] = useState(0)
   const [discount, setDiscount] = useState(0)
   const [image, setImage] = useState(null) // New image to upload
   const [imagePreview, setImagePreview] = useState('') // For preview old or new
-  const [chapters, setChapters] = useState([])
-  const [showPopup, setShowPopup] = useState(false)
-  const [currentChapterId, setCurrentChapterId] = useState(null)
 
+  // Chapters & lectures
+  const [chapters, setChapters] = useState([])
+  const [editingChapterId, setEditingChapterId] = useState(null) // chapter being edited inline
+  const [chapterEditTitle, setChapterEditTitle] = useState('')
+
+  // Lecture popup controls
+  const [showLecturePopup, setShowLecturePopup] = useState(false)
+  const [currentChapterId, setCurrentChapterId] = useState(null)
+  const [editingLecture, setEditingLecture] = useState(null) // lecture being edited
+
+  // Lecture form details
   const [lectureDetails, setLectureDetails] = useState({
     lectureTitle: '',
     lectureDuration: '',
@@ -27,7 +36,7 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
     isPreviewFree: false,
   })
 
-  // Initialize form with course data on mount or course change
+  // Load initial course data when course prop changes
   useEffect(() => {
     if (!course) return
     setCourseTitle(course.courseTitle || '')
@@ -36,24 +45,23 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
     setChapters(course.courseContent || [])
     setImagePreview(course.courseThumbnail || '')
 
-    if (editorRef.current && course.courseDescription) {
+    // Initialize Quill editor with description
+    if (editorRef.current) {
       if (!quillRef.current) {
         quillRef.current = new Quill(editorRef.current, { theme: 'snow' })
-        quillRef.current.root.innerHTML = course.courseDescription
-      } else {
-        quillRef.current.root.innerHTML = course.courseDescription
       }
+      quillRef.current.root.innerHTML = course.courseDescription || ''
     }
   }, [course])
 
-  // Chapter handlers (add, remove, toggle)
+  // Chapter handlers
   const handleChapter = (action, chapterId) => {
     if (action === 'add') {
-      const title = prompt('Enter Chapter name:')
-      if (title) {
+      const newChapterTitle = prompt('Enter Chapter name:')
+      if (newChapterTitle) {
         const newChapter = {
           chapterId: uniqid(),
-          chapterTitle: title,
+          chapterTitle: newChapterTitle,
           chapterContent: [],
           collapsed: false,
           chapterOrder:
@@ -62,7 +70,9 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
         setChapters([...chapters, newChapter])
       }
     } else if (action === 'remove') {
-      setChapters(chapters.filter((chapter) => chapter.chapterId !== chapterId))
+      if (window.confirm('Are you sure you want to delete this chapter?')) {
+        setChapters(chapters.filter((chapter) => chapter.chapterId !== chapterId))
+      }
     } else if (action === 'toggle') {
       setChapters(
         chapters.map((chapter) =>
@@ -71,60 +81,140 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
             : chapter
         )
       )
+    } else if (action === 'edit') {
+      const chapter = chapters.find((ch) => ch.chapterId === chapterId)
+      if (chapter) {
+        setEditingChapterId(chapterId)
+        setChapterEditTitle(chapter.chapterTitle)
+      }
     }
   }
 
-  // Lecture handlers (add, remove)
-  const handleLecture = (action, chapterId, lectureIndex) => {
+  // Save edited chapter title inline
+  const saveChapterEdit = () => {
+    if (!chapterEditTitle.trim()) {
+      toast.error('Chapter title cannot be empty')
+      return
+    }
+    setChapters(
+      chapters.map((chapter) =>
+        chapter.chapterId === editingChapterId
+          ? { ...chapter, chapterTitle: chapterEditTitle }
+          : chapter
+      )
+    )
+    setEditingChapterId(null)
+    setChapterEditTitle('')
+  }
+
+  // Cancel chapter editing
+  const cancelChapterEdit = () => {
+    setEditingChapterId(null)
+    setChapterEditTitle('')
+  }
+
+  // Lecture handlers
+  const handleLecture = (action, chapterId, lectureIndex = null) => {
     if (action === 'add') {
       setCurrentChapterId(chapterId)
-      setShowPopup(true)
+      setEditingLecture(null) // Adding new lecture
+      setLectureDetails({
+        lectureTitle: '',
+        lectureDuration: '',
+        lectureUrl: '',
+        isPreviewFree: false,
+      })
+      setShowLecturePopup(true)
+    } else if (action === 'edit') {
+      const lectureToEdit = chapters
+        .find((c) => c.chapterId === chapterId)
+        ?.chapterContent[lectureIndex]
+
+      if (lectureToEdit) {
+        setCurrentChapterId(chapterId)
+        setEditingLecture(lectureToEdit)
+        setLectureDetails({ ...lectureToEdit }) // pre-fill form
+        setShowLecturePopup(true)
+      }
     } else if (action === 'remove') {
-      setChapters((prevChapters) =>
-        prevChapters.map((chapter) =>
-          chapter.chapterId === chapterId
-            ? {
-                ...chapter,
-                chapterContent: chapter.chapterContent.filter(
-                  (_, index) => index !== lectureIndex
-                ),
-              }
-            : chapter
+      if (window.confirm('Are you sure you want to delete this lecture?')) {
+        setChapters((prevChapters) =>
+          prevChapters.map((chapter) =>
+            chapter.chapterId === chapterId
+              ? {
+                  ...chapter,
+                  chapterContent: chapter.chapterContent.filter(
+                    (_, index) => index !== lectureIndex
+                  ),
+                }
+              : chapter
+          )
         )
-      )
+      }
     }
   }
 
-  // Add lecture to chapter
-  const addLecture = () => {
-    setChapters(
-      chapters.map((chapter) => {
-        if (chapter.chapterId === currentChapterId) {
-          const newLecture = {
-            ...lectureDetails,
-            lectureOrder:
-              chapter.chapterContent.length > 0
-                ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1
-                : 1,
-            lectureId: uniqid(),
+  // Add or update lecture in chapters
+  const addOrUpdateLecture = () => {
+    if (!lectureDetails.lectureTitle.trim()) {
+      toast.error('Lecture title cannot be empty')
+      return
+    }
+
+    if (editingLecture) {
+      // Update existing lecture
+      setChapters(
+        chapters.map((chapter) => {
+          if (chapter.chapterId === currentChapterId) {
+            const updatedContent = chapter.chapterContent.map((lecture) =>
+              lecture.lectureId === editingLecture.lectureId
+                ? { ...lectureDetails, lectureId: editingLecture.lectureId, lectureOrder: lecture.lectureOrder }
+                : lecture
+            )
+            return { ...chapter, chapterContent: updatedContent }
           }
-          return {
-            ...chapter,
-            chapterContent: [...chapter.chapterContent, newLecture],
+          return chapter
+        })
+      )
+    } else {
+      // Add new lecture
+      setChapters(
+        chapters.map((chapter) => {
+          if (chapter.chapterId === currentChapterId) {
+            const newLecture = {
+              ...lectureDetails,
+              lectureOrder:
+                chapter.chapterContent.length > 0
+                  ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1
+                  : 1,
+              lectureId: uniqid(),
+            }
+            return {
+              ...chapter,
+              chapterContent: [...chapter.chapterContent, newLecture],
+            }
           }
-        }
-        return chapter
-      })
-    )
-    setShowPopup(false)
+          return chapter
+        })
+      )
+    }
+    setShowLecturePopup(false)
     setLectureDetails({
       lectureTitle: '',
       lectureDuration: '',
       lectureUrl: '',
       isPreviewFree: false,
     })
+    setEditingLecture(null)
   }
 
+  // Close lecture popup
+  const closeLecturePopup = () => {
+    setShowLecturePopup(false)
+    setEditingLecture(null)
+  }
+
+  // Submit handler for updating course
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
@@ -133,7 +223,6 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
         return
       }
 
-      // Build courseData object
       const courseData = {
         courseTitle,
         courseDescription: quillRef.current.root.innerHTML,
@@ -145,7 +234,6 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
       const formData = new FormData()
       formData.append('courseData', JSON.stringify(courseData))
 
-      // Append image only if new image selected
       if (image) {
         formData.append('image', image)
       }
@@ -164,7 +252,7 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
 
       if (data.success) {
         toast.success('Course updated successfully')
-        onUpdate(data.data) // send updated course back to parent
+        onUpdate(data.data)
         onClose()
       } else {
         toast.error(data.message || 'Failed to update course')
@@ -231,7 +319,10 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
             </div>
 
             <div className="flex md:flex-row flex-col items-center gap-3">
-              <label className="font-medium cursor-pointer flex items-center gap-3" htmlFor="thumbnailImage">
+              <label
+                className="font-medium cursor-pointer flex items-center gap-3"
+                htmlFor="thumbnailImage"
+              >
                 Course Thumbnail
                 <img src={assets.file_upload_icon} alt="" className="p-3 bg-blue-500 rounded" />
               </label>
@@ -270,30 +361,81 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
 
           {/* Chapters List */}
           <div>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-xl font-semibold">Chapters</h3>
+              <button
+                type="button"
+                onClick={() => handleChapter('add')}
+                className="bg-blue-500 text-white rounded px-3 py-1"
+              >
+                + Add Chapter
+              </button>
+            </div>
+
             {chapters.map((chapter, index) => (
               <div key={chapter.chapterId} className="bg-white border rounded-lg mb-4">
                 <div className="flex justify-between items-center p-4 border-b">
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <img
                       src={assets.dropdown_icon}
                       onClick={() => handleChapter('toggle', chapter.chapterId)}
-                      className={`mr-2 cursor-pointer transition-all ${
+                      className={`cursor-pointer transition-all ${
                         chapter.collapsed ? '-rotate-90' : ''
                       }`}
                       width={14}
                       alt="Toggle Chapter"
                     />
-                    <span className="font-semibold">
-                      {index + 1}. {chapter.chapterTitle}
-                    </span>
+
+                    {/* Editable Chapter Title */}
+                    {editingChapterId === chapter.chapterId ? (
+                      <>
+                        <input
+                          type="text"
+                          value={chapterEditTitle}
+                          onChange={(e) => setChapterEditTitle(e.target.value)}
+                          className="border px-2 py-1 rounded"
+                        />
+                        <button
+                          type="button"
+                          onClick={saveChapterEdit}
+                          className="ml-2 bg-green-500 text-white px-2 rounded"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelChapterEdit}
+                          className="ml-1 bg-gray-300 px-2 rounded"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-semibold">
+                          {index + 1}. {chapter.chapterTitle}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleChapter('edit', chapter.chapterId)}
+                          className="ml-2 text-sm px-2 py-1 bg-yellow-300 rounded"
+                        >
+                          Edit
+                        </button>
+                      </>
+                    )}
                   </div>
-                  <span className="text-gray-500">{chapter.chapterContent.length}</span>
-                  <img
-                    src={assets.cross_icon}
-                    onClick={() => handleChapter('remove', chapter.chapterId)}
-                    alt="Remove Chapter"
-                    className="cursor-pointer"
-                  />
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-500">{chapter.chapterContent.length}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleChapter('remove', chapter.chapterId)}
+                      className="text-red-500 font-bold"
+                    >
+                      &times;
+                    </button>
+                  </div>
                 </div>
 
                 {!chapter.collapsed && (
@@ -315,96 +457,39 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
                           </a>{' '}
                           - {lecture.isPreviewFree ? 'Free Preview' : 'Paid'}
                         </span>
-                        <img
-                          src={assets.cross_icon}
-                          alt="Remove Lecture"
-                          className="cursor-pointer"
-                          onClick={() => handleLecture('remove', chapter.chapterId, lectureIndex)}
-                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleLecture('edit', chapter.chapterId, lectureIndex)
+                            }
+                            className="text-sm px-2 py-1 bg-yellow-300 rounded"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleLecture('remove', chapter.chapterId, lectureIndex)
+                            }
+                            className="text-red-500 font-bold"
+                          >
+                            &times;
+                          </button>
+                        </div>
                       </div>
                     ))}
-                    <div
+                    <button
+                      type="button"
                       className="inline-flex bg-gray-100 p-2 rounded cursor-pointer mt-2"
                       onClick={() => handleLecture('add', chapter.chapterId)}
                     >
                       + Add Lecture
-                    </div>
+                    </button>
                   </div>
                 )}
               </div>
             ))}
-
-            {/* Popup for adding lecture */}
-            {showPopup && (
-              <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-                <div className="bg-white text-gray-700 p-4 rounded relative w-full max-w-80">
-                  <h1 className="text-lg font-semibold mb-4">Add Lecture</h1>
-
-                  <div className="mb-2">
-                    <p>Lecture Title</p>
-                    <input
-                      type="text"
-                      className="mt-1 block w-full border rounded py-1 px-2"
-                      value={lectureDetails.lectureTitle}
-                      onChange={(e) =>
-                        setLectureDetails({ ...lectureDetails, lectureTitle: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  <div className="mb-2">
-                    <p>Duration (minutes)</p>
-                    <input
-                      type="number"
-                      className="mt-1 block w-full border rounded py-1 px-2"
-                      value={lectureDetails.lectureDuration}
-                      onChange={(e) =>
-                        setLectureDetails({ ...lectureDetails, lectureDuration: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  <div className="mb-2">
-                    <p>Lecture URL</p>
-                    <input
-                      type="text"
-                      className="mt-1 block w-full border rounded py-1 px-2"
-                      value={lectureDetails.lectureUrl}
-                      onChange={(e) =>
-                        setLectureDetails({ ...lectureDetails, lectureUrl: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  <div className="mb-2">
-                    <p>Is Preview Free?</p>
-                    <input
-                      type="checkbox"
-                      className="mt-1 scale-125"
-                      checked={lectureDetails.isPreviewFree}
-                      onChange={(e) =>
-                        setLectureDetails({ ...lectureDetails, isPreviewFree: e.target.checked })
-                      }
-                    />
-                  </div>
-
-                  <button
-                    onClick={addLecture}
-                    type="button"
-                    className="w-full bg-blue-400 text-white px-4 py-2 rounded"
-                  >
-                    Add
-                  </button>
-
-                  <img
-                    onClick={() => setShowPopup(false)}
-                    src={assets.cross_icon}
-                    className="absolute top-4 right-4 w-4 cursor-pointer"
-                    alt="Close popup"
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           <button
@@ -414,6 +499,82 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
             Update Course
           </button>
         </form>
+
+        {/* Lecture Add/Edit Popup */}
+        {showLecturePopup && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-60">
+            <div className="bg-white text-gray-700 p-6 rounded relative w-full max-w-md">
+              <h1 className="text-lg font-semibold mb-4">
+                {editingLecture ? 'Edit Lecture' : 'Add Lecture'}
+              </h1>
+
+              <div className="mb-2">
+                <label className="block mb-1">Lecture Title</label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border rounded py-1 px-2"
+                  value={lectureDetails.lectureTitle}
+                  onChange={(e) =>
+                    setLectureDetails({ ...lectureDetails, lectureTitle: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="mb-2">
+                <label className="block mb-1">Duration (minutes)</label>
+                <input
+                  type="number"
+                  className="mt-1 block w-full border rounded py-1 px-2"
+                  value={lectureDetails.lectureDuration}
+                  onChange={(e) =>
+                    setLectureDetails({ ...lectureDetails, lectureDuration: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="mb-2">
+                <label className="block mb-1">Lecture URL</label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border rounded py-1 px-2"
+                  value={lectureDetails.lectureUrl}
+                  onChange={(e) =>
+                    setLectureDetails({ ...lectureDetails, lectureUrl: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="mb-2 flex items-center gap-2">
+                <label>Is Preview Free?</label>
+                <input
+                  type="checkbox"
+                  className="scale-125"
+                  checked={lectureDetails.isPreviewFree}
+                  onChange={(e) =>
+                    setLectureDetails({ ...lectureDetails, isPreviewFree: e.target.checked })
+                  }
+                />
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={addOrUpdateLecture}
+                  type="button"
+                  className="flex-grow bg-blue-500 text-white px-4 py-2 rounded"
+                >
+                  {editingLecture ? 'Save' : 'Add'}
+                </button>
+                <button
+                  onClick={closeLecturePopup}
+                  type="button"
+                  className="flex-grow bg-gray-300 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
