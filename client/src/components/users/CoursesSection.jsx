@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 import CourseCard from './CourseCard';
@@ -6,6 +6,15 @@ import CourseCard from './CourseCard';
 const CoursesSection = () => {
   const { allCourses } = useContext(AppContext);
 
+
+  const randomCourses = useMemo(() => {
+    const shuffled = [...allCourses];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, 4);
+  }, [allCourses]);
 
   return (
     <div className='py-16 md:px-40 px-8'>
@@ -16,8 +25,8 @@ const CoursesSection = () => {
       </p>
 
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 px-4 md:px-0 md:my-16 my-10 gap-4'>
-        {allCourses.slice(0, 4).map((course, index) => (
-          <CourseCard key={index} course={course} />
+        {randomCourses.map((course, index) => (
+          <CourseCard key={course._id || index} course={course} />
         ))}
       </div>
 
