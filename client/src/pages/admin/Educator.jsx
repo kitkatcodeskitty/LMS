@@ -2,7 +2,6 @@ import React from 'react'
 import { Outlet } from 'react-router-dom'
 import Navbar from '../../components/admin/Navbar'
 import Sidebar from '../../components/admin/Sidebar'
-import { assets } from '../../assets/assets'
 import Footer from '../../components/admin/Footer'
 
 const Educator = () => {

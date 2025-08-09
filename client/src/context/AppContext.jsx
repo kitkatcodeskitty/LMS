@@ -47,7 +47,7 @@ export const AppContextProvider = (props) => {
         });
         console.log("user data", data);
 
-        // No data.success check since backend doesn't send it
+
         setUserData(data);
         setIsEducator(data.isAdmin || false);
     } catch (error) {

@@ -5,6 +5,7 @@ import { AppContext } from '../../context/AppContext';
 
 const Navbar = () => {
   const { navigate, userData, setUserData } = useContext(AppContext);
+  console.log('User Data:', userData);
   const location = useLocation();
 
   const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
@@ -26,14 +27,12 @@ const Navbar = () => {
   // Close dropdowns if clicked outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // For desktop dropdown
       if (
         desktopDropdownRef.current &&
         !desktopDropdownRef.current.contains(event.target)
       ) {
         setDesktopDropdownOpen(false);
       }
-      // For mobile dropdown
       if (
         mobileDropdownRef.current &&
         !mobileDropdownRef.current.contains(event.target)
@@ -46,15 +45,11 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Debug helper: Log clicks on desktop button
   const onDesktopButtonClick = () => {
-    console.log('Desktop dropdown toggled:', !desktopDropdownOpen);
     setDesktopDropdownOpen((open) => !open);
   };
 
-  // Debug helper: Log clicks on mobile button
   const onMobileButtonClick = () => {
-    console.log('Mobile dropdown toggled:', !mobileDropdownOpen);
     setMobileDropdownOpen((open) => !open);
   };
 
@@ -96,22 +91,61 @@ const Navbar = () => {
                   type="button"
                   onClick={() => {
                     setDesktopDropdownOpen(false);
-                    navigate('/profile');
+                    navigate('/');
                   }}
                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
-                  Profile
+                  Home
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDesktopDropdownOpen(false);
-                    navigate('/my-enrollments');
-                  }}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                >
-                  My Enrollments
-                </button>
+
+                {userData.isAdmin ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDesktopDropdownOpen(false);
+                        navigate('/educator'); // Dashboard
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDesktopDropdownOpen(false);
+                        navigate('/profile');
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Profile
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDesktopDropdownOpen(false);
+                        navigate('/my-enrollments');
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      My Enrollments
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDesktopDropdownOpen(false);
+                        navigate('/profile');
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Profile
+                    </button>
+                  </>
+                )}
+
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -157,26 +191,55 @@ const Navbar = () => {
                 >
                   Home
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileDropdownOpen(false);
-                    navigate('/my-enrollments');
-                  }}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                >
-                  My Enrollments
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileDropdownOpen(false);
-                    navigate('/profile');
-                  }}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                >
-                  Profile
-                </button>
+
+                {userData.isAdmin ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileDropdownOpen(false);
+                        navigate('/educator'); // Dashboard
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileDropdownOpen(false);
+                        navigate('/profile');
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Profile
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileDropdownOpen(false);
+                        navigate('/my-enrollments');
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      My Enrollments
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileDropdownOpen(false);
+                        navigate('/profile');
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Profile
+                    </button>
+                  </>
+                )}
+
                 <button
                   type="button"
                   onClick={handleLogout}

@@ -118,14 +118,14 @@ const AddCourse = () => {
       };
 
       const formData = new FormData();
-      formData.append('courseData', JSON.stringify(courseData)); // **Must match backend exactly**
+      formData.append('courseData', JSON.stringify(courseData)); 
       formData.append('image', image);
 
       const token = await getToken();
-      const { data } = await axios.post(`${backendUrl}/api/educator/add-course`, formData, {
+      const { data } = await axios.post(`http://localhost:5000/api/admin/add-course`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data', // best to explicitly set this for file upload
+          'Content-Type': 'multipart/form-data', 
         },
       });
 
@@ -203,7 +203,7 @@ const AddCourse = () => {
               />
               <img
                 className='max-h-10'
-                src={image ? URL.createObjectURL(image) : ''}
+                src={image ? URL.createObjectURL(image) : null}
                 alt='Thumbnail preview'
               />
             </label>
