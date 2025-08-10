@@ -4,6 +4,7 @@ import User from "../models/User.js";
 
 import cloudinary from "cloudinary"; 
 import Cart from '../models/Cart.js';  
+import { Purchase } from "../models/Purchase.js";
 import { verify, verifyAdmin, createAccessToken, errorHandler } from "../auth.js";
 
 
@@ -181,24 +182,30 @@ export const makeUserAdmin = async (req, res) => {
 };
  
 // get purchased courses with id yesle chai specific person ko matra dinxa 
-export const getPurchasedCourses = async (req, res) => {
+export const getUserPurchasedCourses = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const userCart = await Cart.findOne({ "user._id": userId });
+    // Find all completed purchases for the user
+    const purchases = await Purchase.find({ userId, status: 'completed' })
+      .populate('courseId', 'courseTitle coursePrice courseContent'); 
 
-    if (!userCart) {
-      return res.status(404).json({ success: false, message: "Cart not found" });
+    if (!purchases || purchases.length === 0) {
+      return res.status(404).json({ success: false, message: "No purchased courses found" });
     }
 
+    // Extract course data from purchases
+    const purchasedCourses = purchases.map(purchase => purchase.courseId);
 
-    const purchasedCourses = userCart.courses
-      .filter(courseItem => courseItem.isValidated)
-      .map(courseItem => courseItem.course);
-
-    res.status(200).json({ success: true, purchasedCourses });
+    res.status(200).json({
+      success: true,
+      purchasedCourses,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Error fetching purchased courses:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Server error while fetching purchased courses",
+    });
   }
 };
-

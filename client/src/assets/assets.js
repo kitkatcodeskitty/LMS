@@ -105,21 +105,21 @@ export const dummyEducatorData = {
 
 export const dummyTestimonial = [
     {
-        name: 'Donald Jackman',
+        name: 'Rajesh Hamal',
         role: 'SWE 1 @ Amazon',
         image: assets.profile_img_1,
         rating: 5,
         feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
     },
     {
-        name: 'Richard Nelson',
+        name: 'Nikhil Upreti',
         role: 'SWE 2 @ Samsung',
         image: assets.profile_img_2,
         rating: 4,
         feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
     },
     {
-        name: 'James Washington',
+        name: 'Biraj bhattarai',
         role: 'SWE 2 @ Google',
         image: assets.profile_img_3,
         rating: 4.5,

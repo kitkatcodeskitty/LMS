@@ -4,7 +4,7 @@ import {
   register,
   login,
   makeUserAdmin,
-  getPurchasedCourses,
+  getUserPurchasedCourses,
   getUserById,
   updateUser
 } from "../controllers/userController.js";
@@ -20,8 +20,8 @@ userRouter.post('/register', upload.single('image'), register);
 userRouter.post('/login', login);
 userRouter.get('/getUserData', verify, getUserData);
 userRouter.put('/update/:id', verify, verifyAdmin, updateUser);
+userRouter.get("/user-purchase", verify, getUserPurchasedCourses);
 userRouter.get('/:userId', verify, verifyAdmin, getUserById);
-userRouter.get('/purchased-courses', verify, getPurchasedCourses);
 userRouter.patch('/makeUserAdmin', verify, verifyAdmin, makeUserAdmin);
 
 export default userRouter;

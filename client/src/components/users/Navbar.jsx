@@ -63,7 +63,7 @@ const Navbar = () => {
         onClick={() => navigate('/')}
         src={assets.logo}
         alt="logo"
-        className="w-3/12 lg:w-2/12 cursor-pointer"
+        className="w-32 lg:w-40 cursor-pointer"
       />
 
       {/* Desktop View */}
@@ -251,8 +251,12 @@ const Navbar = () => {
             )}
           </div>
         ) : (
-          <button onClick={() => navigate('/login')} type="button">
-            <img src={assets.user_icon} alt="login" />
+          <button
+            onClick={() => navigate('/login')}
+            className="bg-blue-600 text-white px-5 py-2 rounded-full"
+            type="button"
+          >
+            Login
           </button>
         )}
       </div>

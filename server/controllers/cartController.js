@@ -76,6 +76,21 @@ export const addToCart = async (req, res) => {
   }
 };
 
+
+// get cart 
+export const getAllCarts = async (req, res) => {
+  try {
+
+    const carts = await Cart.find({}).populate('user._id', 'firstName lastName email');
+
+    res.status(200).json({ success: true, carts });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
 // yesle course like green signal dinxa mero matlab ki payment vayasi complete vanyara validatwe garaidinxa 
 export const validatePurchase = async (req, res) => {
   try {
@@ -141,5 +156,35 @@ export const validatePurchase = async (req, res) => {
     res.status(200).json({ success: true, message: "Course validated, purchased, and removed from cart" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+
+// getcoursedetails
+export const getCourseDetails = async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const userId = req.user.id;  
+
+    const course = await Course.findById(courseId).lean();
+    if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+
+    const purchase = await Purchase.findOne({ courseId, userId, status: 'completed' });
+
+    if (purchase) {
+      course.courseContent = course.courseContent.map(chapter => ({
+        ...chapter,
+        chapterContent: chapter.chapterContent.map(lecture => ({
+          ...lecture,
+          isPreviewFree: true,
+        })),
+      }));
+    } 
+
+    return res.json(course);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

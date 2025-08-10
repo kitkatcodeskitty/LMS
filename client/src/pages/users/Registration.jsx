@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import axios from "axios";
 import { AppContext } from "../../context/AppContext";
 import { toast } from "react-toastify";
+import Footer from "../../components/users/Footer";
 
 const Register = () => {
   const { backendUrl, navigate, setUserData, setIsEducator } = useContext(AppContext);
@@ -45,15 +46,12 @@ const Register = () => {
       setSubmitting(false);
 
       if (data.success && data.token) {
-        // Save token to localStorage
         localStorage.setItem("token", data.token);
-
-        // Update user context state
         setUserData(data.user);
         setIsEducator(data.user.isAdmin || false);
 
         toast.success("Registration successful! You are now logged in.");
-        navigate("/"); // Redirect to home or dashboard page
+        navigate("/");
       } else {
         toast.error("Registration succeeded but no token received.");
       }
@@ -64,60 +62,77 @@ const Register = () => {
   };
 
   return (
-    <div className="register max-w-md mx-auto p-4 bg-white rounded shadow">
-      <h2 className="text-2xl font-semibold mb-4">Register</h2>
-      <form onSubmit={handleRegister} className="flex flex-col gap-3">
-        <input
-          name="firstName"
-          value={form.firstName}
-          onChange={handleChange}
-          placeholder="First Name"
-          required
-          className="border p-2 rounded"
-        />
-        <input
-          name="lastName"
-          value={form.lastName}
-          onChange={handleChange}
-          placeholder="Last Name"
-          required
-          className="border p-2 rounded"
-        />
-        <input
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          placeholder="Email"
-          type="email"
-          required
-          className="border p-2 rounded"
-        />
-        <input
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={handleChange}
-          placeholder="Password"
-          required
-          className="border p-2 rounded"
-        />
-        <label className="block">
-          <span className="text-sm font-medium text-gray-700">Profile Image (optional)</span>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="mt-1"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="bg-blue-600 text-white py-2 rounded font-semibold"
-        >
-          {submitting ? "Registering..." : "Register"}
-        </button>
-      </form>
+    <div className="flex flex-col min-h-screen">
+      {/* Main content grows */}
+      <main className="flex-grow flex items-center justify-center">
+        <div className="register max-w-md w-full p-4 bg-white rounded shadow">
+          <h2 className="text-2xl font-semibold mb-4">Register</h2>
+          <form onSubmit={handleRegister} className="flex flex-col gap-3">
+            <input
+              name="firstName"
+              value={form.firstName}
+              onChange={handleChange}
+              placeholder="First Name"
+              required
+              className="border p-2 rounded"
+            />
+            <input
+              name="lastName"
+              value={form.lastName}
+              onChange={handleChange}
+              placeholder="Last Name"
+              required
+              className="border p-2 rounded"
+            />
+            <input
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email"
+              type="email"
+              required
+              className="border p-2 rounded"
+            />
+            <input
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Password"
+              required
+              className="border p-2 rounded"
+            />
+            <label className="block">
+              <span className="text-sm font-medium text-gray-700">Profile Image (optional)</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="mt-1"
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-blue-600 text-white py-2 rounded font-semibold"
+            >
+              {submitting ? "Registering..." : "Register"}
+            </button>
+            <h2 className="text-center mt-3">
+              Already have an Account?{" "}
+              <span
+                onClick={() => navigate("/login")}
+                className="text-blue-600 cursor-pointer underline"
+              >
+                Login in
+              </span>
+            </h2>
+          </form>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };

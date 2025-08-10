@@ -25,21 +25,23 @@ const CourseDetails = () => {
 
   const fetchCourseData = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/course/${id}`)
-      if (!res.ok) throw new Error(`Failed to fetch course. Status: ${res.status}`)
+      const res = await fetch(`http://localhost:5000/api/cart/get-purchased-course-details/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!res.ok) throw new Error(`Failed to fetch course. Status: ${res.status}`);
 
-      const data = await res.json()
-      console.log("course data", data)
+      const data = await res.json();
+      console.log("course data", data);
 
-      // backend returns course directly, so just set it
-      setCourseData(data)
+      setCourseData(data);
 
-      // just check for enrollment based on userData
       if (userData && data._id) {
-        setIsAlreadyEnrolled(userData.enrolledCourses?.includes(data._id))
+        setIsAlreadyEnrolled(userData.enrolledCourses?.includes(data._id));
       }
     } catch (error) {
-      toast.error('Failed to load course. ' + error.message)
+      toast.error('Failed to load course. ' + error.message);
     }
   }
 
@@ -146,13 +148,22 @@ const CourseDetails = () => {
                           <div className="flex items-center justify-between w-full text-gray-800 text-xs md:text-default">
                             <p>{lecture.lectureTitle}</p>
                             <div className="flex gap-2">
-                              {lecture.isPreviewFree && (
+                              {isAlreadyEnrolled ? (
+                                <p
+                                  onClick={() => handlePreviewClick(lecture.lectureUrl)}
+                                  className="text-green-600 cursor-pointer font-semibold"
+                                >
+                                  Watch
+                                </p>
+                              ) : lecture.isPreviewFree ? (
                                 <p
                                   onClick={() => handlePreviewClick(lecture.lectureUrl)}
                                   className="text-blue-500 cursor-pointer"
                                 >
                                   Preview
                                 </p>
+                              ) : (
+                                <p className="text-gray-400 cursor-not-allowed select-none">Locked</p>
                               )}
                               <p>
                                 {humanizeDuration(lecture.lectureDuration * 60 * 1000, {
