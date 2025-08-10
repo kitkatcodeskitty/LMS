@@ -110,3 +110,50 @@ export const adminDashboardData = async (req, res) => {
     }
   };
   
+
+// make user admin by email
+export const makeUserAdmin = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email is required' 
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found with this email' 
+      });
+    }
+
+    // Check if user is already an admin
+    if (user.isAdmin) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'User is already an admin' 
+      });
+    }
+
+    // Update user to admin
+    user.isAdmin = true;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: `${user.firstName} ${user.lastName} has been made an admin successfully` 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+};
+  

@@ -23,7 +23,8 @@ const courseSchema = new mongoose.Schema(
     courseThumbnail: { type: String },
     coursePrice: { type: Number, required: true },
     isPublished: { type: Boolean, required: true },
-    discount: { type: Number, required: true, min: 0, max: 100 },
+    discount: { type: Number, required: true, min: 0 },
+    discountType: { type: String, required: true, enum: ['percentage', 'amount'], default: 'percentage' },
     courseContent: [chapterSchema],
 
     admin: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },

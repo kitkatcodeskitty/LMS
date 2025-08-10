@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
     affiliateCode: { type: String, unique: true, sparse: true }, 
     referredBy: { type: String, default: null },
     affiliateEarnings: { type: Number, default: 0 },
+    notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
   },
   { timestamps: true }
 );

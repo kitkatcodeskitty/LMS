@@ -9,6 +9,15 @@ const CourseCard = ({ course }) => {
   const avgRating = 4.5; 
   const totalRatings = 120; 
 
+  const calculateDiscountedPrice = (course) => {
+    if (course.discountType === 'amount') {
+      return Math.max(0, course.coursePrice - course.discount);
+    } else {
+      // percentage discount
+      return course.coursePrice - (course.discount * course.coursePrice) / 100;
+    }
+  };
+
   return (
     <Link
       to={'/course/' + course._id}
@@ -42,7 +51,7 @@ const CourseCard = ({ course }) => {
         {/* Price Section */}
         <p className='text-base font-semibold text-gray-800'>
           {currency}
-          {(course.coursePrice - (course.discount * course.coursePrice) / 100).toFixed(2)}
+          {calculateDiscountedPrice(course).toFixed(2)}
         </p>
       </div>
     </Link>

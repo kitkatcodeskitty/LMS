@@ -6,6 +6,7 @@ import connectCloudinary from './configs/cloudinary.js'
 import courseRouter from './routes/courseRoute.js'
 import userRouter from './routes/userRoute.js'
 import cartRouter from './routes/cartRoute.js';
+import notificationRouter from './routes/notificationRoute.js';
 import dotenv from "dotenv";
 
 
@@ -31,6 +32,7 @@ app.use('/api/admin',adminRoute)
 app.use('/api/course',courseRouter)
 app.use('/api/user',userRouter)
 app.use('/api/cart', cartRouter);
+app.use('/api/notifications', notificationRouter);
 
 
 // port number

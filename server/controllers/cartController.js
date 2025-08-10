@@ -1,17 +1,35 @@
+import fs from 'fs';
 import Cart from '../models/Cart.js';
+import { Purchase } from '../models/Purchase.js';
 import User from '../models/User.js';
 import Course from '../models/Course.js';
-import { Purchase } from '../models/Purchase.js';
+import { v2 as cloudinary } from 'cloudinary';
+import { createNotification } from './notificationController.js';
 
-// upload card to web ma ni aru kaha upload garxa rw 
 export const addToCart = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { courseId, referralCode } = req.body;
+    const { courseId, referralCode, transactionId } = req.body;
 
     if (!courseId) {
       return res.status(400).json({ success: false, message: "Course ID is required" });
     }
+    if (!transactionId) {
+      return res.status(400).json({ success: false, message: "Transaction ID is required" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Payment screenshot is required" });
+    }
+
+    // Upload payment screenshot to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "payment_screenshots", // optional: organize uploads
+    });
+
+    // Remove the local file after upload
+    fs.unlinkSync(req.file.path);
+
+    const paymentScreenshot = result.secure_url; // Cloudinary URL
 
     const user = await User.findById(userId).select("firstName lastName email");
     if (!user) {
@@ -27,6 +45,19 @@ export const addToCart = async (req, res) => {
 
     let userCart = await Cart.findOne({ "user._id": userId });
 
+    const newCourseData = {
+      course: {
+        _id: course._id,
+        courseTitle: course.courseTitle,
+        courseDescription: course.courseDescription,
+        coursePrice: course.coursePrice,
+        courseThumbnail: course.courseThumbnail,
+      },
+      referralCode: referralCode || null,
+      transactionId,
+      paymentScreenshot, // save Cloudinary URL here
+    };
+
     if (!userCart) {
       userCart = new Cart({
         user: {
@@ -35,18 +66,7 @@ export const addToCart = async (req, res) => {
           lastName: user.lastName,
           email: user.email,
         },
-        courses: [
-          {
-            course: {
-              _id: course._id,
-              courseTitle: course.courseTitle,
-              courseDescription: course.courseDescription,
-              coursePrice: course.coursePrice,
-              courseThumbnail: course.courseThumbnail,
-            },
-            referralCode: referralCode || null,
-          },
-        ],
+        courses: [newCourseData],
       });
     } else {
       const alreadyInCart = userCart.courses.some(
@@ -57,16 +77,7 @@ export const addToCart = async (req, res) => {
         return res.status(400).json({ success: false, message: "Course already in cart" });
       }
 
-      userCart.courses.push({
-        course: {
-          _id: course._id,
-          courseTitle: course.courseTitle,
-          courseDescription: course.courseDescription,
-          coursePrice: course.coursePrice,
-          courseThumbnail: course.courseThumbnail,
-        },
-        referralCode: referralCode || null,
-      });
+      userCart.courses.push(newCourseData);
     }
 
     await userCart.save();
@@ -77,17 +88,21 @@ export const addToCart = async (req, res) => {
 };
 
 
+
+
+
+
+
 // get cart 
 export const getAllCarts = async (req, res) => {
   try {
-
-    const carts = await Cart.find({}).populate('user._id', 'firstName lastName email');
-
+    const carts = await Cart.find({});
     res.status(200).json({ success: true, carts });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 
@@ -147,6 +162,16 @@ export const validatePurchase = async (req, res) => {
       status: "completed"
     }).save();
 
+    // Send success notification to user
+    await createNotification(
+      userId,
+      "Course Purchase Validated! 🎉",
+      `Your purchase for "${courseItem.course.courseTitle}" has been validated successfully. You can now access the course content.`,
+      "success",
+      courseId,
+      "course_validated"
+    );
+
     userCart.courses = userCart.courses.filter(
       (item) => item.course._id.toString() !== courseId
     );
@@ -188,3 +213,116 @@ export const getCourseDetails = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+// remove card 
+export const removeFromCart = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { courseId } = req.body;
+
+    console.log('User ID:', userId);
+    console.log('Course ID to remove:', courseId);
+
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: "Course ID is required" });
+    }
+
+    const userCart = await Cart.findOne({ "user._id": userId });
+
+    if (!userCart) {
+      return res.status(404).json({ success: false, message: "User cart not found" });
+    }
+
+    console.log('User Cart courses:', userCart.courses.map(c => c.course._id.toString()));
+
+    // Check if course exists in cart before filtering
+    const courseExists = userCart.courses.some(
+      (item) => item.course._id.toString() === courseId.toString()
+    );
+
+    if (!courseExists) {
+      return res.status(404).json({ success: false, message: "Course not found in cart" });
+    }
+
+    // Filter out the course
+    userCart.courses = userCart.courses.filter(
+      (item) => item.course._id.toString() !== courseId.toString()
+    );
+
+    await userCart.save();
+
+    res.status(200).json({ success: true, message: "Course removed from cart" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+// Admin function to reject purchase and remove from cart
+export const rejectPurchase = async (req, res) => {
+  try {
+    const { userId, courseId } = req.body;
+
+    if (!userId || !courseId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "User ID and Course ID are required" 
+      });
+    }
+
+    const userCart = await Cart.findOne({ "user._id": userId });
+
+    if (!userCart) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User cart not found" 
+      });
+    }
+
+    // Check if course exists in cart
+    const courseExists = userCart.courses.some(
+      (item) => item.course._id.toString() === courseId.toString()
+    );
+
+    if (!courseExists) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Course not found in user's cart" 
+      });
+    }
+
+    // Get course details for notification
+    const courseItem = userCart.courses.find(
+      (item) => item.course._id.toString() === courseId.toString()
+    );
+
+    // Send rejection notification to user
+    await createNotification(
+      userId,
+      "Course Purchase Rejected ❌",
+      `Your purchase for "${courseItem.course.courseTitle}" has been rejected. Please contact support for more information.`,
+      "error",
+      courseId,
+      "course_rejected"
+    );
+
+    // Remove the course from cart
+    userCart.courses = userCart.courses.filter(
+      (item) => item.course._id.toString() !== courseId.toString()
+    );
+
+    await userCart.save();
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Course rejected and removed from cart" 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+};
+

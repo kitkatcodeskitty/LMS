@@ -19,6 +19,8 @@ const cartSchema = new mongoose.Schema(
         },
         isValidated: { type: Boolean, default: false },
         referralCode: { type: String, default: null },
+        transactionId: { type: String, required: true }, 
+        paymentScreenshot: { type: String, required: true }, 
         addedAt: { type: Date, default: Date.now },
       },
     ],

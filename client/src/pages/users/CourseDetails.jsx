@@ -80,12 +80,20 @@ const CourseDetails = () => {
       state: {
         courseId: courseData._id,
         courseTitle: courseData.courseTitle,
-        coursePrice:
-          courseData.coursePrice - (courseData.discount * courseData.coursePrice) / 100,
+        coursePrice: calculateDiscountedPrice(courseData),
         currency,
       },
     })
   }
+
+  const calculateDiscountedPrice = (course) => {
+    if (course.discountType === 'amount') {
+      return Math.max(0, course.coursePrice - course.discount);
+    } else {
+      // percentage discount
+      return course.coursePrice - (course.discount * course.coursePrice) / 100;
+    }
+  };
 
   if (!courseData) {
     return <Loading />
@@ -235,13 +243,17 @@ const CourseDetails = () => {
             <div className="flex gap-3 items-center pt-2">
               <p className="text-gray-800 md:text-4xl text-2xl font-semibold">
                 {currency}{' '}
-                {(courseData.coursePrice - (courseData.discount * courseData.coursePrice) / 100).toFixed(2)}
+                {calculateDiscountedPrice(courseData).toFixed(2)}
               </p>
               <p className="md:text-lg text-gray-500 line-through">
                 {currency}
                 {courseData.coursePrice}
               </p>
-              <p className="md:text-lg text-gray-500">{courseData.discount}% off</p>
+              <p className="md:text-lg text-gray-500">
+                {courseData.discountType === 'amount' 
+                  ? `${currency}${courseData.discount} off` 
+                  : `${courseData.discount}% off`}
+              </p>
             </div>
 
             <div className="flex items-center text-sm md:text-default gap-4 pt-2 md:pt-4 text-gray-500">

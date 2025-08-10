@@ -7,7 +7,7 @@ import { AppContext } from '../../context/AppContext'
 import { assets } from '../../assets/assets'
 
 const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
-  const { backendUrl, getToken } = useContext(AppContext)
+  const { backendUrl, getToken, currency } = useContext(AppContext)
   const quillRef = useRef(null)
   const editorRef = useRef(null)
 
@@ -15,6 +15,7 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
   const [courseTitle, setCourseTitle] = useState('')
   const [coursePrice, setCoursePrice] = useState(0)
   const [discount, setDiscount] = useState(0)
+  const [discountType, setDiscountType] = useState('percentage')
   const [image, setImage] = useState(null) // New image to upload
   const [imagePreview, setImagePreview] = useState('') // For preview old or new
 
@@ -42,6 +43,7 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
     setCourseTitle(course.courseTitle || '')
     setCoursePrice(course.coursePrice || 0)
     setDiscount(course.discount || 0)
+    setDiscountType(course.discountType || 'percentage')
     setChapters(course.courseContent || [])
     setImagePreview(course.courseThumbnail || '')
 
@@ -228,6 +230,7 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
         courseDescription: quillRef.current.root.innerHTML,
         coursePrice: parseFloat(coursePrice),
         discount: parseInt(discount),
+        discountType,
         courseContent: chapters,
       }
 
@@ -342,18 +345,29 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
             </div>
           </div>
 
-          {/* Discount % */}
+          {/* Discount */}
           <div className="flex flex-col gap-1">
-            <label htmlFor="discount" className="font-medium">
-              Discount %
-            </label>
+            <div className="flex items-center gap-3">
+              <label htmlFor="discount" className="font-medium">
+                Discount
+              </label>
+              <select
+                value={discountType}
+                onChange={(e) => setDiscountType(e.target.value)}
+                className="outline-none py-1 px-2 rounded border border-gray-500 text-sm"
+              >
+                <option value="percentage">Percentage (%)</option>
+                <option value="amount">Amount ({currency || '$'})</option>
+              </select>
+            </div>
             <input
               id="discount"
               type="number"
               value={discount}
               onChange={(e) => setDiscount(e.target.value)}
               min={0}
-              max={100}
+              max={discountType === 'percentage' ? 100 : undefined}
+              placeholder={discountType === 'percentage' ? '0' : '0.00'}
               className="outline-none md:py-2.5 py-2 w-28 px-3 rounded border border-gray-500"
               required
             />

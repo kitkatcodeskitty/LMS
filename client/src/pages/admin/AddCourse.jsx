@@ -7,13 +7,14 @@ import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
 
 const AddCourse = () => {
-  const { backendUrl, getToken } = useContext(AppContext);
+  const { backendUrl, getToken, currency } = useContext(AppContext);
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
   const [courseTitle, setCourseTitle] = useState('');
   const [coursePrice, setCoursePrice] = useState(0);
   const [discount, setDiscount] = useState(0);
+  const [discountType, setDiscountType] = useState('percentage');
   const [image, setImage] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
@@ -114,6 +115,7 @@ const AddCourse = () => {
         courseDescription: quillRef.current.root.innerHTML,
         coursePrice: parseFloat(coursePrice),
         discount: parseInt(discount),
+        discountType,
         courseContent: chapters,
       };
 
@@ -134,6 +136,7 @@ const AddCourse = () => {
         setCourseTitle('');
         setCoursePrice(0);
         setDiscount(0);
+        setDiscountType('percentage');
         setImage(null);
         setChapters([]);
         quillRef.current.root.innerHTML = '';
@@ -212,14 +215,24 @@ const AddCourse = () => {
 
         {/* Discount % */}
         <div className='flex flex-col gap-1'>
-          <p>Discount %</p>
+          <div className='flex items-center gap-3'>
+            <p>Discount</p>
+            <select
+              value={discountType}
+              onChange={(e) => setDiscountType(e.target.value)}
+              className='outline-none py-1 px-2 rounded border border-gray-500 text-sm'
+            >
+              <option value='percentage'>Percentage (%)</option>
+              <option value='amount'>Amount ({currency || '$'})</option>
+            </select>
+          </div>
           <input
             onChange={(e) => setDiscount(e.target.value)}
             value={discount}
             type='number'
-            placeholder='0'
+            placeholder={discountType === 'percentage' ? '0' : '0.00'}
             min={0}
-            max={100}
+            max={discountType === 'percentage' ? 100 : undefined}
             className='outline-none md:py-2.5 py-2 w-28 px-3 rounded border border-gray-500'
             required
           />

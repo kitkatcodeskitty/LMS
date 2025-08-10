@@ -15,12 +15,116 @@ export const AppContextProvider = (props) => {
   const [isEducator, setIsEducator] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [userData, setUserData] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
   // Get token from localStorage
   const getToken = () => {
     return localStorage.getItem("token");
   };
   console.log("getToken", getToken());
+
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        setNotifications(data.notifications);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  };
+
+  // Fetch unread notification count
+  const fetchUnreadNotificationCount = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/notifications/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        setUnreadNotificationCount(data.count);
+      }
+    } catch (error) {
+      console.error("Failed to fetch unread count:", error);
+    }
+  };
+
+  // Mark notification as read
+  const markNotificationAsRead = async (notificationId) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/notifications/${notificationId}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        setNotifications(prev => 
+          prev.map(notif => 
+            notif._id === notificationId 
+              ? { ...notif, isRead: true }
+              : notif
+          )
+        );
+        setUnreadNotificationCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+  };
+
+  // Mark all notifications as read
+  const markAllNotificationsAsRead = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/notifications/mark-all-read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+        setUnreadNotificationCount(0);
+      }
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
+  };
+
+  // Delete notification
+  const deleteNotification = async (notificationId) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const { data } = await axios.delete(
+        `${backendUrl}/api/notifications/${notificationId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data.success) {
+        setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
+        const deletedNotif = notifications.find(n => n._id === notificationId);
+        if (deletedNotif && !deletedNotif.isRead) {
+          setUnreadNotificationCount(prev => Math.max(0, prev - 1));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
+  };
 
   // Fetch all courses
   const fetchAllCourses = async () => {
@@ -137,6 +241,25 @@ useEffect(() => {
     }
   }, []);
 
+  // Load notifications when user data is available
+  useEffect(() => {
+    if (userData) {
+      fetchNotifications();
+      fetchUnreadNotificationCount();
+    }
+  }, [userData]);
+
+  // Set up polling for notifications every 30 seconds when user is logged in
+  useEffect(() => {
+    if (!userData) return;
+
+    const interval = setInterval(() => {
+      fetchUnreadNotificationCount();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [userData]);
+
 
   useEffect(() => {
     if (userData?.isAdmin) {
@@ -165,6 +288,12 @@ useEffect(() => {
     calculateChapterTime,
     calculateCourseDuration,
     calculateNoOfLectures,
+    notifications,
+    unreadNotificationCount,
+    fetchNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification,
   };
 
   return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;
