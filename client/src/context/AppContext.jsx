@@ -30,7 +30,7 @@ export const AppContextProvider = (props) => {
       if (data.success) {
         setAllCourses(data.courses);
       } else {
-        toast.error(data.message);
+        console.error("Failed to fetch courses:", data.message);
       }
     } catch (error) {
       toast.error(error.message);

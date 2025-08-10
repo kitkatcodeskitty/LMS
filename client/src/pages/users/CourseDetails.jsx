@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/users/Loading'
 import { assets } from '../../assets/assets'
@@ -10,6 +10,7 @@ import { toast } from 'react-toastify'
 
 const CourseDetails = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [courseData, setCourseData] = useState(null)
   const [openSections, setOpenSection] = useState({})
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false)
@@ -20,39 +21,28 @@ const CourseDetails = () => {
     userData,
     calculateChapterTime,
     calculateCourseDuration,
-    calculateNoOfLectures
+    calculateNoOfLectures,
   } = useContext(AppContext)
 
   const fetchCourseData = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/cart/get-purchased-course-details/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (!res.ok) throw new Error(`Failed to fetch course. Status: ${res.status}`);
+      const res = await fetch(`http://localhost:5000/api/course/${id}`)
+      if (!res.ok) throw new Error(`Failed to fetch course. Status: ${res.status}`)
 
-      const data = await res.json();
-      console.log("course data", data);
-
-      setCourseData(data);
+      const data = await res.json()
+      setCourseData(data)
 
       if (userData && data._id) {
-        setIsAlreadyEnrolled(userData.enrolledCourses?.includes(data._id));
+        setIsAlreadyEnrolled(userData.enrolledCourses?.includes(data._id))
       }
     } catch (error) {
-      toast.error('Failed to load course. ' + error.message);
+      toast.error('Failed to load course. ' + error.message)
     }
-  }
-
-  const enrolledCourse = () => {
-    // no payment logic for now
-    toast.info('Enroll button clicked! (No payment logic yet)')
   }
 
   useEffect(() => {
     fetchCourseData()
-  }, [])
+  }, [id, userData])
 
   const toggleSection = (index) => {
     setOpenSection((prev) => ({
@@ -73,7 +63,35 @@ const CourseDetails = () => {
 
   const fixedRating = 4
 
-  return courseData ? (
+  const enrolledCourse = () => {
+    if (!userData) {
+      navigate('/register')
+      return
+    }
+
+    if (userData.isAdmin) {
+      toast.info('Admins cannot enroll in courses.')
+      return
+    }
+
+    if (!courseData) return
+
+    navigate('/payment', {
+      state: {
+        courseId: courseData._id,
+        courseTitle: courseData.courseTitle,
+        coursePrice:
+          courseData.coursePrice - (courseData.discount * courseData.coursePrice) / 100,
+        currency,
+      },
+    })
+  }
+
+  if (!courseData) {
+    return <Loading />
+  }
+
+  return (
     <>
       <div className="flex md:flex-row flex-col-reverse gap-10 relative items-start justify-between md:px-36 px-8 md:pt-30 pt-20 text-left">
         <div className="absolute top-0 left-0 w-full h-section-height -z-1 bg-gradient-to-b from-red-100/70"></div>
@@ -110,7 +128,8 @@ const CourseDetails = () => {
             </p>
           </div>
           <p>
-            Course by <span className="text-blue-600 underline">
+            Course by{' '}
+            <span className="text-blue-600 underline">
               {courseData.admin?.firstName} {courseData.admin?.lastName}
             </span>
           </p>
@@ -127,7 +146,9 @@ const CourseDetails = () => {
                   >
                     <div className="flex items-center gap-2">
                       <img
-                        className={`transform transition-transform ${openSections[index] ? 'rotate-180' : ''}`}
+                        className={`transform transition-transform ${
+                          openSections[index] ? 'rotate-180' : ''
+                        }`}
                         src={assets.down_arrow_icon}
                         alt="arrow icon"
                       />
@@ -139,7 +160,9 @@ const CourseDetails = () => {
                   </div>
 
                   <div
-                    className={`overflow-hidden transition-all duration-300 ${openSections[index] ? 'max-h-96' : 'max-h-0'}`}
+                    className={`overflow-hidden transition-all duration-300 ${
+                      openSections[index] ? 'max-h-96' : 'max-h-0'
+                    }`}
                   >
                     <ul className="list-disc md:pl-4 pr-4 py-2 text-gray-600 border-t border-gray-300">
                       {chapter.chapterContent?.map((lecture, i) => (
@@ -215,7 +238,8 @@ const CourseDetails = () => {
                 {(courseData.coursePrice - (courseData.discount * courseData.coursePrice) / 100).toFixed(2)}
               </p>
               <p className="md:text-lg text-gray-500 line-through">
-                {currency}{courseData.coursePrice}
+                {currency}
+                {courseData.coursePrice}
               </p>
               <p className="md:text-lg text-gray-500">{courseData.discount}% off</p>
             </div>
@@ -241,21 +265,39 @@ const CourseDetails = () => {
               </div>
             </div>
 
-            <button
-              onClick={enrolledCourse}
-              className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium"
-            >
-              {isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}
-            </button>
+            {userData ? (
+              <button
+                onClick={enrolledCourse}
+                className={`md:mt-6 mt-4 w-full py-3 rounded font-medium ${
+                  isAlreadyEnrolled || userData.isAdmin
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 text-white'
+                }`}
+                disabled={isAlreadyEnrolled || userData.isAdmin}
+              >
+                {userData.isAdmin
+                  ? 'Admins cannot enroll'
+                  : isAlreadyEnrolled
+                  ? 'Already Enrolled'
+                  : 'Enroll Now'}
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/register')}
+                className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium"
+              >
+                Login to Enroll
+              </button>
+            )}
 
             <div>
               <p className="md:text-xl text-lg font-medium text-gray-800 mt-2">What's in the course?</p>
               <ul className="ml-4 pt-2 text-sm md:text-default list-disc text-gray-500">
                 <li>Lifetime access with free updates.</li>
-                <li>Lifetime access with free updates.</li>
-                <li>Lifetime access with free updates.</li>
-                <li>Lifetime access with free updates.</li>
-                <li>Lifetime access with free updates.</li>
+                <li>Expert instructors and community support.</li>
+                <li>Interactive assignments and quizzes.</li>
+                <li>Certification upon completion.</li>
+                <li>Access on mobile and desktop.</li>
               </ul>
             </div>
           </div>
@@ -263,8 +305,6 @@ const CourseDetails = () => {
       </div>
       <Footer />
     </>
-  ) : (
-    <Loading />
   )
 }
 

@@ -119,7 +119,7 @@ export const dummyTestimonial = [
         feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
     },
     {
-        name: 'Biraj bhattarai',
+        name: 'Biraj bhattara',
         role: 'SWE 2 @ Google',
         image: assets.profile_img_3,
         rating: 4.5,
