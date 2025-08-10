@@ -55,7 +55,17 @@ const StudentEnrollment = () => {
           })
         )
 
-        setPurchases(purchasesWithUserData)
+        // ✅ Remove duplicate users by keeping only the first occurrence
+        const uniquePurchases = []
+        const seenUserIds = new Set()
+        for (const purchase of purchasesWithUserData) {
+          if (purchase.userDetails && !seenUserIds.has(purchase.userDetails._id)) {
+            seenUserIds.add(purchase.userDetails._id)
+            uniquePurchases.push(purchase)
+          }
+        }
+
+        setPurchases(uniquePurchases)
       } catch (error) {
         toast.error('Error fetching data')
       } finally {
@@ -175,7 +185,7 @@ const StudentEnrollment = () => {
         >
           <div
             className="bg-white rounded-lg shadow-lg p-6 w-96"
-            onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside modal
+            onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-semibold mb-4">Edit User</h3>
 

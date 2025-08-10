@@ -5,6 +5,7 @@ import CoursesList from './pages/users/CourseList';
 import CourseDetails from './pages/users/CourseDetails';
 import MyEnrollments from './pages/users/MyEnrollments';
 import Player from './pages/users/Player';
+import Payment from './pages/users/Payment';
 import Loading from './components/users/Loading';
 
 import AddCourse from './pages/admin/AddCourse';
@@ -43,6 +44,7 @@ const App = () => {
         <Route path="/loading/:path" element={<Loading />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/payment" element={<Payment />} />
 
         {/* Admin-only routes */}
         <Route
