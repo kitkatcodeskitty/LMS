@@ -4,7 +4,8 @@ import {
   addCourse,
   adminDashboardData,
   getAllPurchasesWithUserAndCourse,
-  makeUserAdmin
+  makeUserAdmin,
+  setAffiliateAmount
 } from '../controllers/adminController.js';
 
 import { verify, verifyAdmin } from "../auth.js";
@@ -17,6 +18,7 @@ adminRouter.post('/add-course', verify, verifyAdmin, upload.single('image'), add
 adminRouter.get('/dashboard', verify, verifyAdmin, adminDashboardData);
 adminRouter.get('/purchased-users', verify, verifyAdmin, getAllPurchasesWithUserAndCourse);
 adminRouter.post('/make-user-admin', verify, verifyAdmin, makeUserAdmin);
+adminRouter.put('/purchase/affiliate-amount', verify, verifyAdmin, setAffiliateAmount);
 
 
 export default adminRouter;

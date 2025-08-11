@@ -8,6 +8,7 @@ const PaymentPage = () => {
   const { courseId, courseTitle, coursePrice, currency = '$' } = location.state || {};
 
   const [referralCode, setReferralCode] = useState('');
+  const [affiliateLink, setAffiliateLink] = useState('');
   const [transactionId, setTransactionId] = useState('');
   const [paymentScreenshot, setPaymentScreenshot] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -42,7 +43,18 @@ const PaymentPage = () => {
     try {
       const formData = new FormData();
       formData.append('courseId', courseId);
-      formData.append('referralCode', referralCode);
+      // Accept either affiliate link or code. If link provided, attempt to extract code from URL param 'ref'
+      let codeToSend = referralCode;
+      if (!codeToSend && affiliateLink) {
+        try {
+          const url = new URL(affiliateLink.trim());
+          const refParam = url.searchParams.get('ref');
+          if (refParam) codeToSend = refParam;
+        } catch (_) {
+          // not a valid URL; ignore and proceed without code
+        }
+      }
+      formData.append('referralCode', codeToSend || '');
       formData.append('transactionId', transactionId);
       formData.append('paymentScreenshot', paymentScreenshot);
 
@@ -155,14 +167,22 @@ const PaymentPage = () => {
               />
             </div>
 
-            {/* Referral Code */}
+            {/* Affiliate Link or Referral Code */}
             <div>
+              <label className="block mb-1 font-medium">Affiliate Link (optional)</label>
+              <input
+                type="text"
+                value={affiliateLink}
+                onChange={(e) => setAffiliateLink(e.target.value)}
+                placeholder="Paste affiliate link e.g. https://yourapp.com/course/123?ref=ABCD1234"
+                className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
+              />
               <label className="block mb-1 font-medium">Referral Code (optional)</label>
               <input
                 type="text"
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value)}
-                placeholder="Enter referral code if you have one"
+                placeholder="Or enter referral code"
                 className="w-full border border-gray-300 rounded px-3 py-2"
               />
             </div>

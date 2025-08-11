@@ -30,7 +30,15 @@ const notificationSchema = new mongoose.Schema(
     },
     relatedAction: {
       type: String,
-      enum: ["course_validated", "course_rejected", "course_enrolled", "payment_received"],
+      enum: [
+        "course_validated",
+        "course_rejected",
+        "course_enrolled",
+        "payment_received",
+        "kyc_submitted",
+        "kyc_verified",
+        "kyc_rejected"
+      ],
     },
   },
   { timestamps: true }

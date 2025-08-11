@@ -23,17 +23,11 @@ const Dashboard = () => {
     try {
       const token = await getToken()
 
-      const dashRes = await axios.get(`${backendUrl}/api/admin/dashboard`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      const purchasesRes = await axios.get(`${backendUrl}/api/admin/purchased-users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      const cartsRes = await axios.get(`${backendUrl}/api/cart/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const [dashRes, purchasesRes, cartsRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/admin/dashboard`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${backendUrl}/api/admin/purchased-users`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${backendUrl}/api/cart/all`, { headers: { Authorization: `Bearer ${token}` } }),
+      ])
 
       if (dashRes.data.success) setDashboardData(dashRes.data.dashboardData)
       else toast.error(dashRes.data.message || 'Failed to fetch dashboard data.')
@@ -108,7 +102,7 @@ const Dashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       )
-      console.log('Reject response:', res.data)
+      
 
       if (res.data.success) {
         toast.success('Course rejected and removed from cart.')

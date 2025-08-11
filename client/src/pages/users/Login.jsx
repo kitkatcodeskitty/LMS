@@ -26,7 +26,7 @@ const Login = () => {
       const res = await axios.post(`http://localhost:5000/api/user/login`, form);
 
       localStorage.setItem("token", res.data.token);
-      console.log("Login response:", res.data);
+      
 
       try {
         await fetchUserData();

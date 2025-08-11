@@ -19,6 +19,8 @@ const CourseDetails = () => {
   const {
     currency,
     userData,
+    backendUrl,
+    getToken,
     calculateChapterTime,
     calculateCourseDuration,
     calculateNoOfLectures,
@@ -26,15 +28,27 @@ const CourseDetails = () => {
 
   const fetchCourseData = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/course/${id}`)
-      if (!res.ok) throw new Error(`Failed to fetch course. Status: ${res.status}`)
+      const token = getToken()
+      if (token) {
+        const authRes = await fetch(`${backendUrl}/api/cart/get-purchased-course-details/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
 
+        if (authRes.ok) {
+          const authData = await authRes.json()
+          setCourseData(authData)
+          const enrolledByServer = authData?.isPurchased === true
+          const enrolledByClient = !!(userData && authData?._id && userData.enrolledCourses?.includes(authData._id))
+          setIsAlreadyEnrolled(enrolledByServer || enrolledByClient)
+          return
+        }
+      }
+
+      const res = await fetch(`${backendUrl}/api/course/${id}`)
+      if (!res.ok) throw new Error(`Failed to fetch course. Status: ${res.status}`)
       const data = await res.json()
       setCourseData(data)
-
-      if (userData && data._id) {
-        setIsAlreadyEnrolled(userData.enrolledCourses?.includes(data._id))
-      }
+      setIsAlreadyEnrolled(false)
     } catch (error) {
       toast.error('Failed to load course. ' + error.message)
     }
@@ -90,7 +104,6 @@ const CourseDetails = () => {
     if (course.discountType === 'amount') {
       return Math.max(0, course.coursePrice - course.discount);
     } else {
-      // percentage discount
       return course.coursePrice - (course.discount * course.coursePrice) / 100;
     }
   };

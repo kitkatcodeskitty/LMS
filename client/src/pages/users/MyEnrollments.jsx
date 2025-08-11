@@ -23,7 +23,7 @@ const MyEnrollments = () => {
       const { data } = await axios.get(`${backendUrl}/api/user/user-purchase`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Purchased courses data", data);
+      
       if (data.success) {
         const validCourses = (data.purchasedCourses || []).filter(course => course && course._id);
         setPurchasedCourses(validCourses);

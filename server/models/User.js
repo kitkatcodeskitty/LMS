@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
     referredBy: { type: String, default: null },
     affiliateEarnings: { type: Number, default: 0 },
     notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
+    kycStatus: { type: String, enum: ["unsubmitted", "pending", "verified", "rejected"], default: "unsubmitted" },
   },
   { timestamps: true }
 );

@@ -22,7 +22,7 @@ export const AppContextProvider = (props) => {
   const getToken = () => {
     return localStorage.getItem("token");
   };
-  console.log("getToken", getToken());
+  
 
   // Fetch notifications
   const fetchNotifications = async () => {
@@ -130,7 +130,7 @@ export const AppContextProvider = (props) => {
   const fetchAllCourses = async () => {
     try {
       const { data } = await axios.get("http://localhost:5000/api/course/all");
-      console.log("all course", data);
+      
       if (data.success) {
         setAllCourses(data.courses);
       } else {
@@ -150,7 +150,7 @@ export const AppContextProvider = (props) => {
       const { data } = await axios.get(`http://localhost:5000/api/user/getUserData`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("user data", data);
+      
 
       setUserData(data);
       setIsEducator(data.isAdmin || false);
@@ -163,7 +163,7 @@ export const AppContextProvider = (props) => {
   // Fetch enrolled courses - only for admins
 const fetchUserEnrolledCourses = async () => {
   if (!userData?.isAdmin) {
-    console.log("Not an admin — skipping enrolled courses fetch");
+    
     return;
   }
 
@@ -174,7 +174,7 @@ const fetchUserEnrolledCourses = async () => {
     const { data } = await axios.get(`http://localhost:5000/api/admin/purchased-users`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    console.log("enrolled courses", data);
+    
 
     if (data.success) {
       setEnrolledCourses(Array.isArray(data.purchases) ? data.purchases.reverse() : []);
@@ -192,10 +192,10 @@ const fetchUserEnrolledCourses = async () => {
 // Load enrolled courses when userData changes and user is admin
 useEffect(() => {
   if (userData?.isAdmin) {
-    console.log("User is an admin, fetching enrolled courses");
+    
     fetchUserEnrolledCourses();
   } else {
-    console.log("User is not an admin, clearing enrolled courses");
+    
     setEnrolledCourses([]);
   }
 }, [userData]);
@@ -263,10 +263,10 @@ useEffect(() => {
 
   useEffect(() => {
     if (userData?.isAdmin) {
-        console.log("User is an admin, fetching enrolled courses");
+        
       fetchUserEnrolledCourses();
     } else {
-        console.log("User is not an admin, clearing enrolled courses");
+        
       setEnrolledCourses([]); 
     }
   }, [userData]);

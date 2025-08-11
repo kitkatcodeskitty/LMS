@@ -43,6 +43,21 @@ export const register = async (req, res) => {
       imageUrl,
     });
 
+    // Generate a unique affiliate code upon registration
+    const generateAffiliateCode = async () => {
+      const length = 8;
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const make = () => Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+      for (let i = 0; i < 5; i++) {
+        const candidate = make();
+        const exists = await User.findOne({ affiliateCode: candidate });
+        if (!exists) return candidate;
+      }
+      return make();
+    };
+
+    newUser.affiliateCode = await generateAffiliateCode();
+
     await newUser.save();
 
 
@@ -163,8 +178,7 @@ export const resetPassword = async (req, res) => {
 export const makeUserAdmin = async (req, res) => {
   try {
     const { userId } = req.body;
-    console.log('Headers:', req.headers);
-    console.log('Body:', req.body);
+    
 
     if (!mongoose.Types.ObjectId.isValid(userId))
       return res.status(400).json({ error: "Invalid userId" });
@@ -207,5 +221,36 @@ export const getUserPurchasedCourses = async (req, res) => {
       success: false,
       message: error.message || "Server error while fetching purchased courses",
     });
+  }
+};
+
+// Get affiliate earnings for the authenticated user over time windows
+export const getAffiliateEarnings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const sumAffiliate = async (fromDate) => {
+      const docs = await Purchase.find({
+        referrerId: userId,
+        status: 'completed',
+        createdAt: { $gte: fromDate },
+      }).select('affiliateAmount');
+      return docs.reduce((acc, p) => acc + (Number(p.affiliateAmount) || 0), 0);
+    };
+
+    const [today, last7, last30] = await Promise.all([
+      sumAffiliate(startOfToday),
+      sumAffiliate(last7Days),
+      sumAffiliate(last30Days),
+    ]);
+
+    res.status(200).json({ success: true, earnings: { today, last7, last30 } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

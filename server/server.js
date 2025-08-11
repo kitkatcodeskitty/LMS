@@ -7,6 +7,7 @@ import courseRouter from './routes/courseRoute.js'
 import userRouter from './routes/userRoute.js'
 import cartRouter from './routes/cartRoute.js';
 import notificationRouter from './routes/notificationRoute.js';
+import kycRouter from './routes/kycRoute.js';
 import dotenv from "dotenv";
 
 
@@ -33,13 +34,14 @@ app.use('/api/course',courseRouter)
 app.use('/api/user',userRouter)
 app.use('/api/cart', cartRouter);
 app.use('/api/notifications', notificationRouter);
+app.use('/api/kyc', kycRouter);
 
 
 // port number
 const PORT = process.env.PORT || 5000 
 
 app.listen(PORT,()=>{
-    console.log(`server is runing on ${PORT}`)
+    console.log(`Server is running in ${PORT}`)
 })
 
 

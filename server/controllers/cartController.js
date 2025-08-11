@@ -155,12 +155,24 @@ export const validatePurchase = async (req, res) => {
 
     await purchasingUser.save();
 
-    await new Purchase({
+    const purchaseDoc = new Purchase({
       courseId,
       userId,
       amount: courseItem.course.coursePrice,
-      status: "completed"
-    }).save();
+      status: "completed",
+      referralCode: courseItem.referralCode || null,
+      transactionId: courseItem.transactionId,
+      paymentScreenshot: courseItem.paymentScreenshot,
+    });
+    if (courseItem.referralCode) {
+      const referrer = await User.findOne({ affiliateCode: courseItem.referralCode });
+      if (referrer) {
+        purchaseDoc.referrerId = referrer._id;
+        // Default split (can be overridden by admin later)
+        purchaseDoc.affiliateAmount = courseItem.course.coursePrice / 2;
+      }
+    }
+    await purchaseDoc.save();
 
     // Send success notification to user
     await createNotification(
@@ -206,9 +218,12 @@ export const getCourseDetails = async (req, res) => {
           isPreviewFree: true,
         })),
       }));
+    course.isPurchased = true;
+  } else {
+    course.isPurchased = false;
     } 
 
-    return res.json(course);
+  return res.json(course);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -221,8 +236,7 @@ export const removeFromCart = async (req, res) => {
     const userId = req.user.id;
     const { courseId } = req.body;
 
-    console.log('User ID:', userId);
-    console.log('Course ID to remove:', courseId);
+    
 
     if (!courseId) {
       return res.status(400).json({ success: false, message: "Course ID is required" });
@@ -234,7 +248,7 @@ export const removeFromCart = async (req, res) => {
       return res.status(404).json({ success: false, message: "User cart not found" });
     }
 
-    console.log('User Cart courses:', userCart.courses.map(c => c.course._id.toString()));
+    
 
     // Check if course exists in cart before filtering
     const courseExists = userCart.courses.some(
@@ -323,6 +337,87 @@ export const rejectPurchase = async (req, res) => {
       success: false, 
       message: error.message 
     });
+  }
+};
+
+// Admin function to update a cart item details (referralCode, transactionId, paymentScreenshot)
+export const updateCartItem = async (req, res) => {
+  try {
+    const { userId, courseId, referralCode, transactionId } = req.body;
+
+    if (!userId || !courseId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and Course ID are required',
+      });
+    }
+
+    // Validate transactionId if provided
+    if (typeof transactionId !== 'undefined') {
+      const trimmedTx = String(transactionId).trim();
+      if (trimmedTx.length === 0) {
+        return res.status(400).json({ success: false, message: 'Transaction ID cannot be empty' });
+      }
+      const txPattern = /^[A-Za-z0-9_-]{4,100}$/;
+      if (!txPattern.test(trimmedTx)) {
+        return res.status(400).json({ success: false, message: 'Invalid transaction ID format' });
+      }
+    }
+
+    // Validate referral code if provided (allow empty to clear)
+    let validatedReferralCode = null;
+    if (typeof referralCode !== 'undefined' && referralCode !== null && referralCode !== '') {
+      const refUser = await User.findOne({ affiliateCode: referralCode.trim() });
+      if (!refUser) {
+        return res.status(400).json({ success: false, message: 'Invalid referral code' });
+      }
+      validatedReferralCode = referralCode.trim();
+    } else if (referralCode === '') {
+      validatedReferralCode = null; // explicit clear
+    }
+
+    const userCart = await Cart.findOne({ 'user._id': userId });
+    if (!userCart) {
+      return res.status(404).json({ success: false, message: 'User cart not found' });
+    }
+
+    const courseItem = userCart.courses.find(
+      (item) => item.course._id.toString() === courseId.toString()
+    );
+
+    if (!courseItem) {
+      return res.status(404).json({ success: false, message: "Course not found in user's cart" });
+    }
+
+    if (courseItem.isValidated) {
+      return res.status(400).json({ success: false, message: 'Cannot edit a validated purchase' });
+    }
+
+    // Handle optional payment screenshot replacement
+    if (req.file) {
+      const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'payment_screenshots',
+      });
+      fs.unlinkSync(req.file.path);
+      courseItem.paymentScreenshot = uploadResult.secure_url;
+    }
+
+    if (typeof transactionId !== 'undefined') {
+      courseItem.transactionId = String(transactionId).trim();
+    }
+    if (typeof referralCode !== 'undefined') {
+      courseItem.referralCode = validatedReferralCode;
+    }
+
+    await userCart.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Cart item updated successfully',
+      cart: userCart,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

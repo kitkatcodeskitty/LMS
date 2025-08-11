@@ -12,6 +12,11 @@ const PurchaseSchema = new mongoose.Schema({
     required: true
   },
   amount: { type: Number, required: true },
+  affiliateAmount: { type: Number, default: 0 },
+  referralCode: { type: String, default: null },
+  referrerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  transactionId: { type: String },
+  paymentScreenshot: { type: String },
   status: {
     type: String,
     enum: ['pending', 'completed', 'failed'],

@@ -67,7 +67,10 @@ export const adminDashboardData = async (req, res) => {
           if (validatedCourse) {
             enrolledStudentsData.push({
               courseTitle: course.courseTitle,
-              student: cart.user
+              student: cart.user,
+              referralCode: validatedCourse.referralCode || null,
+              transactionId: validatedCourse.transactionId,
+              paymentScreenshot: validatedCourse.paymentScreenshot
             });
             totalEarnings += validatedCourse.course.coursePrice; 
           }
@@ -98,7 +101,8 @@ export const adminDashboardData = async (req, res) => {
     try {
       const purchases = await Purchase.find()
         .populate('userId', 'firstName lastName email')
-        .populate('courseId', 'courseTitle coursePrice');
+        .populate('courseId', 'courseTitle coursePrice')
+        .populate('referrerId', 'firstName lastName email affiliateCode');
   
       res.status(200).json({
         success: true,
@@ -154,6 +158,31 @@ export const makeUserAdmin = async (req, res) => {
       success: false, 
       message: error.message 
     });
+  }
+};
+
+// Admin can update affiliateAmount on a purchase
+export const setAffiliateAmount = async (req, res) => {
+  try {
+    const { purchaseId, affiliateAmount } = req.body;
+    if (!purchaseId || typeof affiliateAmount === 'undefined') {
+      return res.status(400).json({ success: false, message: 'purchaseId and affiliateAmount are required' });
+    }
+    const amountNum = Number(affiliateAmount);
+    if (Number.isNaN(amountNum) || amountNum < 0) {
+      return res.status(400).json({ success: false, message: 'affiliateAmount must be a non-negative number' });
+    }
+    const purchase = await Purchase.findByIdAndUpdate(
+      purchaseId,
+      { affiliateAmount: amountNum },
+      { new: true }
+    ).populate('userId', 'firstName lastName email').populate('courseId', 'courseTitle coursePrice').populate('referrerId', 'firstName lastName email affiliateCode');
+    if (!purchase) {
+      return res.status(404).json({ success: false, message: 'Purchase not found' });
+    }
+    return res.status(200).json({ success: true, purchase });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
   

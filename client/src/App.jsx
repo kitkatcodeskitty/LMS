@@ -13,11 +13,15 @@ import Dashboard from './pages/admin/Dashboard';
 import Educator from './pages/admin/Educator';
 import MyCourse from './pages/admin/MyCourse';
 import StudentsEnrolled from './pages/admin/StudentsEnrolled';
+import KycReview from './pages/admin/KycReview';
 import Navbar from './components/users/Navbar';
 import 'quill/dist/quill.snow.css';
 import { ToastContainer } from 'react-toastify';
 import Register from './pages/users/Registration';
 import Login from './pages/users/Login';
+import Kyc from './pages/users/Kyc';
+import Referral from './pages/users/Referral';
+import Profile from './pages/users/Profile';
 
 import { AppContext } from './context/AppContext';
 
@@ -45,6 +49,9 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/kyc" element={<Kyc />} />
+        <Route path="/referral" element={<Referral />} />
+        <Route path="/profile" element={<Profile />} />
 
         {/* Admin-only routes */}
         <Route
@@ -57,6 +64,7 @@ const App = () => {
           <Route path="myCourse" element={<MyCourse />} />
           <Route path="add-course" element={<AddCourse />} />
           <Route path="student-Enrolled" element={<StudentsEnrolled />} />
+          <Route path="kyc-review" element={<KycReview />} />
         </Route>
       </Routes>
     </div>

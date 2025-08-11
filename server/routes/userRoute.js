@@ -6,7 +6,8 @@ import {
   makeUserAdmin,
   getUserPurchasedCourses,
   getUserById,
-  updateUser
+  updateUser,
+  getAffiliateEarnings
 } from "../controllers/userController.js";
 import upload from '../configs/multer.js';
 
@@ -21,6 +22,7 @@ userRouter.post('/login', login);
 userRouter.get('/getUserData', verify, getUserData);
 userRouter.put('/update/:id', verify, verifyAdmin, updateUser);
 userRouter.get("/user-purchase", verify, getUserPurchasedCourses);
+userRouter.get('/affiliate/earnings', verify, getAffiliateEarnings);
 userRouter.get('/:userId', verify, verifyAdmin, getUserById);
 userRouter.patch('/makeUserAdmin', verify, verifyAdmin, makeUserAdmin);
 
