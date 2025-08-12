@@ -3,14 +3,25 @@ import { assets } from '../../assets/assets'
 
 const CallToAction = () => {
   return (
-    <div className='flex flex-col items-center gap-4 pt-10 pb-24 px-8 md:px-0'>
-        <h1 className='text-xl md:text-4xl text-gray-800 font-semibold'>Learn anything, anytime, anywhere</h1>
-        <p className='text-gray-500 sm:text-sm'>Incididunt sint Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam illo blanditiis perspiciatis odio non soluta nobis neque odit </p>
-        <div className='flex items-center font-medium gap-6 mt-4'>
-          <button className='px-10 py-3 rounded-md text-white bg-blue-600'>Get Started</button>
-          <button className='flex items-center gap-2'>Learn more <img src={assets.arrow_icon} alt='arrow_icon' /> </button>
+<div className="flex justify-center items-center  w-full px-2 md:px-16">
+      <div className="relative text-center rounded-xl w-full bg-[url('https://www.tailwindtap.com/assets/components/marketing-campaign/moutain.jpg')] bg-cover bg-no-repeat bg-center py-10 md:py-24">
+        <div className="absolute bottom-0 left-0 right-0 top-0 h-full w-full bg-fixed opacity-80 bg-black rounded-xl"></div>
+        <div className="z-10 relative flex h-full items-center justify-center">
+          <div className="text-white max-w-sm px-5 md:px-0 flex flex-col gap-5">
+            <h2 className="mb-4 text-3xl md:text-5xl font-semibold leading-tight">
+              Start Your Journey and Live Your Life
+            </h2>
+            <button
+              type="button"
+              className="rounded border-2 border-neutral-50 py-2 text-sm font-medium uppercase leading-normal text-neutral-50 transition duration-150 ease-in-out hover:border-neutral-100 hover:bg-neutral-500 hover:bg-opacity-10 hover:text-neutral-100 focus:border-neutral-100 focus:text-neutral-100 focus:outline-none focus:ring-0 active:border-neutral-200 active:text-neutral-200 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
+            >
+              Get Started
+            </button>
+          </div>
         </div>
+      </div>
     </div>
+
   )
 }
 

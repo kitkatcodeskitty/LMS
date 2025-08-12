@@ -17,10 +17,11 @@ export const AppContextProvider = (props) => {
   const [userData, setUserData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
   // Get token from localStorage
   const getToken = () => {
-    return localStorage.getItem("token");
+    return localStorage.getItem("token") || sessionStorage.getItem("token");
   };
   
 
@@ -126,10 +127,27 @@ export const AppContextProvider = (props) => {
     }
   };
 
+  // Fetch pending orders count
+  const fetchPendingOrdersCount = async () => {
+    const token = getToken();
+    if (!token || !userData?.isAdmin) return;
+
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/cart/pending`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (data.success) {
+        setPendingOrdersCount(data.totalPending || 0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch pending orders count:", error);
+    }
+  };
+
   // Fetch all courses
   const fetchAllCourses = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/api/course/all");
+      const { data } = await axios.get(`${backendUrl}/api/course/all`);
       
       if (data.success) {
         setAllCourses(data.courses);
@@ -147,7 +165,7 @@ export const AppContextProvider = (props) => {
     if (!token) return;
 
     try {
-      const { data } = await axios.get(`http://localhost:5000/api/user/getUserData`, {
+      const { data } = await axios.get(`${backendUrl}/api/user/getUserData`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -171,7 +189,7 @@ const fetchUserEnrolledCourses = async () => {
   if (!token) return;
 
   try {
-    const { data } = await axios.get(`http://localhost:5000/api/admin/purchased-users`, {
+    const { data } = await axios.get(`${backendUrl}/api/admin/purchased-users`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     
@@ -246,6 +264,9 @@ useEffect(() => {
     if (userData) {
       fetchNotifications();
       fetchUnreadNotificationCount();
+      if (userData.isAdmin) {
+        fetchPendingOrdersCount();
+      }
     }
   }, [userData]);
 
@@ -255,6 +276,9 @@ useEffect(() => {
 
     const interval = setInterval(() => {
       fetchUnreadNotificationCount();
+      if (userData.isAdmin) {
+        fetchPendingOrdersCount();
+      }
     }, 30000);
 
     return () => clearInterval(interval);
@@ -294,6 +318,8 @@ useEffect(() => {
     markNotificationAsRead,
     markAllNotificationsAsRead,
     deleteNotification,
+    pendingOrdersCount,
+    fetchPendingOrdersCount,
   };
 
   return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;

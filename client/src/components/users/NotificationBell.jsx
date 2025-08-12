@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { toast } from 'react-toastify';
+import { FiBell } from 'react-icons/fi'; // Notification bell icon
 
 const NotificationBell = () => {
   const { 
@@ -74,25 +75,7 @@ const NotificationBell = () => {
         onClick={() => setShowDropdown(!showDropdown)}
         className="relative p-2 text-gray-600 hover:text-gray-800 transition-colors"
       >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 17h5l-5 5v-5z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
+        <FiBell className="w-6 h-6" />
         
         {/* Unread Badge */}
         {unreadNotificationCount > 0 && (
@@ -123,10 +106,7 @@ const NotificationBell = () => {
           <div className="p-2">
             {notifications.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <svg className="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <FiBell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
                 <p>No notifications yet</p>
               </div>
             ) : (

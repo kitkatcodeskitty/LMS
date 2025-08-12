@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
+
 import Home from './pages/users/Home';
 import CoursesList from './pages/users/CourseList';
 import CourseDetails from './pages/users/CourseDetails';
@@ -14,14 +15,21 @@ import Educator from './pages/admin/Educator';
 import MyCourse from './pages/admin/MyCourse';
 import StudentsEnrolled from './pages/admin/StudentsEnrolled';
 import KycReview from './pages/admin/KycReview';
+import PendingOrders from './pages/admin/PendingOrders';
+
 import Navbar from './components/users/Navbar';
 import 'quill/dist/quill.snow.css';
 import { ToastContainer } from 'react-toastify';
+
 import Register from './pages/users/Registration';
 import Login from './pages/users/Login';
 import Kyc from './pages/users/Kyc';
 import Referral from './pages/users/Referral';
 import Profile from './pages/users/Profile';
+import AboutUs from './pages/users/AboutUs';
+import Policy from './pages/users/Policy';
+
+import ScrollToTop from './components/common/ScrollToTop'; // ScrollToTop import
 
 import { AppContext } from './context/AppContext';
 
@@ -29,12 +37,14 @@ const App = () => {
   const { userData } = useContext(AppContext);
   const location = useLocation();
 
-  // Hide Navbar on /educator and all its subroutes
+  // Hide Navbar on /educator and its subroutes
   const showNavbar = !location.pathname.startsWith('/educator');
 
   return (
     <div className="text-default min-h-screen bg-white">
       <ToastContainer />
+      <ScrollToTop /> {/* Scrolls to top on route change */}
+
       {showNavbar && <Navbar />}
 
       <Routes>
@@ -51,6 +61,8 @@ const App = () => {
         <Route path="/payment" element={<Payment />} />
         <Route path="/kyc" element={<Kyc />} />
         <Route path="/referral" element={<Referral />} />
+        <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/policy" element={<Policy />} />
         <Route path="/profile" element={<Profile />} />
 
         {/* Admin-only routes */}
@@ -64,6 +76,7 @@ const App = () => {
           <Route path="myCourse" element={<MyCourse />} />
           <Route path="add-course" element={<AddCourse />} />
           <Route path="student-Enrolled" element={<StudentsEnrolled />} />
+          <Route path="pending-orders" element={<PendingOrders />} />
           <Route path="kyc-review" element={<KycReview />} />
         </Route>
       </Routes>
