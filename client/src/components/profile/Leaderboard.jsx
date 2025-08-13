@@ -295,7 +295,7 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
       )}
 
       {/* Achievement System */}
-      {/* <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-200">
+      <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">🎯 Achievements</h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className={`p-4 rounded-xl text-center transition-all ${userRank > 0 && userRank <= 10 ? 'bg-green-100 border-2 border-green-300' : 'bg-white border border-gray-200'}`}>
@@ -330,7 +330,7 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
             </div>
           </div>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 };

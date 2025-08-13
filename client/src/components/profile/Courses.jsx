@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaBookOpen, FaGraduationCap } from 'react-icons/fa'; // Import icons
 
 const Courses = ({ purchasedCourses, currency, navigate }) => {
   return (
@@ -7,7 +8,9 @@ const Courses = ({ purchasedCourses, currency, navigate }) => {
 
       {purchasedCourses.length === 0 ? (
         <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-200">
-          <div className="text-4xl mb-4">📚</div>
+          <div className="text-4xl mb-4 text-rose-500 flex justify-center">
+            <FaGraduationCap />
+          </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Courses Yet</h3>
           <p className="text-gray-600 mb-4">Start your learning journey today!</p>
           <button
@@ -30,7 +33,9 @@ const Courses = ({ purchasedCourses, currency, navigate }) => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rose-500 to-pink-600">
-                    <span className="text-white text-4xl">📚</span>
+                    <span className="text-white text-4xl">
+                      <FaBookOpen />
+                    </span>
                   </div>
                 )}
               </div>

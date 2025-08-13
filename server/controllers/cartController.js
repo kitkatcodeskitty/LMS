@@ -37,11 +37,23 @@ export const addToCart = async (req, res) => {
     }
 
     const course = await Course.findById(courseId).select(
-      "courseTitle courseDescription coursePrice courseThumbnail"
+      "courseTitle courseDescription coursePrice courseThumbnail discount discountType"
     );
     if (!course) {
       return res.status(404).json({ success: false, message: "Course not found" });
     }
+
+    // Calculate discounted price
+    const calculateDiscountedPrice = (course) => {
+      if (course.discountType === 'amount') {
+        return Math.max(0, course.coursePrice - course.discount);
+      } else {
+        // percentage discount
+        return course.coursePrice - (course.discount * course.coursePrice) / 100;
+      }
+    };
+
+    const discountedPrice = calculateDiscountedPrice(course);
 
     let userCart = await Cart.findOne({ "user._id": userId });
 
@@ -50,7 +62,7 @@ export const addToCart = async (req, res) => {
         _id: course._id,
         courseTitle: course.courseTitle,
         courseDescription: course.courseDescription,
-        coursePrice: course.coursePrice,
+        coursePrice: discountedPrice, // Use discounted price instead of original price
         courseThumbnail: course.courseThumbnail,
       },
       referralCode: referralCode || null,
@@ -418,6 +430,48 @@ export const updateCartItem = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get pending orders for admin dashboard
+export const getPendingOrders = async (req, res) => {
+  try {
+    const carts = await Cart.find({
+      'courses.isValidated': false
+    });
+
+    const pendingOrders = [];
+
+    carts.forEach(cart => {
+      cart.courses.forEach(courseItem => {
+        if (!courseItem.isValidated) {
+          pendingOrders.push({
+            _id: `${cart.user._id}_${courseItem.course._id}`,
+            user: cart.user,
+            course: courseItem.course,
+            referralCode: courseItem.referralCode,
+            transactionId: courseItem.transactionId,
+            paymentScreenshot: courseItem.paymentScreenshot,
+            addedAt: courseItem.addedAt,
+            status: 'pending'
+          });
+        }
+      });
+    });
+
+    // Sort by most recent first
+    pendingOrders.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+
+    res.status(200).json({
+      success: true,
+      pendingOrders,
+      totalPending: pendingOrders.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 

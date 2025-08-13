@@ -7,7 +7,13 @@ import {
   getUserPurchasedCourses,
   getUserById,
   updateUser,
-  getAffiliateEarnings
+  getAffiliateEarnings,
+  getEarningsData,
+  getUserReferrals,
+  getLeaderboard,
+  getPaymentStatements,
+  updateProfile,
+  getPurchaseHistory
 } from "../controllers/userController.js";
 import upload from '../configs/multer.js';
 
@@ -23,6 +29,15 @@ userRouter.get('/getUserData', verify, getUserData);
 userRouter.put('/update/:id', verify, verifyAdmin, updateUser);
 userRouter.get("/user-purchase", verify, getUserPurchasedCourses);
 userRouter.get('/affiliate/earnings', verify, getAffiliateEarnings);
+
+// Profile page endpoints
+userRouter.get('/earnings', verify, getEarningsData);
+userRouter.get('/referrals', verify, getUserReferrals);
+userRouter.get('/leaderboard', verify, getLeaderboard);
+userRouter.get('/payment-statements', verify, getPaymentStatements);
+userRouter.get('/purchase-history', verify, getPurchaseHistory);
+userRouter.put('/update-profile', verify, updateProfile);
+
 userRouter.get('/:userId', verify, verifyAdmin, getUserById);
 userRouter.patch('/makeUserAdmin', verify, verifyAdmin, makeUserAdmin);
 

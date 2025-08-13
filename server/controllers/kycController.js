@@ -155,4 +155,20 @@ export const rejectKyc = async (req, res) => {
   }
 };
 
+// Get KYC by user ID (for admin use)
+export const getKycByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const kyc = await Kyc.findOne({ user: userId });
+    
+    if (!kyc) {
+      return res.status(404).json({ success: false, message: "KYC not found for this user" });
+    }
+    
+    res.status(200).json({ success: true, kyc });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 

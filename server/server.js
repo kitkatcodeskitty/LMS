@@ -22,25 +22,25 @@ await connectCloudinary()
 
 // middlewares
 app.use(cors())
-app.use(express.json());  
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 dotenv.config({ quiet: true });
 
 
 // route
-app.get('/', (req,res)=> res.send("api working"))
-app.use('/api/admin',adminRoute)
-app.use('/api/course',courseRouter)
-app.use('/api/user',userRouter)
+app.get('/', (req, res) => res.send("api working"))
+app.use('/api/admin', adminRoute)
+app.use('/api/course', courseRouter)
+app.use('/api/user', userRouter)
 app.use('/api/cart', cartRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/kyc', kycRouter);
 
 
 // port number
-const PORT = process.env.PORT || 5000 
+const PORT = process.env.PORT || 5000
 
-app.listen(PORT,()=>{
+app.listen(PORT, () => {
     console.log(`Server is running in ${PORT}`)
 })
 

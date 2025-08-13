@@ -200,20 +200,23 @@ export const getUserPurchasedCourses = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Find all completed purchases for the user
-    const purchases = await Purchase.find({ userId, status: 'completed' })
-      .populate('courseId', 'courseTitle coursePrice courseContent'); 
+    // Get user with enrolled courses
+    const user = await User.findById(userId).populate({
+      path: 'enrolledCourses',
+      select: 'courseTitle coursePrice courseThumbnail courseContent'
+    });
 
-    if (!purchases || purchases.length === 0) {
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (!user.enrolledCourses || user.enrolledCourses.length === 0) {
       return res.status(404).json({ success: false, message: "No purchased courses found" });
     }
 
-    // Extract course data from purchases
-    const purchasedCourses = purchases.map(purchase => purchase.courseId);
-
     res.status(200).json({
       success: true,
-      purchasedCourses,
+      purchasedCourses: user.enrolledCourses,
     });
   } catch (error) {
     console.error("Error fetching purchased courses:", error);
@@ -250,6 +253,206 @@ export const getAffiliateEarnings = async (req, res) => {
     ]);
 
     res.status(200).json({ success: true, earnings: { today, last7, last30 } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get detailed earnings data for profile dashboard
+export const getEarningsData = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const sumAffiliate = async (fromDate, toDate = null) => {
+      const query = {
+        referrerId: userId,
+        createdAt: { $gte: fromDate },
+      };
+      if (toDate) query.createdAt.$lt = toDate;
+
+      const docs = await Purchase.find(query).select('affiliateAmount');
+      return docs.reduce((acc, p) => acc + (Number(p.affiliateAmount) || 0), 0);
+    };
+
+    const [today, lastSevenDays, thisMonth] = await Promise.all([
+      sumAffiliate(startOfToday),
+      sumAffiliate(last7Days),
+      sumAffiliate(startOfMonth),
+    ]);
+
+    const earnings = {
+      lifetime: user.affiliateEarnings || 0,
+      today,
+      lastSevenDays,
+      thisMonth,
+    };
+
+    res.status(200).json({ success: true, earnings });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get user referrals
+export const getUserReferrals = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Find all purchases made by users referred by this user
+    const referralPurchases = await Purchase.find({ referrerId: userId })
+      .populate('userId', 'firstName lastName email createdAt')
+      .populate('courseId', 'courseTitle coursePrice')
+      .sort({ createdAt: -1 });
+
+    // Group by user to get referral summary
+    const referralMap = new Map();
+    
+    referralPurchases.forEach(purchase => {
+      if (purchase.userId) {
+        const userId = purchase.userId._id.toString();
+        if (!referralMap.has(userId)) {
+          referralMap.set(userId, {
+            name: `${purchase.userId.firstName} ${purchase.userId.lastName}`,
+            email: purchase.userId.email,
+            joinDate: purchase.userId.createdAt,
+            coursesBought: 0,
+            commissionEarned: 0,
+          });
+        }
+        
+        const referralData = referralMap.get(userId);
+        referralData.coursesBought += 1;
+        referralData.commissionEarned += purchase.affiliateAmount || 0;
+      }
+    });
+
+    const referrals = Array.from(referralMap.values());
+
+    res.status(200).json({ success: true, referrals });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get leaderboard
+export const getLeaderboard = async (req, res) => {
+  try {
+    const leaderboard = await User.find({ affiliateEarnings: { $gt: 0 } })
+      .select('firstName lastName email affiliateEarnings')
+      .sort({ affiliateEarnings: -1 })
+      .limit(50);
+
+    res.status(200).json({ success: true, leaderboard });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get payment statements
+export const getPaymentStatements = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get all purchases where this user earned affiliate commission
+    const statements = await Purchase.find({ 
+      referrerId: userId,
+      affiliateAmount: { $gt: 0 }
+    })
+      .populate('userId', 'firstName lastName')
+      .populate('courseId', 'courseTitle')
+      .sort({ createdAt: -1 });
+
+    const formattedStatements = statements.map(purchase => ({
+      date: purchase.createdAt,
+      description: `Commission from ${purchase.userId?.firstName} ${purchase.userId?.lastName} - ${purchase.courseId?.courseTitle}`,
+      amount: purchase.affiliateAmount || 0,
+      status: 'paid', // You can modify this based on your payment logic
+    }));
+
+    res.status(200).json({ success: true, statements: formattedStatements });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Update user profile
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { firstName, lastName, email, phone, bio } = req.body;
+
+    // Check if email is already used by another user
+    if (email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: "Email already in use by another user" });
+      }
+    }
+
+    const updateData = {};
+    if (firstName) updateData.firstName = firstName;
+    if (lastName) updateData.lastName = lastName;
+    if (email) updateData.email = email;
+    if (phone) updateData.phone = phone;
+    if (bio) updateData.bio = bio;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, data: updatedUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get user's purchase history with detailed transaction information
+export const getPurchaseHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get all purchases made by this user
+    const purchases = await Purchase.find({ userId })
+      .populate('courseId', 'courseTitle coursePrice courseThumbnail courseDescription')
+      .populate('referrerId', 'firstName lastName affiliateCode')
+      .sort({ createdAt: -1 });
+
+    // Format the purchase data for the frontend
+    const formattedPurchases = purchases.map(purchase => ({
+      _id: purchase._id,
+      courseId: purchase.courseId,
+      amount: purchase.amount,
+      status: purchase.status || 'completed',
+      transactionId: purchase.transactionId,
+      referralCode: purchase.referralCode,
+      paymentScreenshot: purchase.paymentScreenshot,
+      createdAt: purchase.createdAt,
+      referrerId: purchase.referrerId,
+      affiliateAmount: purchase.affiliateAmount
+    }));
+
+    res.status(200).json({ 
+      success: true, 
+      purchases: formattedPurchases,
+      totalPurchases: formattedPurchases.length,
+      totalAmount: formattedPurchases.reduce((sum, purchase) => sum + (purchase.amount || 0), 0)
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
