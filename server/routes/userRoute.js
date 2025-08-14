@@ -4,6 +4,7 @@ import {
   register,
   login,
   makeUserAdmin,
+  makeUserSubAdmin,
   getUserPurchasedCourses,
   getUserById,
   updateUser,
@@ -40,5 +41,6 @@ userRouter.put('/update-profile', verify, updateProfile);
 
 userRouter.get('/:userId', verify, verifyAdmin, getUserById);
 userRouter.patch('/makeUserAdmin', verify, verifyAdmin, makeUserAdmin);
+userRouter.post('/make-sub-admin', verify, verifyAdmin, makeUserSubAdmin);
 
 export default userRouter;

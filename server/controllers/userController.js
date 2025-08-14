@@ -117,6 +117,7 @@ export const updateUser = async (req, res) => {
       affiliateEarnings, 
       affiliateCode,
       isAdmin,
+      isSubAdmin,
       referredBy 
     } = req.body;
 
@@ -148,6 +149,20 @@ export const updateUser = async (req, res) => {
       isAdmin: Boolean(isAdmin),
       referredBy: referredBy || null
     };
+
+    // Set role based on admin status
+    if (Boolean(isAdmin)) {
+      updateData.role = 'admin';
+      updateData.isSubAdmin = false;
+    } else if (Boolean(isSubAdmin)) {
+      updateData.role = 'subadmin';
+      updateData.isAdmin = false;
+      updateData.isSubAdmin = true;
+    } else {
+      updateData.role = 'user';
+      updateData.isAdmin = false;
+      updateData.isSubAdmin = false;
+    }
 
     // Hash password if provided
     if (password && password.trim()) {
@@ -489,5 +504,59 @@ export const getPurchaseHistory = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Make user sub-admin
+export const makeUserSubAdmin = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found with this email'
+      });
+    }
+
+    // Check if user is already an admin or sub-admin
+    if (user.isAdmin) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is already a full admin'
+      });
+    }
+
+    if (user.isSubAdmin || user.role === 'subadmin') {
+      return res.status(400).json({
+        success: false,
+        message: 'User is already a sub-admin'
+      });
+    }
+
+    // Update user to sub-admin
+    user.isSubAdmin = true;
+    user.role = 'subadmin';
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `${user.firstName} ${user.lastName} has been made a sub-admin successfully`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

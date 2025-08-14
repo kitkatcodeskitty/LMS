@@ -13,6 +13,7 @@ export const AppContextProvider = (props) => {
 
   const [allCourses, setAllCourses] = useState([]);
   const [isEducator, setIsEducator] = useState(false);
+  const [isSubAdmin, setIsSubAdmin] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [userData, setUserData] = useState(null);
   const [notifications, setNotifications] = useState([]);
@@ -172,6 +173,7 @@ export const AppContextProvider = (props) => {
 
       setUserData(data);
       setIsEducator(data.isAdmin || false);
+      setIsSubAdmin(data.isSubAdmin || data.role === 'subadmin' || false);
     } catch (error) {
       toast.error(error.response?.data?.error || error.message || "Failed to fetch user data");
     }
@@ -301,6 +303,8 @@ useEffect(() => {
     navigate,
     isEducator,
     setIsEducator,
+    isSubAdmin,
+    setIsSubAdmin,
     enrolledCourses,
     fetchUserEnrolledCourses,
     fetchUserData,

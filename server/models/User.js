@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     imageUrl: { type: String },
     isAdmin: { type: Boolean, default: false },
+    isSubAdmin: { type: Boolean, default: false },
+    role: { type: String, enum: ["user", "subadmin", "admin"], default: "user" },
     enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
     affiliateCode: { type: String, unique: true, sparse: true }, 
     referredBy: { type: String, default: null },

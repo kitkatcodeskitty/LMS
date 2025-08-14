@@ -172,3 +172,206 @@ export const getKycByUserId = async (req, res) => {
 };
 
 
+// Update KYC by admin/sub-admin
+export const updateKyc = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      fullName,
+      dob,
+      gender,
+      nationality,
+      occupation,
+      maritalStatus,
+      phoneNumber,
+      alternatePhone,
+      email,
+      addressLine1,
+      city,
+      state,
+      postalCode,
+      country,
+      idType,
+      idNumber,
+      documentIssueDate,
+      documentExpiryDate,
+      documentIssuingAuthority,
+      status,
+      remarks
+    } = req.body;
+
+    const files = req.files || {};
+
+    const uploadIfPresent = async (fileArray) => {
+      if (!fileArray || fileArray.length === 0) return undefined;
+      const uploaded = await cloudinary.uploader.upload(fileArray[0].path);
+      return uploaded.secure_url;
+    };
+
+    // Upload new files if provided
+    const [idFrontUrl, idBackUrl, selfieUrl] = await Promise.all([
+      uploadIfPresent(files.idFront),
+      uploadIfPresent(files.idBack),
+      uploadIfPresent(files.selfie),
+    ]);
+
+    const updateData = {
+      fullName,
+      dob,
+      gender,
+      nationality,
+      occupation,
+      maritalStatus,
+      phoneNumber,
+      alternatePhone,
+      email,
+      addressLine1,
+      city,
+      state,
+      postalCode,
+      country,
+      idType,
+      idNumber,
+      documentIssueDate,
+      documentExpiryDate,
+      documentIssuingAuthority,
+      status,
+      remarks,
+      updatedAt: new Date()
+    };
+
+    // Only update file URLs if new files were uploaded
+    if (idFrontUrl) updateData.idFrontUrl = idFrontUrl;
+    if (idBackUrl) updateData.idBackUrl = idBackUrl;
+    if (selfieUrl) updateData.selfieUrl = selfieUrl;
+
+    // Set verification date if status is being changed to verified
+    if (status === 'verified') {
+      updateData.verifiedAt = new Date();
+    }
+
+    const kyc = await Kyc.findByIdAndUpdate(id, updateData, { new: true })
+      .populate("user", "firstName lastName email imageUrl");
+
+    if (!kyc) {
+      return res.status(404).json({ success: false, message: "KYC not found" });
+    }
+
+    // Update user's KYC status
+    await User.findByIdAndUpdate(kyc.user._id, { kycStatus: status });
+
+    // Send notification based on status change
+    if (status === 'verified') {
+      await createNotification(
+        kyc.user._id,
+        "KYC Updated & Verified",
+        "Your KYC information has been updated and verified by admin.",
+        "success",
+        null,
+        "kyc_updated_verified"
+      );
+    } else if (status === 'rejected') {
+      await createNotification(
+        kyc.user._id,
+        "KYC Updated & Rejected",
+        remarks || "Your KYC information has been updated but rejected. Please review remarks.",
+        "error",
+        null,
+        "kyc_updated_rejected"
+      );
+    } else {
+      await createNotification(
+        kyc.user._id,
+        "KYC Information Updated",
+        "Your KYC information has been updated by admin.",
+        "info",
+        null,
+        "kyc_updated"
+      );
+    }
+
+    res.status(200).json({ success: true, kyc });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Update KYC by user ID (for admin use in student management)
+export const updateKycByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const updateData = req.body;
+
+    const files = req.files || {};
+
+    const uploadIfPresent = async (fileArray) => {
+      if (!fileArray || fileArray.length === 0) return undefined;
+      const uploaded = await cloudinary.uploader.upload(fileArray[0].path);
+      return uploaded.secure_url;
+    };
+
+    // Upload new files if provided
+    const [idFrontUrl, idBackUrl, selfieUrl] = await Promise.all([
+      uploadIfPresent(files.idFront),
+      uploadIfPresent(files.idBack),
+      uploadIfPresent(files.selfie),
+    ]);
+
+    // Only update file URLs if new files were uploaded
+    if (idFrontUrl) updateData.idFrontUrl = idFrontUrl;
+    if (idBackUrl) updateData.idBackUrl = idBackUrl;
+    if (selfieUrl) updateData.selfieUrl = selfieUrl;
+
+    updateData.updatedAt = new Date();
+
+    // Set verification date if status is being changed to verified
+    if (updateData.status === 'verified') {
+      updateData.verifiedAt = new Date();
+    }
+
+    const kyc = await Kyc.findOneAndUpdate(
+      { user: userId },
+      updateData,
+      { new: true, upsert: true }
+    ).populate("user", "firstName lastName email imageUrl");
+
+    // Update user's KYC status
+    if (updateData.status) {
+      await User.findByIdAndUpdate(userId, { kycStatus: updateData.status });
+    }
+
+    // Send notification
+    if (updateData.status === 'verified') {
+      await createNotification(
+        userId,
+        "KYC Updated & Verified",
+        "Your KYC information has been updated and verified by admin.",
+        "success",
+        null,
+        "kyc_updated_verified"
+      );
+    } else if (updateData.status === 'rejected') {
+      await createNotification(
+        userId,
+        "KYC Updated & Rejected",
+        updateData.remarks || "Your KYC information has been updated but rejected. Please review remarks.",
+        "error",
+        null,
+        "kyc_updated_rejected"
+      );
+    } else {
+      await createNotification(
+        userId,
+        "KYC Information Updated",
+        "Your KYC information has been updated by admin.",
+        "info",
+        null,
+        "kyc_updated"
+      );
+    }
+
+    res.status(200).json({ success: true, kyc });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

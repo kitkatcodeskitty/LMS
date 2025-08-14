@@ -25,9 +25,15 @@ const StudentEnrollment = () => {
     affiliateEarnings: 0,
     affiliateCode: '',
     isAdmin: false,
+    isSubAdmin: false,
     referredBy: '',
   })
   const [showPassword, setShowPassword] = useState(false)
+  
+  // KYC editing state
+  const [editingKycUserId, setEditingKycUserId] = useState(null)
+  const [kycEditForm, setKycEditForm] = useState({})
+  const [uploadingKyc, setUploadingKyc] = useState(false)
 
   useEffect(() => {
     const fetchPurchasesWithUserData = async () => {
@@ -122,6 +128,7 @@ const StudentEnrollment = () => {
       affiliateEarnings: user.affiliateEarnings || 0,
       affiliateCode: user.affiliateCode || '',
       isAdmin: user.isAdmin || false,
+      isSubAdmin: user.isSubAdmin || user.role === 'subadmin' || false,
       referredBy: user.referredBy || '',
     })
   }
@@ -135,6 +142,93 @@ const StudentEnrollment = () => {
   const handleChange = (e) => {
     const { name, value } = e.target
     setEditForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  // KYC editing functions
+  const startEditingKyc = (userId, kycData) => {
+    setEditingKycUserId(userId)
+    setKycEditForm({
+      fullName: kycData.fullName || '',
+      dob: kycData.dob || '',
+      gender: kycData.gender || '',
+      nationality: kycData.nationality || '',
+      occupation: kycData.occupation || '',
+      maritalStatus: kycData.maritalStatus || '',
+      phoneNumber: kycData.phoneNumber || '',
+      alternatePhone: kycData.alternatePhone || '',
+      email: kycData.email || '',
+      addressLine1: kycData.addressLine1 || '',
+      city: kycData.city || '',
+      state: kycData.state || '',
+      postalCode: kycData.postalCode || '',
+      country: kycData.country || '',
+      idType: kycData.idType || '',
+      idNumber: kycData.idNumber || '',
+      documentIssueDate: kycData.documentIssueDate || '',
+      documentExpiryDate: kycData.documentExpiryDate || '',
+      documentIssuingAuthority: kycData.documentIssuingAuthority || '',
+      status: kycData.status || 'pending',
+      remarks: kycData.remarks || ''
+    })
+  }
+
+  const handleKycInputChange = (e) => {
+    const { name, value } = e.target
+    setKycEditForm(prev => ({ ...prev, [name]: value }))
+  }
+
+  const saveKycChanges = async (e) => {
+    e.preventDefault()
+    setUploadingKyc(true)
+
+    try {
+      const token = await getToken()
+      const formData = new FormData()
+
+      // Add all form fields
+      Object.keys(kycEditForm).forEach(key => {
+        if (kycEditForm[key]) {
+          formData.append(key, kycEditForm[key])
+        }
+      })
+
+      // Add files if selected
+      const idFrontFile = document.getElementById('kycIdFront')?.files[0]
+      const idBackFile = document.getElementById('kycIdBack')?.files[0]
+      const selfieFile = document.getElementById('kycSelfie')?.files[0]
+
+      if (idFrontFile) formData.append('idFront', idFrontFile)
+      if (idBackFile) formData.append('idBack', idBackFile)
+      if (selfieFile) formData.append('selfie', selfieFile)
+
+      const { data } = await axios.put(
+        `${backendUrl}/api/kyc/user/${editingKycUserId}/update`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      )
+
+      if (data.success) {
+        toast.success('KYC updated successfully')
+        setEditingKycUserId(null)
+        // Refresh the purchases data to show updated KYC
+        const token2 = await getToken()
+        const { data: purchasesRes } = await axios.get(`${backendUrl}/api/admin/enrolled-students`, {
+          headers: { Authorization: `Bearer ${token2}` }
+        })
+        if (purchasesRes.success) setPurchases(purchasesRes.purchases)
+      } else {
+        toast.error(data.message || 'Failed to update KYC')
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Error updating KYC')
+    } finally {
+      setUploadingKyc(false)
+    }
   }
 
   // Save changes API call
@@ -331,7 +425,15 @@ const StudentEnrollment = () => {
                         {/* KYC Information */}
                         {kyc && (
                           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                            <h4 className="text-sm font-medium text-gray-900 mb-2">KYC Information</h4>
+                            <div className="flex justify-between items-center mb-2">
+                              <h4 className="text-sm font-medium text-gray-900">KYC Information</h4>
+                              <button
+                                onClick={() => startEditingKyc(user._id, kyc)}
+                                className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                              >
+                                Edit KYC
+                              </button>
+                            </div>
                             <div className="space-y-1 text-xs">
                               {kyc.fullName && (
                                 <div className="flex justify-between">
@@ -1133,17 +1235,41 @@ const StudentEnrollment = () => {
                   />
                 </div>
 
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="isAdmin"
-                    checked={editForm.isAdmin}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, isAdmin: e.target.checked }))}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label className="ml-2 block text-sm font-medium text-gray-700">
-                    Admin Access
-                  </label>
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="isAdmin"
+                      checked={editForm.isAdmin}
+                      onChange={(e) => setEditForm(prev => ({ 
+                        ...prev, 
+                        isAdmin: e.target.checked,
+                        isSubAdmin: e.target.checked ? false : prev.isSubAdmin // Clear sub-admin if making full admin
+                      }))}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 block text-sm font-medium text-gray-700">
+                      Full Admin Access
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="isSubAdmin"
+                      checked={editForm.isSubAdmin}
+                      disabled={editForm.isAdmin} // Disable if full admin is selected
+                      onChange={(e) => setEditForm(prev => ({ ...prev, isSubAdmin: e.target.checked }))}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded disabled:opacity-50"
+                    />
+                    <label className="ml-2 block text-sm font-medium text-gray-700">
+                      Sub-Admin Access (Limited)
+                    </label>
+                  </div>
+                  
+                  <p className="text-xs text-gray-500">
+                    Sub-admins can manage students, orders, and KYC but cannot access dashboard or add courses.
+                  </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
@@ -1180,6 +1306,346 @@ const StudentEnrollment = () => {
             className="max-w-[90vw] max-h-[80vh] rounded shadow-lg"
             onClick={(e) => e.stopPropagation()}
           />
+        </div>
+      )}
+
+      {/* KYC Edit Modal */}
+      {editingKycUserId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Edit KYC Information</h2>
+                <button
+                  onClick={() => setEditingKycUserId(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={saveKycChanges} className="space-y-6">
+                {/* Personal Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        name="fullName"
+                        value={kycEditForm.fullName}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                      <input
+                        type="date"
+                        name="dob"
+                        value={kycEditForm.dob}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                      <select
+                        name="gender"
+                        value={kycEditForm.gender}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                      <input
+                        type="text"
+                        name="nationality"
+                        value={kycEditForm.nationality}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
+                      <input
+                        type="text"
+                        name="occupation"
+                        value={kycEditForm.occupation}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
+                      <select
+                        name="maritalStatus"
+                        value={kycEditForm.maritalStatus}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Status</option>
+                        <option value="single">Single</option>
+                        <option value="married">Married</option>
+                        <option value="divorced">Divorced</option>
+                        <option value="widowed">Widowed</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                      <input
+                        type="tel"
+                        name="phoneNumber"
+                        value={kycEditForm.phoneNumber}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Alternate Phone</label>
+                      <input
+                        type="tel"
+                        name="alternatePhone"
+                        value={kycEditForm.alternatePhone}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={kycEditForm.email}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Address Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Address Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="md:col-span-2 lg:col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                      <input
+                        type="text"
+                        name="addressLine1"
+                        value={kycEditForm.addressLine1}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={kycEditForm.city}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={kycEditForm.state}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                      <input
+                        type="text"
+                        name="postalCode"
+                        value={kycEditForm.postalCode}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                      <input
+                        type="text"
+                        name="country"
+                        value={kycEditForm.country}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Document Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
+                      <select
+                        name="idType"
+                        value={kycEditForm.idType}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Document Type</option>
+                        <option value="passport">Passport</option>
+                        <option value="national_id">National ID</option>
+                        <option value="driving_license">Driving License</option>
+                        <option value="voter_id">Voter ID</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
+                      <input
+                        type="text"
+                        name="idNumber"
+                        value={kycEditForm.idNumber}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                      <input
+                        type="date"
+                        name="documentIssueDate"
+                        value={kycEditForm.documentIssueDate}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                      <input
+                        type="date"
+                        name="documentExpiryDate"
+                        value={kycEditForm.documentExpiryDate}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Authority</label>
+                      <input
+                        type="text"
+                        name="documentIssuingAuthority"
+                        value={kycEditForm.documentIssuingAuthority}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Upload */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Update Documents (Optional)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ID Front</label>
+                      <input
+                        type="file"
+                        id="kycIdFront"
+                        accept="image/*"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ID Back</label>
+                      <input
+                        type="file"
+                        id="kycIdBack"
+                        accept="image/*"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Selfie</label>
+                      <input
+                        type="file"
+                        id="kycSelfie"
+                        accept="image/*"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status and Remarks */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Status & Remarks</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        name="status"
+                        value={kycEditForm.status}
+                        onChange={handleKycInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                      <textarea
+                        name="remarks"
+                        value={kycEditForm.remarks}
+                        onChange={handleKycInputChange}
+                        rows={3}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Add remarks or notes..."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setEditingKycUserId(null)}
+                    className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={uploadingKyc}
+                    className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${
+                      uploadingKyc ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    {uploadingKyc ? 'Updating...' : 'Update KYC'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>

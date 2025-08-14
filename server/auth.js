@@ -7,6 +7,8 @@ export const createAccessToken = (user) => {
     id: user._id,
     email: user.email,
     isAdmin: user.isAdmin,
+    isSubAdmin: user.isSubAdmin,
+    role: user.role,
   };
   return jwt.sign(data, process.env.JWT_SECRET_KEY, {});
 };
@@ -31,14 +33,24 @@ export const verify = (req, res, next) => {
 };
 
 export const verifyAdmin = (req, res, next) => {
-  
-
   if (req.user.isAdmin) {
     next();
   } else {
     return res.status(403).send({
       auth: "Failed",
       message: "Action Forbidden",
+    });
+  }
+};
+
+// Verify admin or sub-admin for limited admin functions
+export const verifyAdminOrSubAdmin = (req, res, next) => {
+  if (req.user.isAdmin || req.user.isSubAdmin || req.user.role === 'admin' || req.user.role === 'subadmin') {
+    next();
+  } else {
+    return res.status(403).send({
+      auth: "Failed",
+      message: "Action Forbidden - Admin or Sub-Admin access required",
     });
   }
 };

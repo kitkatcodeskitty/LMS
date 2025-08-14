@@ -9,6 +9,9 @@ const KycReview = () => {
   const [filter, setFilter] = useState('pending');
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingKyc, setEditingKyc] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [uploading, setUploading] = useState(false);
 
   const fetchList = async () => {
     try {
@@ -60,6 +63,87 @@ const KycReview = () => {
       kyc.idType?.toLowerCase().includes(searchLower)
     );
   });
+
+  const startEditing = (kyc) => {
+    setEditingKyc(kyc);
+    setEditForm({
+      fullName: kyc.fullName || '',
+      dob: kyc.dob || '',
+      gender: kyc.gender || '',
+      nationality: kyc.nationality || '',
+      occupation: kyc.occupation || '',
+      maritalStatus: kyc.maritalStatus || '',
+      phoneNumber: kyc.phoneNumber || '',
+      alternatePhone: kyc.alternatePhone || '',
+      email: kyc.email || '',
+      addressLine1: kyc.addressLine1 || '',
+      city: kyc.city || '',
+      state: kyc.state || '',
+      postalCode: kyc.postalCode || '',
+      country: kyc.country || '',
+      idType: kyc.idType || '',
+      idNumber: kyc.idNumber || '',
+      documentIssueDate: kyc.documentIssueDate || '',
+      documentExpiryDate: kyc.documentExpiryDate || '',
+      documentIssuingAuthority: kyc.documentIssuingAuthority || '',
+      status: kyc.status || 'pending',
+      remarks: kyc.remarks || ''
+    });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setUploading(true);
+
+    try {
+      const token = getToken();
+      const formData = new FormData();
+
+      // Add all form fields
+      Object.keys(editForm).forEach(key => {
+        if (editForm[key]) {
+          formData.append(key, editForm[key]);
+        }
+      });
+
+      // Add files if selected
+      const idFrontFile = document.getElementById('editIdFront')?.files[0];
+      const idBackFile = document.getElementById('editIdBack')?.files[0];
+      const selfieFile = document.getElementById('editSelfie')?.files[0];
+
+      if (idFrontFile) formData.append('idFront', idFrontFile);
+      if (idBackFile) formData.append('idBack', idBackFile);
+      if (selfieFile) formData.append('selfie', selfieFile);
+
+      const { data } = await axios.put(
+        `${backendUrl}/api/kyc/${editingKyc._id}/update`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      if (data.success) {
+        toast.success('KYC updated successfully');
+        setEditingKyc(null);
+        fetchList(); // Refresh the list
+      } else {
+        toast.error(data.message || 'Failed to update KYC');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Error updating KYC');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
 
   return (
     <div className="p-4">
@@ -214,26 +298,391 @@ const KycReview = () => {
                     )}
                   </div>
 
-                  {k.status === 'pending' && (
-                    <div className="flex gap-2 pt-4">
-                      <button
-                        onClick={() => action(k._id, 'verify')}
-                        className="px-3 py-1 bg-green-600 text-white rounded"
-                      >
-                        Verify
-                      </button>
-                      <button
-                        onClick={() => action(k._id, 'reject')}
-                        className="px-3 py-1 bg-red-600 text-white rounded"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-2 pt-4 flex-wrap">
+                    <button
+                      onClick={() => startEditing(k)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    {k.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => action(k._id, 'verify')}
+                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                        >
+                          Verify
+                        </button>
+                        <button
+                          onClick={() => action(k._id, 'reject')}
+                          className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit KYC Modal */}
+      {editingKyc && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Edit KYC - {editingKyc.user?.firstName} {editingKyc.user?.lastName}
+                </h2>
+                <button
+                  onClick={() => setEditingKyc(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleEditSubmit} className="space-y-6">
+                {/* Personal Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        name="fullName"
+                        value={editForm.fullName}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                      <input
+                        type="date"
+                        name="dob"
+                        value={editForm.dob}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                      <select
+                        name="gender"
+                        value={editForm.gender}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                      <input
+                        type="text"
+                        name="nationality"
+                        value={editForm.nationality}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
+                      <input
+                        type="text"
+                        name="occupation"
+                        value={editForm.occupation}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
+                      <select
+                        name="maritalStatus"
+                        value={editForm.maritalStatus}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Status</option>
+                        <option value="single">Single</option>
+                        <option value="married">Married</option>
+                        <option value="divorced">Divorced</option>
+                        <option value="widowed">Widowed</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                      <input
+                        type="tel"
+                        name="phoneNumber"
+                        value={editForm.phoneNumber}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Alternate Phone</label>
+                      <input
+                        type="tel"
+                        name="alternatePhone"
+                        value={editForm.alternatePhone}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={editForm.email}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Address Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Address Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="md:col-span-2 lg:col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                      <input
+                        type="text"
+                        name="addressLine1"
+                        value={editForm.addressLine1}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={editForm.city}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={editForm.state}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                      <input
+                        type="text"
+                        name="postalCode"
+                        value={editForm.postalCode}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                      <input
+                        type="text"
+                        name="country"
+                        value={editForm.country}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Document Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
+                      <select
+                        name="idType"
+                        value={editForm.idType}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Document Type</option>
+                        <option value="passport">Passport</option>
+                        <option value="national_id">National ID</option>
+                        <option value="driving_license">Driving License</option>
+                        <option value="voter_id">Voter ID</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
+                      <input
+                        type="text"
+                        name="idNumber"
+                        value={editForm.idNumber}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                      <input
+                        type="date"
+                        name="documentIssueDate"
+                        value={editForm.documentIssueDate}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                      <input
+                        type="date"
+                        name="documentExpiryDate"
+                        value={editForm.documentExpiryDate}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Authority</label>
+                      <input
+                        type="text"
+                        name="documentIssuingAuthority"
+                        value={editForm.documentIssuingAuthority}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Upload */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Update Documents (Optional)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ID Front</label>
+                      <input
+                        type="file"
+                        id="editIdFront"
+                        accept="image/*"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {editingKyc.idFrontUrl && (
+                        <a href={editingKyc.idFrontUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs hover:underline">
+                          View Current
+                        </a>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ID Back</label>
+                      <input
+                        type="file"
+                        id="editIdBack"
+                        accept="image/*"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {editingKyc.idBackUrl && (
+                        <a href={editingKyc.idBackUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs hover:underline">
+                          View Current
+                        </a>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Selfie</label>
+                      <input
+                        type="file"
+                        id="editSelfie"
+                        accept="image/*"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {editingKyc.selfieUrl && (
+                        <a href={editingKyc.selfieUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs hover:underline">
+                          View Current
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status and Remarks */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Status & Remarks</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        name="status"
+                        value={editForm.status}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                      <textarea
+                        name="remarks"
+                        value={editForm.remarks}
+                        onChange={handleInputChange}
+                        rows={3}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Add remarks or notes..."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setEditingKyc(null)}
+                    className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={uploading}
+                    className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${
+                      uploading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    {uploading ? 'Updating...' : 'Update KYC'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>

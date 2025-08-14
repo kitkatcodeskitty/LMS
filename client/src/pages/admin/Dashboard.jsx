@@ -19,6 +19,11 @@ const Dashboard = () => {
   const [showMakeAdminModal, setShowMakeAdminModal] = useState(false)
   const [adminEmail, setAdminEmail] = useState('')
   const [makingAdmin, setMakingAdmin] = useState(false)
+  
+  // New state for make user sub-admin functionality
+  const [showMakeSubAdminModal, setShowMakeSubAdminModal] = useState(false)
+  const [subAdminEmail, setSubAdminEmail] = useState('')
+  const [makingSubAdmin, setMakingSubAdmin] = useState(false)
 
   const fetchDashboardAndPurchases = async () => {
     try {
@@ -159,6 +164,39 @@ const Dashboard = () => {
     }
   }
 
+  // Make user sub-admin function
+  const makeUserSubAdmin = async (e) => {
+    e.preventDefault()
+
+    if (!subAdminEmail.trim()) {
+      toast.error('Please enter an email address')
+      return
+    }
+
+    try {
+      setMakingSubAdmin(true)
+      const token = await getToken()
+
+      const res = await axios.post(
+        `${backendUrl}/api/user/make-sub-admin`,
+        { email: subAdminEmail.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      if (res.data.success) {
+        toast.success(res.data.message)
+        setSubAdminEmail('')
+        setShowMakeSubAdminModal(false)
+      } else {
+        toast.error(res.data.message || 'Failed to make user sub-admin.')
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Error making user sub-admin.')
+    } finally {
+      setMakingSubAdmin(false)
+    }
+  }
+
   if (loading) return <Loading />
 
   if (!isEducator) {
@@ -205,18 +243,29 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen flex flex-col items-start justify-between gap-8 md:p-8 md:pb-0 p-4 pt-8 pb-0">
       <div className="space-y-5">
-        {/* Make User Admin Button */}
-        <div className="flex justify-between items-center">
+        {/* Admin Actions */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <h1 className="text-2xl font-medium text-gray-800">Admin Dashboard</h1>
-          <button
-            onClick={() => setShowMakeAdminModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Make User Admin
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={() => setShowMakeSubAdminModal(true)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Make Sub-Admin
+            </button>
+            <button
+              onClick={() => setShowMakeAdminModal(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Make Full Admin
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-5 items-center">
@@ -440,7 +489,8 @@ const Dashboard = () => {
             onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
           >
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Make User Admin</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Make User Full Admin</h2>
+            <p className="text-sm text-gray-600 mb-4">Full admins have access to all admin features including dashboard and course management.</p>
 
             <form onSubmit={makeUserAdmin} className="space-y-4">
               <div>
@@ -474,7 +524,60 @@ const Dashboard = () => {
                       : 'bg-blue-600 hover:bg-blue-700'
                     }`}
                 >
-                  {makingAdmin ? 'Making Admin...' : 'Make Admin'}
+                  {makingAdmin ? 'Making Admin...' : 'Make Full Admin'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Making User Sub-Admin */}
+      {showMakeSubAdminModal && (
+        <div
+          onClick={() => setShowMakeSubAdminModal(false)}
+          className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
+          >
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Make User Sub-Admin</h2>
+            <p className="text-sm text-gray-600 mb-4">Sub-admins can manage students, pending orders, and KYC reviews but cannot access dashboard or add courses.</p>
+
+            <form onSubmit={makeUserSubAdmin} className="space-y-4">
+              <div>
+                <label htmlFor="subAdminEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                  User Email Address
+                </label>
+                <input
+                  type="email"
+                  id="subAdminEmail"
+                  value={subAdminEmail}
+                  onChange={(e) => setSubAdminEmail(e.target.value)}
+                  placeholder="Enter user's email address"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMakeSubAdminModal(false)}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={makingSubAdmin}
+                  className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${makingSubAdmin
+                      ? 'bg-green-400 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                >
+                  {makingSubAdmin ? 'Making Sub-Admin...' : 'Make Sub-Admin'}
                 </button>
               </div>
             </form>

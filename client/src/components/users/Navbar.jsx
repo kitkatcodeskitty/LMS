@@ -113,9 +113,21 @@ const Navbar = () => {
                         }}
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                       >
-                        Dashboard
+                        Admin Dashboard
                       </button>
-
+                    </>
+                  ) : (userData.isSubAdmin || userData.role === 'subadmin') ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDesktopDropdownOpen(false);
+                          navigate('/educator/student-enrolled'); // Sub-admin starts at student enrolled
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Sub-Admin Panel
+                      </button>
                     </>
                   ) : (
                     <>
@@ -223,7 +235,30 @@ const Navbar = () => {
                         }}
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                       >
-                        Dashboard
+                        Admin Dashboard
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileDropdownOpen(false);
+                          navigate('/profile');
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Profile
+                      </button>
+                    </>
+                  ) : (userData.isSubAdmin || userData.role === 'subadmin') ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileDropdownOpen(false);
+                          navigate('/educator/student-enrolled'); // Sub-admin starts at student enrolled
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Sub-Admin Panel
                       </button>
                       <button
                         type="button"

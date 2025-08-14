@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 
 const Navbar = () => {
-  const { userData } = useContext(AppContext);
+  const { userData, isEducator, isSubAdmin } = useContext(AppContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -23,7 +23,19 @@ const Navbar = () => {
       </Link>
 
       <div className='flex items-center gap-5 text-gray-500 relative'>
-        <p>Hi! {userData ? userData.firstName : 'Developer'}</p>
+        <div className="flex items-center gap-2">
+          <p>Hi! {userData ? userData.firstName : 'Developer'}</p>
+          {isEducator && (
+            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+              Admin
+            </span>
+          )}
+          {(isSubAdmin || userData?.role === 'subadmin') && !isEducator && (
+            <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+              Sub-Admin
+            </span>
+          )}
+        </div>
 
         {userData ? (
           <button

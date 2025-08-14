@@ -4,9 +4,10 @@ import { NavLink } from 'react-router-dom'
 import { FiHome, FiPlusSquare, FiBook, FiUsers, FiClipboard, FiCheckCircle } from 'react-icons/fi'
 
 const Sidebar = () => {
-  const { isEducator, pendingOrdersCount } = useContext(AppContext)
+  const { isEducator, isSubAdmin, userData, pendingOrdersCount } = useContext(AppContext)
 
-  const menuItems = [
+  // Full admin menu items
+  const fullAdminMenuItems = [
     { name: 'Dashboard', path: '/educator', icon: <FiHome size={24} /> },
     { name: 'Add Course', path: '/educator/add-course', icon: <FiPlusSquare size={24} /> },
     { name: 'My Courses', path: '/educator/myCourse', icon: <FiBook size={24} /> },
@@ -15,7 +16,17 @@ const Sidebar = () => {
     { name: 'KYC Review', path: '/educator/kyc-review', icon: <FiCheckCircle size={24} /> }
   ]
 
-  return isEducator && (
+  // Sub-admin menu items (limited access)
+  const subAdminMenuItems = [
+    { name: 'Student Enrolled', path: '/educator/student-enrolled', icon: <FiUsers size={24} /> },
+    { name: 'Pending Orders', path: '/educator/pending-orders', icon: <FiClipboard size={24} /> },
+    { name: 'KYC Review', path: '/educator/kyc-review', icon: <FiCheckCircle size={24} /> }
+  ]
+
+  // Determine which menu items to show
+  const menuItems = isEducator ? fullAdminMenuItems : (isSubAdmin || userData?.role === 'subadmin') ? subAdminMenuItems : []
+
+  return (isEducator || isSubAdmin || userData?.role === 'subadmin') && (
     <div className='md:w-64 w-16 border-r min-h-screen text-base border-gray-500 py-2 flex flex-col'>
       {menuItems.map((item) => (
         <NavLink

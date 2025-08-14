@@ -9,7 +9,7 @@ import {
   setAffiliateAmount
 } from '../controllers/adminController.js';
 
-import { verify, verifyAdmin } from "../auth.js";
+import { verify, verifyAdmin, verifyAdminOrSubAdmin } from "../auth.js";
 
 
 const adminRouter = express.Router();
@@ -17,8 +17,8 @@ const adminRouter = express.Router();
 
 adminRouter.post('/add-course', verify, verifyAdmin, upload.single('image'), addCourse);
 adminRouter.get('/dashboard', verify, verifyAdmin, adminDashboardData);
-adminRouter.get('/purchased-users', verify, verifyAdmin, getAllPurchasesWithUserAndCourse);
-adminRouter.get('/enrolled-students', verify, verifyAdmin, getAllEnrolledStudents);
+adminRouter.get('/purchased-users', verify, verifyAdminOrSubAdmin, getAllPurchasesWithUserAndCourse);
+adminRouter.get('/enrolled-students', verify, verifyAdminOrSubAdmin, getAllEnrolledStudents);
 adminRouter.post('/make-user-admin', verify, verifyAdmin, makeUserAdmin);
 adminRouter.put('/purchase/affiliate-amount', verify, verifyAdmin, setAffiliateAmount);
 
