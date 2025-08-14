@@ -700,18 +700,18 @@ const EnhancedPayment = () => {
                     }}
                     placeholder="Enter referral code (optional)"
                     className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:border-transparent transition-colors ${
-                      referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode
+                      (referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode)
                         ? 'border-red-300 focus:ring-red-500 bg-red-50'
                         : 'border-gray-300 focus:ring-blue-500'
                     }`}
                     readOnly={!!referralFromUrl}
                   />
                   <p className={`text-xs mt-1 ${
-                    referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode
+                    (referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode)
                       ? 'text-red-600'
                       : 'text-gray-500'
                   }`}>
-                    {referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode
+                    {(referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode)
                       ? '⚠️ You cannot use your own referral code'
                       : referralFromUrl 
                         ? 'Referral code applied from your link' 

@@ -10,7 +10,7 @@ import Modal from '../../components/common/Modal';
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { backendUrl, getToken, currency: appCurrency } = useContext(AppContext);
+  const { backendUrl, getToken, currency: appCurrency, userData } = useContext(AppContext);
   const { courseId, courseTitle, coursePrice, currency = appCurrency || '$' } = location.state || {};
 
   const [referralCode, setReferralCode] = useState('');
@@ -270,17 +270,17 @@ const PaymentPage = () => {
                     }}
                     placeholder="Enter referral code (e.g., ABCD1234)"
                     className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:border-transparent transition-colors ${
-                      referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode
+                      (referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode)
                         ? 'border-red-300 focus:ring-red-500 bg-red-50'
                         : 'border-gray-300 focus:ring-blue-500'
                     }`}
                   />
                   <p className={`text-xs mt-1 ${
-                    referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode
+                    (referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode)
                       ? 'text-red-600'
                       : 'text-gray-500'
                   }`}>
-                    {referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode
+                    {(referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode)
                       ? '⚠️ You cannot use your own referral code'
                       : 'Use a referral code to get discounts or help your referrer earn commissions'
                     }
