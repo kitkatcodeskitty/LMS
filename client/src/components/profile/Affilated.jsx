@@ -162,30 +162,7 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
           )}
 
           {/* Course Link Benefits */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-              <div className="flex items-center space-x-3">
-                <div className="text-2xl">👤</div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">For Non-Logged Users</h4>
-                  <p className="text-sm text-gray-600">
-                    Takes them to payment page with registration form included
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-              <div className="flex items-center space-x-3">
-                <div className="text-2xl">🔐</div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">For Logged Users</h4>
-                  <p className="text-sm text-gray-600">
-                    Direct access to payment page with course pre-selected
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+
         </div>
       </div>
 

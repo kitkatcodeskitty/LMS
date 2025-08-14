@@ -29,6 +29,11 @@ import Referral from './pages/users/Referral';
 import Profile from './pages/users/Profile';
 import AboutUs from './pages/users/AboutUs';
 import Policy from './pages/users/Policy';
+import Help from './pages/users/Help';
+import FAQ from './pages/users/FAQ';
+import Terms from './pages/users/Terms';
+import Refund from './pages/users/Refund';
+import Contact from './pages/users/Contact';
 
 import ScrollToTop from './components/common/ScrollToTop'; // ScrollToTop import
 
@@ -65,6 +70,11 @@ const App = () => {
         <Route path="/referral" element={<Referral />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/policy" element={<Policy />} />
+        <Route path="/help" element={<Help />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/refund" element={<Refund />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/profile" element={<Profile />} />
 
         {/* Admin-only routes */}
