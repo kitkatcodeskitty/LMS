@@ -180,6 +180,19 @@ const Dashboard = () => {
   const totalEarnings =
     purchasesData.purchases?.reduce((sum, studentData) => sum + (studentData.totalSpent || 0), 0) || 0
 
+  // Calculate total profit based on referral status
+  const totalProfit = purchasesData.purchases?.reduce((sum, studentData) => {
+    const studentProfit = studentData.purchases?.reduce((studentSum, purchase) => {
+      const coursePrice = purchase.courseId?.price || 0
+      // Profit calculation:
+      // - If user used a referral when buying: profit = half of course price (50%)
+      // - If user did NOT use a referral: profit = full course price (100%)
+      const profit = purchase.referralUsed ? (coursePrice * 0.5) : coursePrice
+      return studentSum + profit
+    }, 0) || 0
+    return sum + studentProfit
+  }, 0) || 0
+
   return (
     <div className="min-h-screen flex flex-col items-start justify-between gap-8 md:p-8 md:pb-0 p-4 pt-8 pb-0">
       <div className="space-y-5">
@@ -237,6 +250,22 @@ const Dashboard = () => {
                 {totalEarnings.toFixed(2)}
               </p>
               <p className="text-base text-gray-500">Total Earnings</p>
+            </div>
+          </div>
+
+          {/* Total Profit */}
+          <div className="flex items-center gap-3 shadow-card border border-green-500 p-4 w-56 rounded-md h-28">
+            <img
+              className="w-10 h-10 object-contain"
+              src={assets.earning_icon}
+              alt="profit_icon"
+            />
+            <div>
+              <p className="text-2xl font-medium text-gray-600">
+                {currency}
+                {totalProfit.toFixed(2)}
+              </p>
+              <p className="text-base text-gray-500">Total Profit</p>
             </div>
           </div>
         </div>
