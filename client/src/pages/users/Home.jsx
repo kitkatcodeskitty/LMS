@@ -5,7 +5,6 @@ import CoursesSection from '../../components/users/CoursesSection'
 import TestimonialsSection from '../../components/users/TestimonialsSection'
 import CallToAction from '../../components/users/CallToAction'
 import Footer from '../../components/users/Footer'
-import DreamAgency from '../../components/users/About us'
 
 const Home = () => {
   return (
@@ -15,7 +14,6 @@ const Home = () => {
         <CoursesSection />
         <TestimonialsSection /> 
         <CallToAction />
-        <DreamAgency />
         <Footer />
     </div>
   )

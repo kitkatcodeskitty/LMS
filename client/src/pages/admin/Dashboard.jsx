@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { assets } from '../../assets/assets'
 import Loading from '../../components/users/Loading'
+import { formatDateTime } from '../../utils/formatters'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
@@ -180,10 +181,6 @@ const Dashboard = () => {
   const totalEarnings =
     purchasesData.purchases?.reduce((sum, studentData) => sum + (studentData.totalSpent || 0), 0) || 0
 
-  // Debug: Log the purchases data structure
-  console.log('Purchases Data:', purchasesData)
-  console.log('Total Students:', purchasesData.purchases?.length || 0)
-
   // Calculate total profit based on referral status
   const totalProfit = purchasesData.purchases?.reduce((sum, studentData) => {
     const studentProfit = studentData.purchases?.reduce((studentSum, purchase) => {
@@ -295,15 +292,6 @@ const Dashboard = () => {
               .slice(0, 12)
               .map((studentData) => {
                 const latestPurchase = studentData.purchases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
-                const formatDate = (dateString) => {
-                  return new Date(dateString).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                }
 
                 return (
                   <div
@@ -333,7 +321,7 @@ const Dashboard = () => {
                           Total: {currency}{studentData.totalSpent?.toFixed(2) || '0.00'}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {formatDate(latestPurchase.createdAt)}
+                          {formatDateTime(latestPurchase.createdAt)}
                         </span>
                       </div>
                     </div>
@@ -401,7 +389,7 @@ const Dashboard = () => {
                     {/* Enrollment Date Footer */}
                     <div className="mt-4 pt-3 border-t border-gray-200 text-center">
                       <span className="text-xs text-gray-500">
-                        First enrolled: {formatDate(studentData.firstPurchase)} • Latest: {formatDate(studentData.lastPurchase)}
+                        First enrolled: {formatDateTime(studentData.firstPurchase)} • Latest: {formatDateTime(studentData.lastPurchase)}
                       </span>
                     </div>
                   </div>

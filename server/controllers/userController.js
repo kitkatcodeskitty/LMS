@@ -109,7 +109,16 @@ export const getUserData = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { firstName, lastName, email, affiliateEarnings } = req.body;
+    const { 
+      firstName, 
+      lastName, 
+      email, 
+      password,
+      affiliateEarnings, 
+      affiliateCode,
+      isAdmin,
+      referredBy 
+    } = req.body;
 
     if (!firstName || !lastName || !email) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
@@ -121,11 +130,36 @@ export const updateUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email already in use by another user" });
     }
 
+    // Check if affiliate code is already used by another user (if provided)
+    if (affiliateCode) {
+      const existingAffiliateUser = await User.findOne({ affiliateCode, _id: { $ne: userId } });
+      if (existingAffiliateUser) {
+        return res.status(400).json({ success: false, message: "Affiliate code already in use by another user" });
+      }
+    }
+
+    // Prepare update data
+    const updateData = {
+      firstName,
+      lastName,
+      email,
+      affiliateEarnings: affiliateEarnings || 0,
+      affiliateCode: affiliateCode || null,
+      isAdmin: Boolean(isAdmin),
+      referredBy: referredBy || null
+    };
+
+    // Hash password if provided
+    if (password && password.trim()) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password.trim(), salt);
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { firstName, lastName, email, affiliateEarnings },
+      updateData,
       { new: true, runValidators: true }
-    ).select('-password'); // exclude password
+    ).select('-password'); // exclude password from response
 
     if (!updatedUser) {
       return res.status(404).json({ success: false, message: "User not found" });
