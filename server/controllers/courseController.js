@@ -37,11 +37,22 @@ export const getCourseById = async (req, res) => {
       .populate({ path: "admin", select: "firstName lastName imageUrl" })
       .populate("enrolledStudents", "firstName lastName");
 
-    if (!course) return res.status(404).json({ error: "Course not found" });
+    if (!course) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Course not found" 
+      });
+    }
 
-    res.json(course);
+    res.json({
+      success: true,
+      course
+    });
   } catch (error) {
-    res.status(500).json({ error: { message: error.message }});
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
   }
 };
 

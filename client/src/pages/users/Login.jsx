@@ -47,12 +47,16 @@ const Login = () => {
         password: form.password
       });
 
-      // Store token based on remember me preference
-      if (rememberMe) {
-        localStorage.setItem("token", res.data.token);
+      if (res.data.success) {
+        // Store token based on remember me preference
+        if (rememberMe) {
+          localStorage.setItem("token", res.data.token);
+        } else {
+          sessionStorage.setItem("token", res.data.token);
+          localStorage.removeItem("token"); // Clear any existing localStorage token
+        }
       } else {
-        sessionStorage.setItem("token", res.data.token);
-        localStorage.removeItem("token"); // Clear any existing localStorage token
+        throw new Error(res.data.message || 'Login failed');
       }
 
       try {

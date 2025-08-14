@@ -15,16 +15,16 @@ export const register = async (req, res) => {
     const imageFile = req.file;
 
     if (!email.includes("@")) {
-      return res.status(400).json({ message: "Email invalid" });
+      return res.status(400).json({ success: false, message: "Email invalid" });
     }
 
     if (password.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters" });
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ success: false, message: "User already exists" });
     }
 
     let imageUrl = "";
@@ -63,9 +63,9 @@ export const register = async (req, res) => {
 
     const token = createAccessToken(newUser);
 
-    res.status(201).json({ user: newUser, token, success: true });
+    res.status(201).json({ success: true, message: "Registration successful", user: newUser, token });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -77,16 +77,16 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) return res.status(401).json({ success: false, message: "Invalid credentials" });
 
     const passwordMatch = bcrypt.compareSync(password, user.password);
-    if (!passwordMatch) return res.status(401).json({ error: "Invalid credentials" });
+    if (!passwordMatch) return res.status(401).json({ success: false, message: "Invalid credentials" });
 
     const token = createAccessToken(user);
 
-    res.json({ message: "Login successful", token });
+    res.json({ success: true, message: "Login successful", token, user });
   } catch (error) {
-    errorHandler(error, req, res, null);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

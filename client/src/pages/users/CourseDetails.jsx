@@ -47,7 +47,12 @@ const CourseDetails = () => {
       const res = await fetch(`${backendUrl}/api/course/${id}`)
       if (!res.ok) throw new Error(`Failed to fetch course. Status: ${res.status}`)
       const data = await res.json()
-      setCourseData(data)
+      
+      if (data.success && data.course) {
+        setCourseData(data.course)
+      } else {
+        throw new Error(data.message || 'Course not found')
+      }
       setIsAlreadyEnrolled(false)
     } catch (error) {
       toast.error('Failed to load course. ' + error.message)

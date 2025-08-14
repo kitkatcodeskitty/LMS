@@ -141,16 +141,7 @@ const Navbar = () => {
                       >
                         My Enrollments
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDesktopDropdownOpen(false);
-                          navigate('/referral');
-                        }}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                      >
-                        Referral
-                      </button>
+
                       <button
                         type="button"
                         onClick={() => {
@@ -283,16 +274,7 @@ const Navbar = () => {
                       >
                         My Enrollments
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMobileDropdownOpen(false);
-                          navigate('/referral');
-                        }}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                      >
-                        Referral
-                      </button>
+
                       <button
                         type="button"
                         onClick={() => {

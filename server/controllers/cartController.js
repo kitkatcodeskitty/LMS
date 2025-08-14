@@ -31,9 +31,17 @@ export const addToCart = async (req, res) => {
 
     const paymentScreenshot = result.secure_url; // Cloudinary URL
 
-    const user = await User.findById(userId).select("firstName lastName email");
+    const user = await User.findById(userId).select("firstName lastName email affiliateCode");
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Prevent users from using their own referral code
+    if (referralCode && referralCode.trim() === user.affiliateCode) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "You cannot use your own referral code for purchases" 
+      });
     }
 
     const course = await Course.findById(courseId).select(

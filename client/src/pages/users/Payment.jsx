@@ -104,6 +104,13 @@ const PaymentPage = () => {
 
         }
       }
+
+      // Prevent users from using their own referral code
+      if (codeToSend && userData?.affiliateCode && codeToSend === userData.affiliateCode) {
+        toast.error('You cannot use your own referral code for purchases.');
+        setIsSubmitting(false);
+        return;
+      }
       formData.append('referralCode', codeToSend || '');
       formData.append('transactionId', transactionId.trim());
       formData.append('paymentScreenshot', paymentScreenshot);
@@ -252,12 +259,31 @@ const PaymentPage = () => {
                   <input
                     type="text"
                     value={referralCode}
-                    onChange={(e) => setReferralCode(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setReferralCode(value);
+                      
+                      // Show warning if user tries to enter their own referral code
+                      if (value.trim() && userData?.affiliateCode && value.trim() === userData.affiliateCode) {
+                        toast.warning('You cannot use your own referral code for purchases.');
+                      }
+                    }}
                     placeholder="Enter referral code (e.g., ABCD1234)"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className={`w-full border rounded-lg px-4 py-3 focus:ring-2 focus:border-transparent transition-colors ${
+                      referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode
+                        ? 'border-red-300 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-blue-500'
+                    }`}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Use a referral code to get discounts or help your referrer earn commissions
+                  <p className={`text-xs mt-1 ${
+                    referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode
+                      ? 'text-red-600'
+                      : 'text-gray-500'
+                  }`}>
+                    {referralCode.trim() && userData?.affiliateCode && referralCode.trim() === userData.affiliateCode
+                      ? '⚠️ You cannot use your own referral code'
+                      : 'Use a referral code to get discounts or help your referrer earn commissions'
+                    }
                   </p>
                 </div>
               </div>

@@ -7,6 +7,7 @@ import CourseDetails from './pages/users/CourseDetails';
 import MyEnrollments from './pages/users/MyEnrollments';
 import Player from './pages/users/Player';
 import Payment from './pages/users/Payment';
+import EnhancedPayment from './pages/users/EnhancedPayment';
 import Loading from './components/users/Loading';
 
 import AddCourse from './pages/admin/AddCourse';
@@ -59,6 +60,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/payment/:courseId" element={<EnhancedPayment />} />
         <Route path="/kyc" element={<Kyc />} />
         <Route path="/referral" element={<Referral />} />
         <Route path="/about-us" element={<AboutUs />} />
