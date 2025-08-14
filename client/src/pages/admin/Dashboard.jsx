@@ -180,14 +180,26 @@ const Dashboard = () => {
   const totalEarnings =
     purchasesData.purchases?.reduce((sum, studentData) => sum + (studentData.totalSpent || 0), 0) || 0
 
+  // Debug: Log the purchases data structure
+  console.log('Purchases Data:', purchasesData)
+  console.log('Total Students:', purchasesData.purchases?.length || 0)
+
   // Calculate total profit based on referral status
   const totalProfit = purchasesData.purchases?.reduce((sum, studentData) => {
     const studentProfit = studentData.purchases?.reduce((studentSum, purchase) => {
-      const coursePrice = purchase.courseId?.price || 0
+      // Get course price from the purchase amount or courseId price
+      const coursePrice = purchase.amount || purchase.courseId?.price || purchase.courseId?.coursePrice || 0
+      
+      // Check if user used a referral code when purchasing
+      // Based on your Purchase.js model, check referralCode and referrerId
+      const hasReferral = (purchase.referralCode && purchase.referralCode !== null && purchase.referralCode !== '') || 
+                         (purchase.referrerId && purchase.referrerId !== null)
+      
       // Profit calculation:
       // - If user used a referral when buying: profit = half of course price (50%)
       // - If user did NOT use a referral: profit = full course price (100%)
-      const profit = purchase.referralUsed ? (coursePrice * 0.5) : coursePrice
+      const profit = hasReferral ? (coursePrice * 0.5) : coursePrice
+      
       return studentSum + profit
     }, 0) || 0
     return sum + studentProfit
