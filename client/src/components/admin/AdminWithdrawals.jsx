@@ -437,7 +437,14 @@ const WithdrawalCard = ({
             {withdrawal.status === 'pending' && (
               <ActionButtons
                 withdrawal={withdrawal}
-                onAction={onAction}
+                onAction={(action, withdrawalId) => {
+                  // For edit and approve, open details modal first
+                  if (action === 'edit' || action === 'approve') {
+                    onViewDetails(withdrawal);
+                  } else {
+                    onAction(action, withdrawalId);
+                  }
+                }}
                 size="sm"
                 layout="vertical"
               />

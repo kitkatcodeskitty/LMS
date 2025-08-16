@@ -1,10 +1,41 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { NavLink } from 'react-router-dom'
 import { FiHome, FiPlusSquare, FiBook, FiUsers, FiClipboard, FiCheckCircle, FiDollarSign } from 'react-icons/fi'
+import axios from 'axios'
 
 const Sidebar = () => {
-  const { isEducator, isSubAdmin, userData, pendingOrdersCount } = useContext(AppContext)
+  const { isEducator, isSubAdmin, userData, pendingOrdersCount, backendUrl, getToken } = useContext(AppContext)
+  const [pendingWithdrawalsCount, setPendingWithdrawalsCount] = useState(0)
+
+  // Fetch pending withdrawals count
+  const fetchPendingWithdrawalsCount = async () => {
+    try {
+      const token = getToken();
+      if (!token || (!isEducator && !isSubAdmin && userData?.role !== 'subadmin')) return;
+
+      const { data } = await axios.get(`${backendUrl}/api/admin/withdrawals/pending`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setPendingWithdrawalsCount(data.data.pagination.totalCount || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching pending withdrawals count:', error);
+    }
+  };
+
+  // Fetch count on component mount and set up polling
+  useEffect(() => {
+    if (isEducator || isSubAdmin || userData?.role === 'subadmin') {
+      fetchPendingWithdrawalsCount();
+      
+      // Poll every 30 seconds for new withdrawals
+      const interval = setInterval(fetchPendingWithdrawalsCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isEducator, isSubAdmin, userData, backendUrl, getToken]);
 
   // Full admin menu items
   const fullAdminMenuItems = [
@@ -44,6 +75,11 @@ const Sidebar = () => {
           {item.name === 'Pending Orders' && pendingOrdersCount > 0 && (
             <span className='absolute -top-1 -right-1 md:relative md:top-0 md:right-0 md:ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center'>
               {pendingOrdersCount}
+            </span>
+          )}
+          {item.name === 'Withdrawals' && pendingWithdrawalsCount > 0 && (
+            <span className='absolute -top-1 -right-1 md:relative md:top-0 md:right-0 md:ml-auto bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center'>
+              {pendingWithdrawalsCount}
             </span>
           )}
         </NavLink>

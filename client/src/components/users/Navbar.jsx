@@ -84,7 +84,7 @@ const LatestCourseDisplay = ({ userData }) => {
       </div>
       <div className="text-xs text-gray-500">
         {latestCourse
-          ? `Latest: ${latestCourse.courseTitle?.substring(0, 15)}${latestCourse.courseTitle?.length > 15 ? '...' : ''}`
+          ? ` ${latestCourse.courseTitle?.substring(0, 15)}${latestCourse.courseTitle?.length > 15 ? '...' : ''}`
           : 'No courses yet'
         }
       </div>
