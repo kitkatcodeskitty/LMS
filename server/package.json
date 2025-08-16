@@ -12,8 +12,8 @@
   "migrate": "node scripts/migrate.js up",
   "migrate:rollback": "node scripts/migrate.js down",
   "migrate:status": "node scripts/migrate.js status"
-}
-,
+},
+
   "keywords": [],
   "author": "",
   "license": "ISC",
