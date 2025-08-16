@@ -8,7 +8,7 @@ export default defineConfig({
   optimizeDeps: {
     esbuildOptions: {
       define: {
-        global: 'globalThis',
+        global: 'globalThis', // polyfill for global
       },
       plugins: [
         NodeGlobalsPolyfillPlugin({
@@ -16,6 +16,16 @@ export default defineConfig({
           process: true,
         }),
       ],
+    },
+    // explicitly include problematic packages if needed
+    // include: ['uniqid', 'some-other-package'],
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        // prevent Rollup from freezing objects (fixes "Cannot add property 0" error)
+        freeze: false,
+      },
     },
   },
   test: {
