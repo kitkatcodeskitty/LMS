@@ -3,10 +3,98 @@ import { assets } from '../../assets/assets';
 import { useLocation } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 import NotificationBell from './NotificationBell';
+import axios from 'axios';
+
+// Component to display latest enrolled course
+const LatestCourseDisplay = ({ userData }) => {
+  const { backendUrl, getToken } = useContext(AppContext);
+  const [latestCourse, setLatestCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (userData && !userData.isAdmin && !userData.isSubAdmin) {
+      fetchLatestCourse();
+    } else {
+      setLoading(false);
+    }
+  }, [userData]);
+
+  const fetchLatestCourse = async () => {
+    try {
+      const token = getToken();
+      const { data } = await axios.get(`${backendUrl}/api/user/user-purchase`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success && data.purchasedCourses && data.purchasedCourses.length > 0) {
+        setLatestCourse(data.purchasedCourses[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching latest course:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-left">
+        <div className="flex items-center space-x-1">
+          <span className="text-sm font-medium text-gray-900">{userData.firstName}</span>
+          {userData.kycStatus === 'verified' && (
+            <svg className="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          )}
+        </div>
+        <div className="text-xs text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show admin/sub-admin info
+  if (userData.isAdmin || userData.isSubAdmin) {
+    return (
+      <div className="text-left">
+        <div className="flex items-center space-x-1">
+          <span className="text-sm font-medium text-gray-900">{userData.firstName}</span>
+          {userData.kycStatus === 'verified' && (
+            <svg className="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          )}
+        </div>
+        <div className="text-xs text-gray-500">
+          {userData.isAdmin ? 'Administrator' : 'Sub-Administrator'}
+        </div>
+      </div>
+    );
+  }
+
+
+  return (
+    <div className="text-left">
+      <div className="flex items-center space-x-1">
+        <span className="text-sm font-medium text-gray-900">{userData.firstName}</span>
+        {userData.kycStatus === 'verified' && (
+          <svg className="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+        )}
+      </div>
+      <div className="text-xs text-gray-500">
+        {latestCourse
+          ? `Latest: ${latestCourse.courseTitle?.substring(0, 15)}${latestCourse.courseTitle?.length > 15 ? '...' : ''}`
+          : 'No courses yet'
+        }
+      </div>
+    </div>
+  );
+};
 
 const Navbar = () => {
   const { navigate, userData, setUserData } = useContext(AppContext);
-  
+
   const location = useLocation();
 
   const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
@@ -79,7 +167,7 @@ const Navbar = () => {
                 >
                   Courses
                 </button>
-                
+
                 {!userData.isAdmin && !userData.isSubAdmin && (
                   <button
                     onClick={() => navigate('/my-enrollments')}
@@ -91,7 +179,7 @@ const Navbar = () => {
 
                 {/* Notification Bell */}
                 <NotificationBell />
-                
+
                 {/* User Profile Dropdown */}
                 <div className="relative" ref={desktopDropdownRef}>
                   <button
@@ -124,28 +212,7 @@ const Navbar = () => {
                         </div>
                       )}
                     </div>
-                    <div className="text-left">
-                      <div className="flex items-center space-x-1">
-                        <span className="text-sm font-medium text-gray-900">{userData.firstName}</span>
-                        {/* KYC Verified Badge next to name */}
-                        {userData.kycStatus === 'verified' && (
-                          <svg
-                            className="w-4 h-4 text-rose-500"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {userData.isAdmin ? 'Admin' : userData.isSubAdmin ? 'Sub-Admin' : 'Student'}
-                      </div>
-                    </div>
+                    <LatestCourseDisplay userData={userData} />
                     <svg
                       className="w-4 h-4 text-gray-400"
                       fill="none"
@@ -317,10 +384,10 @@ const Navbar = () => {
               <>
                 {/* Notification Bell for Mobile */}
                 <NotificationBell />
-                
+
                 <div className="relative" ref={mobileDropdownRef}>
-                  <button 
-                    onClick={onMobileButtonClick} 
+                  <button
+                    onClick={onMobileButtonClick}
                     type="button"
                     className="flex items-center space-x-2 bg-white/70 hover:bg-white/90 rounded-full p-1 transition-colors shadow-sm"
                   >
@@ -359,19 +426,7 @@ const Navbar = () => {
                               </div>
                             )}
                           </div>
-                          <div>
-                            <div className="flex items-center space-x-1">
-                              <p className="text-sm font-medium text-gray-900">{userData.firstName}</p>
-                              {userData.kycStatus === 'verified' && (
-                                <svg className="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-500">
-                              {userData.isAdmin ? 'Admin' : userData.isSubAdmin ? 'Sub-Admin' : 'Student'}
-                            </p>
-                          </div>
+                          <LatestCourseDisplay userData={userData} />
                         </div>
                       </div>
 

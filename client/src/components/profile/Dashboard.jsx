@@ -75,13 +75,11 @@ const Dashboard = ({
               </svg>
             )}
           </h1>
-          {/* Show course names for students instead of count */}
+          {/* Show latest course name for students */}
           {!userData.isAdmin ? (
             <p className="text-rose-100 truncate">
               {purchasedCourses.length > 0 
-                ? purchasedCourses.length === 1 
-                  ? purchasedCourses[0].title || 'Course Enrolled'
-                  : `${purchasedCourses.length} Courses Enrolled`
+                ? `Latest: ${purchasedCourses[0].courseTitle || 'Recent Course'}`
                 : 'No courses enrolled yet'
               }
             </p>
@@ -96,12 +94,9 @@ const Dashboard = ({
             ) : (
               purchasedCourses.length > 0 && (
                 <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
-                  <FaGraduationCap /> 
+                  <FaBook /> 
                   <span>
-                    {purchasedCourses.length === 1 
-                      ? purchasedCourses[0].title || 'Course Enrolled'
-                      : `${purchasedCourses.length} Courses`
-                    }
+                    {purchasedCourses.length} Course{purchasedCourses.length !== 1 ? 's' : ''}
                   </span>
                 </span>
               )
@@ -124,65 +119,132 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* Earnings Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-          <div className="flex items-center justify-between">
+      {/* Consolidated Earnings & Balance Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Earnings Card */}
+        <div className="lg:col-span-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-xl">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-green-100 text-sm font-medium">Lifetime Earnings</p>
-              <p className="text-3xl font-bold mt-2">
-                <AnimatedNumber value={earningsData.lifetime} currency={currency} duration={2500} delay={200} />
-              </p>
-              <p className="text-green-100 text-xs mt-1">+12% from last month</p>
+              <h3 className="text-xl font-bold">Earnings Overview</h3>
+              <p className="text-green-100 text-sm">Your complete financial summary</p>
             </div>
-            <div className="text-4xl opacity-80">
+            <div className="text-3xl opacity-80">
               <FaGem />
             </div>
           </div>
-        </div>
 
-        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm font-medium">Today's Earnings</p>
-              <p className="text-3xl font-bold mt-2">
-                <AnimatedNumber value={earningsData.today} currency={currency} duration={2000} delay={400} />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="text-center">
+              <p className="text-green-100 text-xs font-medium mb-1">Lifetime Earnings</p>
+              <p className="text-xl sm:text-2xl font-bold">
+                <AnimatedNumber value={earningsData.lifetime || 0} currency={currency} duration={2500} delay={200} />
               </p>
-              <p className="text-blue-100 text-xs mt-1">Active today</p>
             </div>
-            <div className="text-4xl opacity-80">
-              <FaChartLine />
+            <div className="text-center">
+              <p className="text-green-100 text-xs font-medium mb-1">Today</p>
+              <p className="text-xl sm:text-2xl font-bold">
+                <AnimatedNumber value={earningsData.today || 0} currency={currency} duration={2000} delay={400} />
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-green-100 text-xs font-medium mb-1">7 Days</p>
+              <p className="text-xl sm:text-2xl font-bold">
+                <AnimatedNumber value={earningsData.lastSevenDays || 0} currency={currency} duration={2200} delay={600} />
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-green-100 text-xs font-medium mb-1">This Month</p>
+              <p className="text-xl sm:text-2xl font-bold">
+                <AnimatedNumber value={earningsData.thisMonth || 0} currency={currency} duration={2300} delay={800} />
+              </p>
+            </div>
+          </div>
+
+          {/* Current Balance Section */}
+          <div className="mt-6 pt-6 border-t border-green-400/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-sm font-medium">Current Balance (Withdrawable)</p>
+                <p className="text-3xl font-bold mt-1">
+                  <AnimatedNumber 
+                    value={earningsData.availableBalance || 0} 
+                    currency={currency} 
+                    duration={2000} 
+                    delay={1000} 
+                  />
+                </p>
+                {earningsData.pendingWithdrawals > 0 && (
+                  <p className="text-green-200 text-xs mt-1">
+                    {currency}{earningsData.pendingWithdrawals} pending withdrawal
+                  </p>
+                )}
+              </div>
+              <div className="text-right text-xs text-green-100 space-y-1">
+                <div>Total Withdrawable: {currency}{earningsData.withdrawableBalance || 0}</div>
+                <div>Total Withdrawn: {currency}{earningsData.totalWithdrawn || 0}</div>
+                <div>Pending: {currency}{earningsData.pendingWithdrawals || 0}</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-          <div className="flex items-center justify-between">
+        {/* Withdrawal Request Card */}
+        <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-purple-100 text-sm font-medium">Last 7 Days</p>
-              <p className="text-3xl font-bold mt-2">
-                <AnimatedNumber value={earningsData.lastSevenDays} currency={currency} duration={2200} delay={600} />
-              </p>
-              <p className="text-purple-100 text-xs mt-1">Weekly performance</p>
+              <h3 className="text-lg font-bold text-gray-900">Quick Withdrawal</h3>
+              <p className="text-gray-600 text-sm">Request money withdrawal</p>
             </div>
-            <div className="text-4xl opacity-80">
-              <FaChartBar />
+            <div className="text-2xl text-green-600">
+              <FaDollarSign />
             </div>
           </div>
-        </div>
 
-        <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-orange-100 text-sm font-medium">This Month</p>
-              <p className="text-3xl font-bold mt-2">
-                <AnimatedNumber value={earningsData.thisMonth} currency={currency} duration={2300} delay={800} />
-              </p>
-              <p className="text-orange-100 text-xs mt-1">Monthly progress</p>
-            </div>
-            <div className="text-4xl opacity-80">
-              <FaCalendarAlt />
-            </div>
+          <div className="space-y-3">
+            <button
+              onClick={() => setActiveTab('withdrawal-request')}
+              disabled={!earningsData.availableBalance || earningsData.availableBalance <= 0}
+              className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span className="font-medium">Mobile Banking</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('withdrawal-request')}
+              disabled={!earningsData.availableBalance || earningsData.availableBalance <= 0}
+              className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <span className="font-medium">Bank Transfer</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('withdrawal-history')}
+              className="w-full flex items-center justify-center space-x-2 p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span className="font-medium">Withdrawal History</span>
+            </button>
+
+            {(!earningsData.availableBalance || earningsData.availableBalance <= 0) && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <span className="text-xs text-yellow-800">
+                    No balance available for withdrawal
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -269,8 +331,8 @@ const Dashboard = ({
               onClick={() => setActiveTab('referrals')}
               className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg"
             >
-              <FaDollarSign className="text-xl" />
-              <span className="font-medium">View Earnings</span>
+              <FaUsers className="text-xl" />
+              <span className="font-medium">View Referrals</span>
             </button>
 
             <button

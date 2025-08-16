@@ -196,9 +196,16 @@ const MyEnrollments = () => {
                         {course.courseTitle || "Untitled Course"}
                       </h3>
                       <div className="flex items-center justify-between mb-4">
-                        <span className="text-lg font-bold text-green-600">
-                          {course.coursePrice ? `${currency}${course.coursePrice}` : "Free"}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-lg font-bold text-green-600">
+                            {course.actualPaidAmount ? `${currency}${course.actualPaidAmount}` : "Free"}
+                          </span>
+                          {course.actualPaidAmount && course.originalPrice && course.actualPaidAmount < course.originalPrice && (
+                            <span className="text-sm text-gray-500 line-through">
+                              {currency}{course.originalPrice}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <button
                         onClick={() => navigate('/course/' + course._id)}
@@ -259,8 +266,15 @@ const MyEnrollments = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-green-600">
-                              {course.coursePrice ? `${currency}${course.coursePrice}` : "Free"}
+                            <div className="flex flex-col">
+                              <div className="text-sm font-medium text-green-600">
+                                {course.actualPaidAmount ? `${currency}${course.actualPaidAmount}` : "Free"}
+                              </div>
+                              {course.actualPaidAmount && course.originalPrice && course.actualPaidAmount < course.originalPrice && (
+                                <div className="text-xs text-gray-500 line-through">
+                                  {currency}{course.originalPrice}
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">

@@ -6,7 +6,12 @@ import {
   getAllPurchasesWithUserAndCourse,
   getAllEnrolledStudents,
   makeUserAdmin,
-  setAffiliateAmount
+  setAffiliateAmount,
+  getPendingWithdrawals,
+  getAllWithdrawals,
+  approveWithdrawal,
+  rejectWithdrawal,
+  editWithdrawal
 } from '../controllers/adminController.js';
 
 import { verify, verifyAdmin, verifyAdminOrSubAdmin } from "../auth.js";
@@ -22,5 +27,11 @@ adminRouter.get('/enrolled-students', verify, verifyAdminOrSubAdmin, getAllEnrol
 adminRouter.post('/make-user-admin', verify, verifyAdmin, makeUserAdmin);
 adminRouter.put('/purchase/affiliate-amount', verify, verifyAdmin, setAffiliateAmount);
 
+// Withdrawal management endpoints
+adminRouter.get('/withdrawals/pending', verify, verifyAdminOrSubAdmin, getPendingWithdrawals);
+adminRouter.get('/withdrawals/all', verify, verifyAdminOrSubAdmin, getAllWithdrawals);
+adminRouter.put('/withdrawals/:id/approve', verify, verifyAdminOrSubAdmin, approveWithdrawal);
+adminRouter.put('/withdrawals/:id/reject', verify, verifyAdminOrSubAdmin, rejectWithdrawal);
+adminRouter.put('/withdrawals/:id/edit', verify, verifyAdminOrSubAdmin, editWithdrawal);
 
 export default adminRouter;

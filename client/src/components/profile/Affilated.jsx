@@ -4,15 +4,35 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
-  const { backendUrl, getToken } = useContext(AppContext);
+  const { backendUrl, getToken, userData } = useContext(AppContext);
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [courseSpecificLink, setCourseSpecificLink] = useState('');
+  const [hasPurchases, setHasPurchases] = useState(false);
+  const [checkingPurchases, setCheckingPurchases] = useState(true);
 
   useEffect(() => {
     fetchCourses();
+    checkUserPurchases();
   }, []);
+
+  const checkUserPurchases = async () => {
+    try {
+      const token = getToken();
+      const { data } = await axios.get(`${backendUrl}/api/user/user-purchase`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (data.success && data.purchasedCourses && data.purchasedCourses.length > 0) {
+        setHasPurchases(true);
+      }
+    } catch (error) {
+      console.error('Error checking user purchases:', error);
+    } finally {
+      setCheckingPurchases(false);
+    }
+  };
 
   const fetchCourses = async () => {
     try {
@@ -40,6 +60,44 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
   };
 
   if (!affiliateCode) return null;
+
+  // Show loading state while checking purchases
+  if (checkingPurchases) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <span className="ml-2 text-gray-600">Loading referral center...</span>
+      </div>
+    );
+  }
+
+  // Show message if user hasn't purchased any courses
+  if (!hasPurchases) {
+    return (
+      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 text-center border border-blue-200">
+        <div className="text-6xl mb-4">🎓</div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-4">Unlock Your Referral Center</h3>
+        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+          Purchase your first course to unlock the referral system and start earning commissions by sharing courses with others!
+        </p>
+        <div className="bg-white rounded-xl p-4 border border-blue-200 mb-6">
+          <h4 className="font-semibold text-gray-900 mb-2">🎯 What you'll get:</h4>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>• Your unique referral code</li>
+            <li>• 50% commission on every referral</li>
+            <li>• Course-specific referral links</li>
+            <li>• Real-time earnings tracking</li>
+          </ul>
+        </div>
+        <button
+          onClick={() => window.location.href = '/course-list'}
+          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-semibold shadow-lg"
+        >
+          Browse Courses
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -249,23 +249,30 @@ export const getUserPurchasedCourses = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Get user with enrolled courses
-    const user = await User.findById(userId).populate({
-      path: 'enrolledCourses',
-      select: 'courseTitle coursePrice courseThumbnail courseContent'
-    });
+    // Get purchases made by this user to get actual paid amounts
+    const purchases = await Purchase.find({ userId: userId, status: 'completed' })
+      .populate({
+        path: 'courseId',
+        select: 'courseTitle coursePrice courseThumbnail courseContent'
+      })
+      .sort({ createdAt: -1 });
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+    if (!purchases || purchases.length === 0) {
+      return res.status(200).json({ success: true, purchasedCourses: [] });
     }
 
-    if (!user.enrolledCourses || user.enrolledCourses.length === 0) {
-      return res.status(404).json({ success: false, message: "No purchased courses found" });
-    }
+    // Map purchases to course format with actual paid amount
+    const purchasedCourses = purchases.map(purchase => ({
+      ...purchase.courseId.toObject(),
+      actualPaidAmount: purchase.amount, // The actual amount paid (with discount)
+      originalPrice: purchase.courseId.coursePrice, // Original course price
+      purchaseDate: purchase.createdAt,
+      purchaseId: purchase._id
+    }));
 
     res.status(200).json({
       success: true,
-      purchasedCourses: user.enrolledCourses,
+      purchasedCourses: purchasedCourses,
     });
   } catch (error) {
     console.error("Error fetching purchased courses:", error);
@@ -311,39 +318,29 @@ export const getAffiliateEarnings = async (req, res) => {
 export const getEarningsData = async (req, res) => {
   try {
     const userId = req.user.id;
-    const user = await User.findById(userId);
+    
+    // Import the helper function
+    const { getUserEarningsData } = await import('../utils/balanceHelpers.js');
+    
+    const earningsData = await getUserEarningsData(userId);
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const sumAffiliate = async (fromDate, toDate = null) => {
-      const query = {
-        referrerId: userId,
-        createdAt: { $gte: fromDate },
-      };
-      if (toDate) query.createdAt.$lt = toDate;
-
-      const docs = await Purchase.find(query).select('affiliateAmount');
-      return docs.reduce((acc, p) => acc + (Number(p.affiliateAmount) || 0), 0);
-    };
-
-    const [today, lastSevenDays, thisMonth] = await Promise.all([
-      sumAffiliate(startOfToday),
-      sumAffiliate(last7Days),
-      sumAffiliate(startOfMonth),
-    ]);
-
+    // Format response to maintain backward compatibility
     const earnings = {
-      lifetime: user.affiliateEarnings || 0,
-      today,
-      lastSevenDays,
-      thisMonth,
+      lifetime: earningsData.lifetime.affiliate,
+      today: earningsData.today.affiliate,
+      lastSevenDays: earningsData.lastSevenDays.affiliate,
+      thisMonth: earningsData.thisMonth.affiliate,
+      withdrawableBalance: earningsData.balance.withdrawableBalance,
+      totalWithdrawn: earningsData.balance.totalWithdrawn,
+      pendingWithdrawals: earningsData.balance.pendingWithdrawals,
+      availableBalance: earningsData.balance.availableBalance,
+      // Additional detailed data
+      withdrawableEarnings: {
+        lifetime: earningsData.lifetime.withdrawable,
+        today: earningsData.today.withdrawable,
+        lastSevenDays: earningsData.lastSevenDays.withdrawable,
+        thisMonth: earningsData.thisMonth.withdrawable
+      }
     };
 
     res.status(200).json({ success: true, earnings });
@@ -397,7 +394,7 @@ export const getUserReferrals = async (req, res) => {
 export const getLeaderboard = async (req, res) => {
   try {
     const leaderboard = await User.find({ affiliateEarnings: { $gt: 0 } })
-      .select('firstName lastName email affiliateEarnings')
+      .select('firstName lastName email affiliateEarnings imageUrl')
       .sort({ affiliateEarnings: -1 })
       .limit(50);
 

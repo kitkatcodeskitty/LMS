@@ -8,6 +8,7 @@ import userRouter from './routes/userRoute.js'
 import cartRouter from './routes/cartRoute.js';
 import notificationRouter from './routes/notificationRoute.js';
 import kycRouter from './routes/kycRoute.js';
+import withdrawalRouter from './routes/withdrawalRoute.js';
 import dotenv from "dotenv";
 
 
@@ -35,6 +36,7 @@ app.use('/api/user', userRouter)
 app.use('/api/cart', cartRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/kyc', kycRouter);
+app.use('/api/withdrawals', withdrawalRouter);
 
 
 // port number

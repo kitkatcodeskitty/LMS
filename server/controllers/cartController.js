@@ -163,7 +163,10 @@ export const validatePurchase = async (req, res) => {
       const referrer = await User.findOne({ affiliateCode: courseItem.referralCode });
 
       if (referrer && referrer._id.toString() !== userId) {
-        referrer.affiliateEarnings += courseItem.course.coursePrice / 2;
+        const affiliateAmount = courseItem.course.coursePrice / 2;
+        
+        // Update both affiliate earnings and withdrawable balance
+        referrer.updateWithdrawableBalance(affiliateAmount);
 
         if (!purchasingUser.referredBy) {
           purchasingUser.referredBy = courseItem.referralCode;
@@ -190,6 +193,8 @@ export const validatePurchase = async (req, res) => {
         purchaseDoc.referrerId = referrer._id;
         // Default split (can be overridden by admin later)
         purchaseDoc.affiliateAmount = courseItem.course.coursePrice / 2;
+        // Withdrawable amount will be calculated by pre-save middleware (50% of affiliate amount)
+        purchaseDoc.commissionRate = 0.5;
       }
     }
     await purchaseDoc.save();

@@ -151,6 +151,16 @@ const EditProfile = ({
           </div>
         </div>
       </div>
+
+      {/* Bio Display Section */}
+      {userData.bio && (
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">About Me</h3>
+          <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+            {userData.bio}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

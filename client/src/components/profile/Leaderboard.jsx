@@ -119,10 +119,10 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
             return (
               <div key={user._id} className="flex flex-col items-center">
                 <div className="relative mb-6">
-                  <ProfileImage
-                    user={user}
-                    size={position === 0 ? '2xl' : position === 1 ? 'xl' : 'lg'}
-                    className="border-4 border-white shadow-2xl"
+                  <img
+                    src={getProfileImage(user)}
+                    alt={`${user.firstName} ${user.lastName}`}
+                    className={`${position === 0 ? 'w-24 h-24' : position === 1 ? 'w-20 h-20' : 'w-18 h-18'} rounded-full object-cover border-4 border-white shadow-2xl`}
                   />
                   <div className={`absolute -top-4 left-1/2 transform -translate-x-1/2 ${crownSizes[position === 0 ? 1 : position === 1 ? 0 : 2]}`}>
                     {getRankIcon(position)}
@@ -161,10 +161,10 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                   {index + 1}
                   <div className="absolute -top-2 -right-2 text-2xl">{getRankIcon(index)}</div>
                 </div>
-                <ProfileImage
-                  user={user}
-                  size="lg"
-                  className="border-4 border-white shadow-lg"
+                <img
+                  src={getProfileImage(user)}
+                  alt={`${user.firstName} ${user.lastName}`}
+                  className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
@@ -212,10 +212,10 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                     <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
                       {actualIndex + 1}
                     </div>
-                    <ProfileImage
-                      user={user}
-                      size="md"
-                      className="border-2 border-gray-200"
+                    <img
+                      src={getProfileImage(user)}
+                      alt={`${user.firstName} ${user.lastName}`}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
@@ -247,10 +247,10 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                       </div>
                       
                       <div className="flex items-center space-x-4">
-                        <ProfileImage
-                          user={user}
-                          size="lg"
-                          className="border-2 border-gray-200 shadow-sm"
+                        <img
+                          src={getProfileImage(user)}
+                          alt={`${user.firstName} ${user.lastName}`}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 shadow-sm"
                         />
                         <div>
                           <p className="font-semibold text-gray-900 text-lg flex items-center">

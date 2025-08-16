@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { NavLink } from 'react-router-dom'
-import { FiHome, FiPlusSquare, FiBook, FiUsers, FiClipboard, FiCheckCircle } from 'react-icons/fi'
+import { FiHome, FiPlusSquare, FiBook, FiUsers, FiClipboard, FiCheckCircle, FiDollarSign } from 'react-icons/fi'
 
 const Sidebar = () => {
   const { isEducator, isSubAdmin, userData, pendingOrdersCount } = useContext(AppContext)
@@ -13,14 +13,16 @@ const Sidebar = () => {
     { name: 'My Courses', path: '/educator/myCourse', icon: <FiBook size={24} /> },
     { name: 'Student Enrolled', path: '/educator/student-enrolled', icon: <FiUsers size={24} /> },
     { name: 'Pending Orders', path: '/educator/pending-orders', icon: <FiClipboard size={24} /> },
-    { name: 'KYC Review', path: '/educator/kyc-review', icon: <FiCheckCircle size={24} /> }
+    { name: 'KYC Review', path: '/educator/kyc-review', icon: <FiCheckCircle size={24} /> },
+    { name: 'Withdrawals', path: '/educator/withdrawal-management', icon: <FiDollarSign size={24} /> }
   ]
 
   // Sub-admin menu items (limited access)
   const subAdminMenuItems = [
     { name: 'Student Enrolled', path: '/educator/student-enrolled', icon: <FiUsers size={24} /> },
     { name: 'Pending Orders', path: '/educator/pending-orders', icon: <FiClipboard size={24} /> },
-    { name: 'KYC Review', path: '/educator/kyc-review', icon: <FiCheckCircle size={24} /> }
+    { name: 'KYC Review', path: '/educator/kyc-review', icon: <FiCheckCircle size={24} /> },
+    { name: 'Withdrawals', path: '/educator/withdrawal-management', icon: <FiDollarSign size={24} /> }
   ]
 
   // Determine which menu items to show

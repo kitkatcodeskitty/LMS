@@ -23,10 +23,10 @@ export default function TextCarousel() {
         style={{ width: `${totalSlides * 100}vw`, transform: `translateX(-${current * 100}vw)` }}
       >
         <div className="w-screen flex items-center justify-center py-6 text-2xl font-bold">
-          🚀 Learn Java — From Beginner to Pro
+          💰 Current Balance: Check Your Earnings
         </div>
         <div className="w-screen flex items-center justify-center py-6 text-2xl font-bold">
-          🐍 Master Python — Build Anything You Imagine
+          🎯 Withdraw Your Commissions Anytime
         </div>
       </div>
     </div>

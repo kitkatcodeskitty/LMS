@@ -16,6 +16,8 @@ import EditProfile from '../../components/profile/EditProfile';
 import Sidebar from '../../components/profile/Sidebar';
 import MobileHeader from '../../components/profile/MobileHeader';
 import Affilated from '../../components/profile/Affilated';
+import WithdrawalRequest from '../../components/profile/WithdrawalRequest';
+import WithdrawalHistory from '../../components/profile/WithdrawalHistory';
 
 
 const customStyles = `
@@ -62,13 +64,18 @@ const Profile = () => {
     lifetime: 0,
     today: 0,
     lastSevenDays: 0,
-    thisMonth: 0
+    thisMonth: 0,
+    withdrawableBalance: 0,
+    totalWithdrawn: 0,
+    pendingWithdrawals: 0,
+    availableBalance: 0
   });
   const [referralData, setReferralData] = useState([]);
   const [purchasedCourses, setPurchasedCourses] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [paymentStatements, setPaymentStatements] = useState([]);
   const [purchaseHistory, setPurchaseHistory] = useState([]);
+  const [withdrawalRequestOpen, setWithdrawalRequestOpen] = useState(false);
 
   const [editForm, setEditForm] = useState({
     firstName: '',
@@ -107,7 +114,14 @@ const Profile = () => {
       ]);
 
       if (earningsRes.data.success) {
-        setEarningsData(earningsRes.data.earnings);
+        setEarningsData({
+          ...earningsRes.data.earnings,
+          // Ensure withdrawal balance data is included
+          withdrawableBalance: earningsRes.data.earnings.withdrawableBalance || 0,
+          totalWithdrawn: earningsRes.data.earnings.totalWithdrawn || 0,
+          pendingWithdrawals: earningsRes.data.earnings.pendingWithdrawals || 0,
+          availableBalance: earningsRes.data.earnings.availableBalance || 0
+        });
       }
 
       if (referralsRes.data.success) {
@@ -131,12 +145,23 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Error fetching profile data:', error);
+      let errorMessage;
+      if (error.response?.status === 404) {
+        errorMessage = 'Profile data not found. Please check your account or contact support.';
+      } else {
+        errorMessage = 'Failed to fetch profile data.';
+      }
+      toast.error(errorMessage);
       // Set mock data for demonstration
       setEarningsData({
         lifetime: userData?.affiliateEarnings || 0,
         today: 0,
         lastSevenDays: 0,
-        thisMonth: 0
+        thisMonth: 0,
+        withdrawableBalance: userData?.withdrawableBalance || 0,
+        totalWithdrawn: userData?.totalWithdrawn || 0,
+        pendingWithdrawals: userData?.pendingWithdrawals || 0,
+        availableBalance: (userData?.withdrawableBalance || 0) - (userData?.pendingWithdrawals || 0)
       });
     } finally {
       setLoading(false);
@@ -193,6 +218,8 @@ const Profile = () => {
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'earnings', label: 'Earnings', icon: '💰' },
+    { id: 'withdrawal-request', label: 'Request Withdrawal', icon: '💸' },
+    { id: 'withdrawal-history', label: 'Withdrawal History', icon: '📋' },
     { id: 'referrals', label: 'My Referrals', icon: '👥' },
     { id: 'courses', label: 'My Courses', icon: '📚' },
     { id: 'statements', label: 'Payment Statements', icon: '📄' },
@@ -219,6 +246,43 @@ const Profile = () => {
             navigate={navigate}
             setActiveTab={setActiveTab}
           />
+        );
+      case 'withdrawal-request':
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Request Withdrawal</h2>
+                  <p className="text-gray-600 text-sm mt-1">Withdraw your earnings through Mobile Banking or Bank Transfer</p>
+                </div>
+                <div className="text-3xl text-green-600">💸</div>
+              </div>
+              <WithdrawalRequest
+                inline={true}
+                onClose={() => setActiveTab('dashboard')}
+                onSuccess={() => {
+                  fetchProfileData(); // Refresh data after successful withdrawal
+                  setActiveTab('withdrawal-history');
+                }}
+              />
+            </div>
+          </div>
+        );
+      case 'withdrawal-history':
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Withdrawal History</h2>
+                  <p className="text-gray-600 text-sm mt-1">Track all your withdrawal requests and their status</p>
+                </div>
+                <div className="text-3xl text-blue-600">📋</div>
+              </div>
+              <WithdrawalHistory />
+            </div>
+          </div>
         );
       case 'earnings':
         return (

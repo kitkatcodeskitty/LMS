@@ -27,16 +27,16 @@ const Earnings = ({ earningsData, currency, referralData }) => {
         </div>
 
         <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg sm:rounded-xl p-4 sm:p-6 text-white">
-          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">This Month</h3>
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Withdrawable Balance</h3>
           <p className="text-2xl sm:text-3xl font-bold">
             <AnimatedNumber 
-              value={earningsData.thisMonth} 
+              value={earningsData.availableBalance || 0} 
               currency={currency}
               duration={2300}
               delay={400}
             />
           </p>
-          <p className="text-blue-100 text-xs sm:text-sm mt-2">Earnings in current month</p>
+          <p className="text-blue-100 text-xs sm:text-sm mt-2">Available for withdrawal</p>
         </div>
       </div>
 
@@ -65,28 +65,73 @@ const Earnings = ({ earningsData, currency, referralData }) => {
           <div className="text-xs sm:text-sm text-gray-600">Last 7 Days</div>
         </div>
         <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 text-center">
-          <div className="text-lg sm:text-xl font-bold text-orange-600">
+          <div className="text-lg sm:text-xl font-bold text-blue-600">
             <AnimatedNumber 
-              value={referralData.length} 
-              decimals={0}
+              value={earningsData.totalWithdrawn || 0} 
+              currency={currency}
               duration={1500}
               delay={1000}
             />
           </div>
-          <div className="text-xs sm:text-sm text-gray-600">Referrals</div>
+          <div className="text-xs sm:text-sm text-gray-600">Total Withdrawn</div>
         </div>
         <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 text-center">
-          <div className="text-lg sm:text-xl font-bold text-blue-600">
+          <div className="text-lg sm:text-xl font-bold text-orange-600">
             <AnimatedNumber 
-              value={earningsData.lifetime / Math.max(referralData.length, 1)} 
+              value={earningsData.pendingWithdrawals || 0} 
               currency={currency}
               duration={1800}
               delay={1200}
             />
           </div>
-          <div className="text-xs sm:text-sm text-gray-600">Avg/Referral</div>
+          <div className="text-xs sm:text-sm text-gray-600">Pending</div>
         </div>
       </div>
+
+      {/* Withdrawal Balance Breakdown */}
+      {(earningsData.withdrawableBalance || earningsData.totalWithdrawn || earningsData.pendingWithdrawals) && (
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Withdrawal Balance Breakdown</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                <AnimatedNumber 
+                  value={earningsData.withdrawableBalance || 0} 
+                  currency={currency}
+                  duration={2000}
+                  delay={1400}
+                />
+              </div>
+              <div className="text-sm text-gray-600 mt-1">Total Withdrawable</div>
+              <div className="text-xs text-gray-500">50% of affiliate earnings</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                <AnimatedNumber 
+                  value={earningsData.totalWithdrawn || 0} 
+                  currency={currency}
+                  duration={2000}
+                  delay={1600}
+                />
+              </div>
+              <div className="text-sm text-gray-600 mt-1">Already Withdrawn</div>
+              <div className="text-xs text-gray-500">Successfully processed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                <AnimatedNumber 
+                  value={earningsData.availableBalance || 0} 
+                  currency={currency}
+                  duration={2000}
+                  delay={1800}
+                />
+              </div>
+              <div className="text-sm text-gray-600 mt-1">Available Now</div>
+              <div className="text-xs text-gray-500">Ready for withdrawal</div>
+            </div>
+          </div>
+        </div>
+      )}
 
     
     </div>
