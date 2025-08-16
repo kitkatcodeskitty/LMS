@@ -13,7 +13,7 @@ const CourseCard = ({ course }) => {
     if (course.discountType === 'amount') {
       return Math.max(0, course.coursePrice - course.discount);
     } else {
-      // percentage discount
+
       return course.coursePrice - (course.discount * course.coursePrice) / 100;
     }
   };
