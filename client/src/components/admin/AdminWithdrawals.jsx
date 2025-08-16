@@ -77,24 +77,44 @@ const AdminWithdrawals = () => {
         return;
       }
 
-      const { data } = await axios.put(
+      const response = await axios.put(
         `${backendUrl}/api/admin/withdrawals/${withdrawalId}/${action}`,
         actionData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Check for successful response
-      if (data && data.success === true) {
-        toast.success(`Withdrawal ${action}${action.endsWith('e') ? 'd' : 'ed'} successfully!`);
-        setShowDetailsModal(false);
-        setSelectedWithdrawal(null);
-        // Refetch withdrawals to update UI immediately
-        await fetchWithdrawals();
-      } else {
+      // Check for successful HTTP status first
+      if (response.status >= 200 && response.status < 300) {
+        const data = response.data;
+        
+        // Check if the response has success property and it's true
+        if (data && data.success === true) {
+          toast.success(`Withdrawal ${action}${action.endsWith('e') ? 'd' : 'ed'} successfully!`);
+          setShowDetailsModal(false);
+          setSelectedWithdrawal(null);
+          // Refetch withdrawals to update UI immediately
+          await fetchWithdrawals();
+          return;
+        }
+        
+        // If HTTP status is successful but no success property, assume it worked
+        // This handles cases where backend returns 200 but doesn't include success: true
+        if (data && !data.hasOwnProperty('success')) {
+          toast.success(`Withdrawal ${action}${action.endsWith('e') ? 'd' : 'ed'} successfully!`);
+          setShowDetailsModal(false);
+          setSelectedWithdrawal(null);
+          await fetchWithdrawals();
+          return;
+        }
+        
+        // If we get here, HTTP was successful but success was false
         toast.error(data?.error?.message || data?.message || `Failed to ${action} withdrawal`);
+      } else {
+        toast.error(`HTTP ${response.status}: Failed to ${action} withdrawal`);
       }
     } catch (error) {
       console.error(`Error ${action}ing withdrawal:`, error);
+      
       let errorMessage = `Error ${action}ing withdrawal`;
       
       if (error.response?.status === 401 || error.response?.status === 403) {
@@ -438,8 +458,8 @@ const WithdrawalCard = ({
               <ActionButtons
                 withdrawal={withdrawal}
                 onAction={(action, withdrawalId) => {
-                  // For edit and approve, open details modal first
-                  if (action === 'edit' || action === 'approve') {
+                  // Only edit opens the modal, approve and reject are handled directly
+                  if (action === 'edit') {
                     onViewDetails(withdrawal);
                   } else {
                     onAction(action, withdrawalId);

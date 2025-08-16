@@ -553,14 +553,22 @@ export const approveWithdrawal = async (req, res) => {
       await session.commitTransaction();
 
       // Send approval notifications
-      await notifyWithdrawalApproved(withdrawal.userId._id, withdrawal.amount, withdrawal.transactionReference);
+      try {
+        await notifyWithdrawalApproved(withdrawal.userId._id, withdrawal.amount, withdrawal.transactionReference);
+      } catch (notifError) {
+        console.log('Error sending in-app notification:', notifError.message);
+      }
       
       // Send email notification
-      await sendWithdrawalEmailNotification(withdrawal.userId.email, 'approved', {
-        amount: withdrawal.amount,
-        transactionReference: withdrawal.transactionReference,
-        withdrawalId: withdrawal._id
-      });
+      try {
+        await sendWithdrawalEmailNotification(withdrawal.userId.email, 'approved', {
+          amount: withdrawal.amount,
+          transactionReference: withdrawal.transactionReference,
+          withdrawalId: withdrawal._id
+        });
+      } catch (emailError) {
+        console.log('Error sending email notification:', emailError.message);
+      }
 
       // Populate admin details for response
       await withdrawal.populate('processedBy', 'firstName lastName');
