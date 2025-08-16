@@ -1,11 +1,5 @@
 import mongoose from "mongoose";
 
-/**
- * Migration: Create database indexes for withdrawal queries
- * This migration creates indexes for efficient withdrawal queries including:
- * - Single field indexes on userId, status, createdAt
- * - Compound indexes for admin filtering and sorting
- */
 
 const migrationName = "002_create_withdrawal_indexes";
 

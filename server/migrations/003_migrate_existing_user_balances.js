@@ -2,11 +2,7 @@ import mongoose from "mongoose";
 import User from "../models/User.js";
 import { Purchase } from "../models/Purchase.js";
 
-/**
- * Migration: Set initial withdrawable balance values for existing users
- * This migration calculates and sets the withdrawable balance for existing users
- * based on their current affiliate earnings (50% of total affiliate earnings)
- */
+
 
 const migrationName = "003_migrate_existing_user_balances";
 
@@ -14,7 +10,7 @@ export const up = async () => {
   console.log(`Running migration: ${migrationName}`);
   
   try {
-    // Find all users with affiliate earnings but no withdrawable balance set
+
     const usersWithEarnings = await User.find({
       affiliateEarnings: { $gt: 0 },
       $or: [

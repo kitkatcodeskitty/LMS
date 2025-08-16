@@ -1,14 +1,4 @@
-/**
- * Migration: Fix Commission Calculations
- * 
- * This migration fixes the commission calculation issue where users were getting
- * 25% (50% of 50%) instead of the intended 50% commission rate.
- * 
- * Changes:
- * 1. Recalculate withdrawableAmount in Purchase model (should be equal to affiliateAmount)
- * 2. Recalculate user withdrawableBalance based on corrected purchase data
- * 3. Update any pending withdrawals if necessary
- */
+
 
 import mongoose from 'mongoose';
 import { Purchase } from '../models/Purchase.js';

@@ -1,11 +1,7 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
 
-/**
- * Migration: Add withdrawal-related fields to existing User documents
- * This migration adds withdrawableBalance, totalWithdrawn, and pendingWithdrawals fields
- * to existing users who don't have these fields.
- */
+
 
 const migrationName = "001_add_withdrawal_fields_to_users";
 
