@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
-import uniqid from 'uniqid'
+import { nanoid } from 'nanoid'
 import Quill from 'quill'
 import { toast } from 'react-toastify'
 import axios from 'axios'
@@ -62,7 +62,7 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
       const newChapterTitle = prompt('Enter Chapter name:')
       if (newChapterTitle) {
         const newChapter = {
-          chapterId: uniqid(),
+          chapterId: nanoid(),
           chapterTitle: newChapterTitle,
           chapterContent: [],
           collapsed: false,
@@ -189,7 +189,7 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
                 chapter.chapterContent.length > 0
                   ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1
                   : 1,
-              lectureId: uniqid(),
+              lectureId: nanoid(),
             }
             return {
               ...chapter,

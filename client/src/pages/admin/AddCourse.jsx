@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
-import uniqid from 'uniqid';
+import { nanoid } from 'nanoid';
 import Quill from 'quill';
 import { assets } from '../../assets/assets';
 import { toast } from 'react-toastify';
@@ -33,7 +33,7 @@ const AddCourse = () => {
       const title = prompt('Enter Chapter name:');
       if (title) {
         const newChapter = {
-          chapterId: uniqid(),
+          chapterId: nanoid(),
           chapterTitle: title,
           chapterContent: [],
           collapsed: false,
@@ -82,7 +82,7 @@ const AddCourse = () => {
               chapter.chapterContent.length > 0
                 ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1
                 : 1,
-            lectureId: uniqid(),
+            lectureId: nanoid(),
           };
           return {
             ...chapter,
