@@ -60,7 +60,7 @@ export const up = async () => {
       { pendingWithdrawals: 1, withdrawableBalance: -1 }
     ];
 
-    // Create user indexes with error handling
+
     for (const index of userIndexes) {
       try {
         await usersCollection.createIndex(index);

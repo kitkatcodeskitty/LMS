@@ -279,7 +279,6 @@ const MobileBankingForm = ({ availableBalance, onBack, onSuccess, loading, setLo
               onChange={handleInputChange}
               placeholder="0.00"
               min="100"
-              max={balance !== null ? balance : availableBalance}
               step="0.01"
               className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.amount ? 'border-red-300' : 'border-gray-300'

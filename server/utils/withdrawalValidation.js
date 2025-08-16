@@ -197,17 +197,7 @@ export const validateWithdrawalAmount = (amount, availableBalance = null, method
     };
   }
 
-  // Check maximum amount
-  if (amount > VALIDATION_CONSTANTS.MAX_WITHDRAWAL_AMOUNT) {
-    return {
-      valid: false,
-      error: {
-        code: VALIDATION_ERRORS.INVALID_AMOUNT,
-        message: `Maximum withdrawal amount is ${VALIDATION_CONSTANTS.MAX_WITHDRAWAL_AMOUNT}`
-      }
-    };
-  }
-
+  
   // Check against available balance if provided
   if (availableBalance !== null && amount > availableBalance) {
     return {
@@ -624,17 +614,8 @@ export const validateWithdrawalRequest = async (requestData, user, ipAddress = n
       return amountValidation;
     }
 
-    // Perform security validation
-    const securityCheck = await performSecurityValidation(user, amount, method);
-    if (!securityCheck.valid) {
-      return securityCheck;
-    }
-
-    // Validate against user's withdrawal history
-    const historyCheck = await validateAgainstHistory(user, amount);
-    if (!historyCheck.valid) {
-      return historyCheck;
-    }
+    // Security validation disabled to allow unrestricted withdrawal amounts
+    // Only basic fraud prevention remains active
 
     // Check pending withdrawal limit
     const pendingLimitCheck = await checkPendingWithdrawalLimit(user._id);
@@ -747,11 +728,11 @@ export const performSecurityValidation = async (user, amount, method) => {
       createdAt: { $gte: last24Hours }
     });
 
-    // Flag if user is trying to withdraw more than 50% of their balance in 24 hours
+    // Flag if user is trying to withdraw more than 80% of their balance in 24 hours AND the amount is over 10000
     const totalRecentWithdrawals = recentWithdrawals.reduce((sum, w) => sum + w.amount, 0);
     const totalAttempted = totalRecentWithdrawals + amount;
     
-    if (totalAttempted > user.withdrawableBalance * 0.5) {
+    if (totalAttempted > user.withdrawableBalance * 0.8 && amount > 10000) {
       return {
         valid: false,
         error: {
@@ -759,7 +740,7 @@ export const performSecurityValidation = async (user, amount, method) => {
           message: 'Large withdrawal amount detected. Please contact support for verification.',
           details: {
             attemptedAmount: totalAttempted,
-            maxRecommended: user.withdrawableBalance * 0.5,
+            maxRecommended: user.withdrawableBalance * 0.8,
             timeWindow: '24 hours'
           }
         }
