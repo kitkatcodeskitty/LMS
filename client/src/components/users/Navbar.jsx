@@ -5,21 +5,21 @@ import { AppContext } from '../../context/AppContext';
 import NotificationBell from './NotificationBell';
 import axios from 'axios';
 
-// Component to display latest enrolled course
-const LatestCourseDisplay = ({ userData }) => {
+// Component to display latest enrolled package
+const LatestPackageDisplay = ({ userData }) => {
   const { backendUrl, getToken } = useContext(AppContext);
   const [latestCourse, setLatestCourse] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (userData && !userData.isAdmin && !userData.isSubAdmin) {
-      fetchLatestCourse();
+      fetchLatestPackage();
     } else {
       setLoading(false);
     }
   }, [userData]);
 
-  const fetchLatestCourse = async () => {
+  const fetchLatestPackage = async () => {
     try {
       const token = getToken();
       const { data } = await axios.get(`${backendUrl}/api/user/user-purchase`, {
@@ -30,7 +30,7 @@ const LatestCourseDisplay = ({ userData }) => {
         setLatestCourse(data.purchasedCourses[0]);
       }
     } catch (error) {
-      console.error('Error fetching latest course:', error);
+      console.error('Error fetching latest package:', error);
     } finally {
       setLoading(false);
     }
@@ -82,12 +82,12 @@ const LatestCourseDisplay = ({ userData }) => {
           </svg>
         )}
       </div>
-      <div className="text-xs text-gray-500">
-        {latestCourse
-          ? ` ${latestCourse.courseTitle?.substring(0, 15)}${latestCourse.courseTitle?.length > 15 ? '...' : ''}`
-          : 'No courses yet'
-        }
-      </div>
+              <div className="text-xs text-gray-500">
+          {latestCourse
+            ? ` ${latestCourse.courseTitle?.substring(0, 15)}${latestCourse.courseTitle?.length > 15 ? '...' : ''}`
+            : 'No packages yet'
+          }
+        </div>
     </div>
   );
 };
@@ -103,7 +103,7 @@ const Navbar = () => {
   const desktopDropdownRef = useRef(null);
   const mobileDropdownRef = useRef(null);
 
-  const isCourseListPage = location.pathname.includes('/course-list');
+  const isPackageListPage = location.pathname.includes('/packages-list');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -143,16 +143,16 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gradient-to-r from-rose-50 to-pink-50 shadow-lg border-b border-rose-100 sticky top-0 z-50 backdrop-blur-sm">
+    <nav className="bg-gradient-to-r from-rose-50 to-pink-50 shadow-lg border-b border-rose-100 sticky top-0 z-50 backdrop-blur-sm animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 px-2 sm:px-0">
           {/* Logo */}
           <div className="flex-shrink-0">
             <img
               onClick={() => navigate('/')}
               src={assets.logo}
               alt="logo"
-              className="w-32 lg:w-40 cursor-pointer hover:opacity-80 transition-opacity"
+              className="w-24 sm:w-28 md:w-32 lg:w-40 cursor-pointer hover:opacity-80 transition-opacity duration-200"
             />
           </div>
 
@@ -162,16 +162,16 @@ const Navbar = () => {
               <>
                 {/* Navigation Links */}
                 <button
-                  onClick={() => navigate('/course-list')}
-                  className="text-gray-700 hover:text-rose-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  onClick={() => navigate('/packages-list')}
+                  className="text-gray-700 hover:text-rose-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 hover:shadow-md"
                 >
-                  Courses
+                  Packages
                 </button>
 
                 {!userData.isAdmin && !userData.isSubAdmin && (
                   <button
                     onClick={() => navigate('/my-enrollments')}
-                    className="text-gray-700 hover:text-rose-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                    className="text-gray-700 hover:text-rose-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 hover:shadow-md"
                   >
                     My Learning
                   </button>
@@ -184,7 +184,7 @@ const Navbar = () => {
                 <div className="relative" ref={desktopDropdownRef}>
                   <button
                     onClick={onDesktopButtonClick}
-                    className="flex items-center space-x-3 bg-white/70 hover:bg-white/90 rounded-full px-3 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 shadow-sm"
+                    className="flex items-center space-x-3 bg-white/70 hover:bg-white/90 rounded-full px-3 py-2 transition-colors duration-200 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 shadow-sm"
                     aria-haspopup="true"
                     aria-expanded={desktopDropdownOpen}
                     type="button"
@@ -212,7 +212,7 @@ const Navbar = () => {
                         </div>
                       )}
                     </div>
-                    <LatestCourseDisplay userData={userData} />
+                    <LatestPackageDisplay userData={userData} />
                     <svg
                       className="w-4 h-4 text-gray-400"
                       fill="none"
@@ -224,7 +224,7 @@ const Navbar = () => {
                   </button>
 
                   {desktopDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[9999]">
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[9999] animate-slide-down">
                       {/* User Info Header */}
                       <div className="px-4 py-3 border-b border-gray-100">
                         <div className="flex items-center space-x-3">
@@ -362,14 +362,14 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => navigate('/course-list')}
-                  className="text-gray-700 hover:text-rose-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  onClick={() => navigate('/packages-list')}
+                  className="text-gray-700 hover:text-rose-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 hover:shadow-md"
                 >
-                  Courses
+                  Packages
                 </button>
                 <button
                   onClick={() => navigate('/login')}
-                  className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white px-6 py-2 rounded-full font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+                  className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white px-6 py-2 rounded-full font-medium transition-colors duration-200 shadow-lg hover:shadow-xl"
                   type="button"
                 >
                   Sign In
@@ -385,17 +385,17 @@ const Navbar = () => {
                 {/* Notification Bell for Mobile */}
                 <NotificationBell />
 
-                <div className="relative" ref={mobileDropdownRef}>
+                <div className="relative ml-1" ref={mobileDropdownRef}>
                   <button
                     onClick={onMobileButtonClick}
                     type="button"
-                    className="flex items-center space-x-2 bg-white/70 hover:bg-white/90 rounded-full p-1 transition-colors shadow-sm"
+                    className="flex items-center justify-center bg-white/70 hover:bg-white/90 rounded-full p-2 transition-colors duration-200 shadow-sm"
                   >
                     <div className="relative">
                       <img
                         src={userData.imageUrl || assets.user_icon}
                         alt="Profile"
-                        className="w-8 h-8 rounded-full object-cover border-2 border-rose-200"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-rose-200"
                       />
                       {userData.kycStatus === 'verified' && (
                         <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-rose-500 rounded-full flex items-center justify-center border border-white">
@@ -408,7 +408,7 @@ const Navbar = () => {
                   </button>
 
                   {mobileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[9999]">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[9999] animate-slide-down">
                       {/* Mobile User Info */}
                       <div className="px-4 py-3 border-b border-gray-100">
                         <div className="flex items-center space-x-3">
@@ -426,7 +426,7 @@ const Navbar = () => {
                               </div>
                             )}
                           </div>
-                          <LatestCourseDisplay userData={userData} />
+                          <LatestPackageDisplay userData={userData} />
                         </div>
                       </div>
 
@@ -438,7 +438,7 @@ const Navbar = () => {
                             setMobileDropdownOpen(false);
                             navigate('/');
                           }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 hover:translate-x-1 transform"
                         >
                           <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -450,14 +450,14 @@ const Navbar = () => {
                           type="button"
                           onClick={() => {
                             setMobileDropdownOpen(false);
-                            navigate('/course-list');
+                            navigate('/packages-list');
                           }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 hover:translate-x-1 transform"
                         >
                           <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                           </svg>
-                          Courses
+                          Packages
                         </button>
 
                         {userData.isAdmin ? (
@@ -562,14 +562,14 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => navigate('/course-list')}
-                  className="text-gray-700 hover:text-rose-600 px-2 py-1 text-sm font-medium"
+                  onClick={() => navigate('/packages-list')}
+                  className="text-gray-700 hover:text-rose-600 px-2 py-1 text-sm font-medium transition-colors duration-200"
                 >
-                  Courses
+                  Packages
                 </button>
                 <button
                   onClick={() => navigate('/login')}
-                  className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+                  className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 shadow-lg hover:shadow-xl"
                   type="button"
                 >
                   Sign In

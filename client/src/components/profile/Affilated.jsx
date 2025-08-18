@@ -74,26 +74,26 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
   // Show message if user hasn't purchased any courses
   if (!hasPurchases) {
     return (
-      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 text-center border border-blue-200">
-        <div className="text-6xl mb-4">🎓</div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-4">Unlock Your Referral Center</h3>
-        <p className="text-gray-600 mb-6 max-w-md mx-auto">
-          Purchase your first course to unlock the referral system and start earning commissions by sharing courses with others!
+      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 text-center border border-blue-200 animate-fade-in-up">
+        <div className="text-6xl mb-4 animate-bounce">🎓</div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-4 animate-fade-in-up animation-delay-200">Unlock Your Referral Center</h3>
+        <p className="text-gray-600 mb-6 max-w-md mx-auto animate-fade-in-up animation-delay-300">
+          Purchase your first package to unlock the referral system and start earning commissions by sharing packages with others!
         </p>
-        <div className="bg-white rounded-xl p-4 border border-blue-200 mb-6">
+        <div className="bg-white rounded-xl p-4 border border-blue-200 mb-6 animate-fade-in-up animation-delay-400">
           <h4 className="font-semibold text-gray-900 mb-2">🎯 What you'll get:</h4>
           <ul className="text-sm text-gray-600 space-y-1">
             <li>• Your unique referral code</li>
             <li>• 50% commission on every referral</li>
-            <li>• Course-specific referral links</li>
+            <li>• Package-specific referral links</li>
             <li>• Real-time earnings tracking</li>
           </ul>
         </div>
         <button
-          onClick={() => window.location.href = '/course-list'}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-semibold shadow-lg"
+                       onClick={() => window.location.href = '/packages-list'}
+          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 hover:scale-105 transition-all duration-300 font-semibold shadow-lg transform animate-fade-in-up animation-delay-500"
         >
-          Browse Courses
+                      Browse Packages
         </button>
       </div>
     );
@@ -102,7 +102,7 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
   return (
     <div className="space-y-6">
       {/* General Referral Section */}
-      <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+      <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300 animate-fade-in-up">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-xl font-bold text-gray-900">General Referral Center</h3>
@@ -126,7 +126,7 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
               />
               <button
                 onClick={() => copyToClipboard(affiliateCode)}
-                className="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-r-xl hover:from-rose-600 hover:to-pink-700 transition-all duration-200 font-semibold shadow-lg"
+                className="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-r-xl hover:from-rose-600 hover:to-pink-700 hover:scale-105 transition-all duration-300 font-semibold shadow-lg transform"
               >
                 Copy
               </button>
@@ -147,7 +147,7 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
               />
               <button
                 onClick={() => copyToClipboard(affiliateLink)}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-r-xl hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 font-semibold shadow-lg"
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-r-xl hover:from-blue-600 hover:to-cyan-700 hover:scale-105 transition-all duration-300 font-semibold shadow-lg transform"
               >
                 Share
               </button>
@@ -157,11 +157,11 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
       </div>
 
       {/* Course-Specific Referral Section */}
-      <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+      <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300 animate-fade-in-up animation-delay-200">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Course-Specific Referral Links</h3>
-            <p className="text-gray-600 text-sm">Generate direct payment links for specific courses</p>
+                    <h3 className="text-xl font-bold text-gray-900">Package-Specific Referral Links</h3>
+        <p className="text-gray-600 text-sm">Generate direct payment links for specific packages</p>
           </div>
           <div className="text-3xl">🎓</div>
         </div>
@@ -170,12 +170,12 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
           {/* Course Selection */}
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-700">
-              Select Course
+              Select Package
             </label>
             {loadingCourses ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                <span className="ml-2 text-gray-600">Loading courses...</span>
+                <span className="ml-2 text-gray-600">Loading packages...</span>
               </div>
             ) : (
               <select
@@ -183,7 +183,7 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
                 onChange={(e) => handleCourseSelect(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:border-blue-500 focus:outline-none transition-colors"
               >
-                <option value="">Choose a course to generate link...</option>
+                <option value="">Choose a package to generate link...</option>
                 {courses.map((course) => (
                   <option key={course._id} value={course._id}>
                     {course.courseTitle} - ${course.coursePrice}
@@ -197,7 +197,7 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
           {courseSpecificLink && (
             <div className="space-y-3">
               <label className="block text-sm font-semibold text-gray-700">
-                Course Payment Link
+                Package Payment Link
               </label>
               <div className="flex">
                 <input
@@ -208,13 +208,13 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
                 />
                 <button
                   onClick={() => copyToClipboard(courseSpecificLink)}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-r-xl hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 font-semibold shadow-lg"
+                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-r-xl hover:from-purple-600 hover:to-indigo-700 hover:scale-105 transition-all duration-300 font-semibold shadow-lg transform"
                 >
                   Copy Link
                 </button>
               </div>
               <p className="text-xs text-gray-500">
-                This link takes users directly to the payment page for the selected course with your referral code applied.
+                This link takes users directly to the payment page for the selected package with your referral code applied.
               </p>
             </div>
           )}
@@ -225,7 +225,7 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
       </div>
 
       {/* Pro Tips */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200 hover:shadow-xl transition-all duration-300 animate-fade-in-up animation-delay-400">
         <div className="flex items-start space-x-3">
           <div className="text-2xl">💡</div>
           <div className="space-y-3">
@@ -233,15 +233,15 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
             <ul className="text-sm text-gray-600 space-y-2">
               <li className="flex items-start space-x-2">
                 <span className="text-green-500 font-bold">•</span>
-                <span>Use course-specific links when promoting individual courses for higher conversion rates</span>
+                <span>Use package-specific links when promoting individual packages for higher conversion rates</span>
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-blue-500 font-bold">•</span>
-                <span>General referral links work for any course purchase on the platform</span>
+                <span>General referral links work for any package purchase on the platform</span>
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-purple-500 font-bold">•</span>
-                <span>Course-specific links streamline the purchase process and reduce friction</span>
+                <span>Package-specific links streamline the purchase process and reduce friction</span>
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-orange-500 font-bold">•</span>

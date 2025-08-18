@@ -40,8 +40,8 @@ const Sidebar = () => {
   // Full admin menu items
   const fullAdminMenuItems = [
     { name: 'Dashboard', path: '/educator', icon: <FiHome size={24} /> },
-    { name: 'Add Course', path: '/educator/add-course', icon: <FiPlusSquare size={24} /> },
-    { name: 'My Courses', path: '/educator/myCourse', icon: <FiBook size={24} /> },
+            { name: 'Add Package', path: '/educator/add-package', icon: <FiPlusSquare size={24} /> },
+        { name: 'My Packages', path: '/educator/myCourse', icon: <FiBook size={24} /> },
     { name: 'Student Enrolled', path: '/educator/student-enrolled', icon: <FiUsers size={24} /> },
     { name: 'Pending Orders', path: '/educator/pending-orders', icon: <FiClipboard size={24} /> },
     { name: 'KYC Review', path: '/educator/kyc-review', icon: <FiCheckCircle size={24} /> },

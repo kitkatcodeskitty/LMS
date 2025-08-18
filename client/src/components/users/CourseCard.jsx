@@ -13,17 +13,62 @@ const CourseCard = ({ course }) => {
     if (course.discountType === 'amount') {
       return Math.max(0, course.coursePrice - course.discount);
     } else {
-
       return course.coursePrice - (course.discount * course.coursePrice) / 100;
     }
   };
 
+  // Get package styling based on package type
+  const getPackageStyling = () => {
+    switch (course.packageType) {
+      case 'supreme':
+        return {
+          borderColor: 'border-blue-500',
+          badgeBg: 'bg-gradient-to-r from-blue-600 to-blue-700',
+          badgeText: 'text-white',
+          badgeLabel: 'SUPREME',
+          cardShadow: 'hover:shadow-blue-500/25',
+          specialEffect: 'relative overflow-hidden'
+        };
+      case 'elite':
+        return {
+          borderColor: 'border-purple-500',
+          badgeBg: 'bg-gradient-to-r from-purple-600 to-purple-700',
+          badgeText: 'text-white',
+          badgeLabel: 'ELITE',
+          cardShadow: 'hover:shadow-purple-500/25',
+          specialEffect: ''
+        };
+      case 'premium':
+      default:
+        return {
+          borderColor: 'border-gray-500/30',
+          badgeBg: 'bg-gradient-to-r from-rose-500 to-pink-600',
+          badgeText: 'text-white',
+          badgeLabel: 'PREMIUM',
+          cardShadow: 'hover:shadow-lg',
+          specialEffect: ''
+        };
+    }
+  };
+
+  const packageStyle = getPackageStyling();
+
   return (
     <Link
-      to={'/course/' + course._id}
-      onClick={() => scrollTo(0, 0)}
-      className='border border-gray-500/30 pb-6 overflow-hidden rounded-lg'
+      to={'/package/' + course._id}
+      onClick={() => window.scrollTo(0, 0)}
+      className={`border ${packageStyle.borderColor} pb-6 overflow-hidden rounded-lg hover:scale-105 transition-all duration-300 transform ${packageStyle.cardShadow} ${packageStyle.specialEffect}`}
     >
+      {/* Package Badge */}
+      <div className={`absolute top-3 right-3 ${packageStyle.badgeBg} ${packageStyle.badgeText} px-3 py-1 rounded-full text-xs font-bold z-10`}>
+        {packageStyle.badgeLabel}
+      </div>
+      
+      {/* Special effect for Supreme package */}
+      {course.packageType === 'supreme' && (
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-purple-400/10 pointer-events-none"></div>
+      )}
+      
       <img className='w-full h-48 object-cover' src={course.courseThumbnail} alt='' />
       <div className='p-3 text-left'>
         <h3 className='text-base font-semibold'>{course.courseTitle}</h3>

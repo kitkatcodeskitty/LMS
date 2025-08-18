@@ -3,19 +3,19 @@ import React from 'react';
 const PurchaseHistory = ({ purchaseHistory, currency, navigate }) => {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Course Purchase History</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Package Purchase History</h2>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {purchaseHistory.length === 0 ? (
           <div className="p-8 text-center">
             <div className="text-4xl mb-4">🛒</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Purchase History</h3>
-            <p className="text-gray-600 mb-4">You haven't purchased any courses yet.</p>
+            <p className="text-gray-600 mb-4">You haven't purchased any packages yet.</p>
             <button
-              onClick={() => navigate('/courses')}
+                              onClick={() => navigate('/packages-list')}
               className="bg-rose-500 text-white px-6 py-2 rounded-lg hover:bg-rose-600 transition-colors"
             >
-              Browse Courses
+                              Browse Packages
             </button>
           </div>
         ) : (
@@ -41,7 +41,7 @@ const PurchaseHistory = ({ purchaseHistory, currency, navigate }) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-gray-900 text-sm line-clamp-2">
-                          {purchase.courseId?.courseTitle || 'Course Not Available'}
+                          {purchase.courseId?.courseTitle || 'Package Not Available'}
                         </h3>
                         <p className="text-xs text-gray-500 mt-1">
                           {new Date(purchase.createdAt).toLocaleDateString('en-US', {
@@ -107,7 +107,7 @@ const PurchaseHistory = ({ purchaseHistory, currency, navigate }) => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Package</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
@@ -136,10 +136,10 @@ const PurchaseHistory = ({ purchaseHistory, currency, navigate }) => {
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={purchase.courseId?.courseTitle}>
-                              {purchase.courseId?.courseTitle || 'Course Not Available'}
+                              {purchase.courseId?.courseTitle || 'Package Not Available'}
                             </div>
                             <div className="text-sm text-gray-500">
-                              Course ID: {purchase.courseId?._id?.slice(-8) || 'N/A'}
+                              Package ID: {purchase.courseId?._id?.slice(-8) || 'N/A'}
                             </div>
                           </div>
                         </div>

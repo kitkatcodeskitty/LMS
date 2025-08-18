@@ -27,27 +27,30 @@ const Referrals = ({ referralData, currency, setActiveTab }) => {
           <>
             {/* Mobile Card View */}
             <div className="block sm:hidden">
-              <div className="divide-y divide-gray-200">
+              <div className="space-y-4 p-4">
                 {referralData.map((referral, index) => (
-                  <div key={index} className="p-4">
+                  <div key={index} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
                     <div className="flex items-start space-x-3">
-                      <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-rose-600 font-medium text-sm">
+                      <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-rose-600 font-medium text-base">
                           {referral.name?.charAt(0) || '?'}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{referral.name || 'Anonymous'}</p>
-                            <p className="text-xs text-gray-500 truncate">{referral.email}</p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Joined: {new Date(referral.joinDate).toLocaleDateString()}
-                            </p>
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-base font-semibold text-gray-900 truncate">{referral.name || 'Anonymous'}</p>
                           </div>
-                          <div className="text-right ml-2">
-                            <p className="text-sm font-medium text-green-600">{currency}{Math.round(referral.commissionEarned || 0)}</p>
-                            <p className="text-xs text-gray-500">{referral.coursesBought || 0} courses</p>
+                          <div className="space-y-1">
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">Joined:</span> {new Date(referral.joinDate).toLocaleDateString()}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">Packages:</span> {referral.coursesBought || 0} packages
+                            </div>
+                            <div className="text-lg font-bold text-green-600">
+                              {currency}{Math.round(referral.commissionEarned || 0)} earned
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -64,7 +67,7 @@ const Referrals = ({ referralData, currency, setActiveTab }) => {
                   <tr>
                     <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                     <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Joined</th>
-                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Courses Bought</th>
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Packages Bought</th>
                     <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commission Earned</th>
                   </tr>
                 </thead>
@@ -80,7 +83,6 @@ const Referrals = ({ referralData, currency, setActiveTab }) => {
                           </div>
                           <div className="ml-3 lg:ml-4 min-w-0">
                             <div className="text-sm font-medium text-gray-900 truncate">{referral.name || 'Anonymous'}</div>
-                            <div className="text-sm text-gray-500 truncate">{referral.email}</div>
                           </div>
                         </div>
                       </td>
@@ -89,7 +91,7 @@ const Referrals = ({ referralData, currency, setActiveTab }) => {
                       </td>
                       <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {referral.coursesBought || 0}
+                          {referral.coursesBought || 0} packages
                         </span>
                       </td>
                       <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">

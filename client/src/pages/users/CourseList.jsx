@@ -8,7 +8,7 @@ import Footer from '../../components/users/Footer';
 
 
 
-const CourseList = () => {
+const PackageList = () => {
 
   const { navigate, allCourses } = useContext(AppContext);
   const {input} = useParams()
@@ -34,9 +34,9 @@ const CourseList = () => {
         <div className='relative md:px-36 px-8 pt-20 text-left'>
           <div className='flex md:flex-row flex-col gap-6 items-start justify-between w-full'>
             <div>
-              <h1 className='text-4xl font-semibold text-gray-800'>Course List</h1>
+              <h1 className='text-4xl font-semibold text-gray-800'>Package List</h1>
             <p className='text-gray-500'>
-              <span className='text-blue-600 cursor-pointer' onClick={()=>navigate('/')}> Home </span>/ <span>Course list</span></p>
+              <span className='text-blue-600 cursor-pointer' onClick={()=>navigate('/')}> Home </span>/ <span>Package list</span></p>
             </div>
             <SearchBar data={input}/>
             
@@ -45,7 +45,7 @@ const CourseList = () => {
           { input && 
             <div className='inline-flex items-center gap-4 px-4 py-2 border mt-8 -mb-8 text-gray-600'>
               <p>{input}</p>
-              <img src={assets.cross_icon} alt='' className='cursor-pointer' onClick={()=>navigate('/course-list')}/>
+              <img src={assets.cross_icon} alt='' className='cursor-pointer' onClick={()=>navigate('/packages-list')}/>
             </div>
 
 
@@ -62,4 +62,4 @@ const CourseList = () => {
   )
 }
 
-export default CourseList
+export default PackageList

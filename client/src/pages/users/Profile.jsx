@@ -4,7 +4,6 @@ import { assets } from '../../assets/assets';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
-
 import Dashboard from '../../components/profile/Dashboard';
 import Earnings from '../../components/profile/Earnings';
 import Referrals from '../../components/profile/Referrals';
@@ -18,7 +17,6 @@ import MobileHeader from '../../components/profile/MobileHeader';
 import Affilated from '../../components/profile/Affilated';
 import WithdrawalRequest from '../../components/profile/WithdrawalRequest';
 import WithdrawalHistory from '../../components/profile/WithdrawalHistory';
-
 
 const customStyles = `
   .scrollbar-hide {
@@ -221,7 +219,7 @@ const Profile = () => {
     { id: 'withdrawal-request', label: 'Request Withdrawal', icon: '💸' },
     { id: 'withdrawal-history', label: 'Withdrawal History', icon: '📋' },
     { id: 'referrals', label: 'My Referrals', icon: '👥' },
-    { id: 'courses', label: 'My Courses', icon: '📚' },
+    { id: 'courses', label: 'My Packages', icon: '📚' },
     { id: 'statements', label: 'Payment Statements', icon: '📄' },
     { id: 'purchase-history', label: 'Purchase History', icon: '🛒' },
     { id: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
@@ -308,15 +306,14 @@ const Profile = () => {
             navigate={navigate}
           />
         );
-        case 'affiliated':
-          return (
-            <Affilated
+      case 'affiliated':
+        return (
+          <Affilated
             affiliateCode={affiliateCode}
             affiliateLink={affiliateLink}
             copyToClipboard={copyToClipboard}
           />
         );
-
       case 'statements':
         return (
           <PaymentStatements

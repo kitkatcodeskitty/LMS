@@ -75,12 +75,12 @@ const EnhancedPayment = () => {
       if (data.success && data.course) {
         setCourse(data.course);
       } else {
-        toast.error(data.message || 'Course not found');
-        navigate('/courses');
+        toast.error(data.message || 'Package not found');
+        navigate('/packages-list');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error loading course details');
-      navigate('/courses');
+              toast.error(error.response?.data?.message || 'Error loading package details');
+        navigate('/packages-list');
     } finally {
       setLoadingCourse(false);
     }
@@ -275,7 +275,7 @@ const EnhancedPayment = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading course details...</p>
+          <p className="text-gray-600">Loading package details...</p>
         </div>
       </div>
     );
@@ -286,10 +286,10 @@ const EnhancedPayment = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Card className="text-center max-w-md" padding="lg">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Course Not Found</h2>
-          <p className="text-gray-600 mb-6">The course you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate('/courses')} variant="info">
-            Browse Courses
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">Package Not Found</h2>
+        <p className="text-gray-600 mb-6">The package you're looking for doesn't exist.</p>
+        <Button onClick={() => navigate('/packages-list')} variant="info">
+          Browse Packages
           </Button>
         </Card>
       </div>
@@ -302,7 +302,7 @@ const EnhancedPayment = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {showRegistration ? 'Register & Pay for Course' : 'Complete Your Payment'}
+            {showRegistration ? 'Register & Pay for Package' : 'Complete Your Payment'}
           </h1>
           <p className="text-gray-600">
             {referralFromUrl && (
@@ -310,13 +310,13 @@ const EnhancedPayment = () => {
                 🎯 Referral Applied: {referralFromUrl}
               </span>
             )}
-            Secure payment for your course enrollment
+            Secure payment for your package enrollment
           </p>
         </div>
 
         {/* Course Summary Card */}
         <Card className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Course Summary</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Package Summary</h2>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center space-x-4">
               {course.courseThumbnail && (
@@ -328,7 +328,7 @@ const EnhancedPayment = () => {
               )}
               <div>
                 <h3 className="text-xl font-medium text-gray-900">{course.courseTitle}</h3>
-                <p className="text-sm text-gray-500 mt-1">Course ID: {courseId}</p>
+                <p className="text-sm text-gray-500 mt-1">Package ID: {courseId}</p>
                 {course.courseDescription && (
                   <p className="text-sm text-gray-600 mt-1 line-clamp-2">{course.courseDescription}</p>
                 )}
@@ -609,7 +609,7 @@ const EnhancedPayment = () => {
                     Welcome back, {userData?.firstName}!
                   </h3>
                   <p className="text-sm text-green-600">
-                    You're logged in and ready to complete your payment for this course.
+                    You're logged in and ready to complete your payment for this package.
                   </p>
                 </div>
               </div>
@@ -793,16 +793,16 @@ const EnhancedPayment = () => {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
               <strong>What's next?</strong><br />
-              You'll receive an email confirmation once your payment is verified and your course access is activated.
+              You'll receive an email confirmation once your payment is verified and your package access is activated.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
-              onClick={() => navigate('/courses')}
+                              onClick={() => navigate('/packages-list')}
               variant="secondary"
               fullWidth
             >
-              Browse More Courses
+                              Browse More Packages
             </Button>
             <Button
               onClick={closeModal}

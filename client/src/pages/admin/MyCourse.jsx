@@ -3,9 +3,9 @@ import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/users/Loading'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import UpdateCoursePopup from '../../components/users/UpdateCoursePopup' 
+import UpdatePackagePopup from '../../components/users/UpdateCoursePopup' 
 
-const MyCourse = () => {
+const MyPackages = () => {
   const { backendUrl, getToken, isEducator } = useContext(AppContext)
   const [courses, setCourses] = useState(null)
   const [loading, setLoading] = useState(false) // delete loading
@@ -22,10 +22,10 @@ const MyCourse = () => {
       if (data.success) {
         setCourses(data.courses)
       } else {
-        toast.error('Failed to fetch courses. Server error.')
+        toast.error('Failed to fetch packages. Server error.')
       }
     } catch (error) {
-      toast.error('Failed to fetch courses. Please try again later.')
+      toast.error('Failed to fetch packages. Please try again later.')
     }
   }
 
@@ -36,7 +36,7 @@ const MyCourse = () => {
   }, [isEducator])
 
   const handleDelete = async (courseId) => {
-    if (!window.confirm('Are you sure you want to delete this course?')) return
+    if (!window.confirm('Are you sure you want to delete this package?')) return
 
     try {
       setLoading(true)
@@ -49,13 +49,13 @@ const MyCourse = () => {
       )
 
       if (data.success) {
-        toast.success('Course deleted successfully')
+        toast.success('Package deleted successfully')
         setCourses((prev) => prev.filter((course) => course._id !== courseId))
       } else {
-        toast.error(data.message || 'Failed to delete course')
+        toast.error(data.message || 'Failed to delete package')
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error deleting course')
+      toast.error(error.response?.data?.message || error.message || 'Error deleting package')
     } finally {
       setLoading(false)
     }
@@ -84,12 +84,12 @@ const MyCourse = () => {
   return (
     <div className="h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0">
       <div className="w-full">
-        <h2 className="pb-4 text-lg font-medium">My Courses</h2>
+        <h2 className="pb-4 text-lg font-medium">My Packages</h2>
         <div className="flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20">
           <table className="md:table-auto table-fixed w-full overflow-hidden">
             <thead className="text-gray-900 border-b border-gray-500/20 text-sm text-left">
               <tr>
-                <th className="px-4 py-3 font-semibold truncate">All Courses</th>
+                <th className="px-4 py-3 font-semibold truncate">All Packages</th>
                 <th className="px-4 py-3 font-semibold truncate hidden md:table-cell">
                   Published On
                 </th>
@@ -134,7 +134,7 @@ const MyCourse = () => {
 
         {/* Show update popup */}
         {showUpdatePopup && courseToUpdate && (
-          <UpdateCoursePopup
+          <UpdatePackagePopup
             course={courseToUpdate}
             onClose={handlePopupClose}
             onUpdate={handleCourseUpdate}
@@ -145,4 +145,4 @@ const MyCourse = () => {
   )
 }
 
-export default MyCourse
+export default MyPackages

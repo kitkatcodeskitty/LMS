@@ -57,9 +57,9 @@ const App = () => {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/course-list" element={<CoursesList />} />
-        <Route path="/course-list/:input" element={<CoursesList />} />
-        <Route path="/course/:id" element={<CourseDetails />} />
+        <Route path="/packages-list" element={<CoursesList />} />
+        <Route path="/packages-list/:input" element={<CoursesList />} />
+        <Route path="/package/:id" element={<CourseDetails />} />
         <Route path="/my-enrollments" element={<MyEnrollments />} />
         <Route path="/player/:courseId" element={<Player />} />
         <Route path="/loading/:path" element={<Loading />} />
@@ -86,8 +86,8 @@ const App = () => {
           }
         >
           <Route index element={<Dashboard />} />
-          <Route path="myCourse" element={<MyCourse />} />
-          <Route path="add-course" element={<AddCourse />} />
+                  <Route path="myCourse" element={<MyCourse />} />
+        <Route path="add-package" element={<AddCourse />} />
           <Route path="student-Enrolled" element={<StudentsEnrolled />} />
           <Route path="pending-orders" element={<PendingOrders />} />
           <Route path="kyc-review" element={<KycReview />} />

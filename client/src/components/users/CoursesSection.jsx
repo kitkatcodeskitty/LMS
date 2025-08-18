@@ -17,26 +17,29 @@ const CoursesSection = () => {
   }, [allCourses]);
 
   return (
-    <div className='py-16 md:px-40 px-8'>
-      <h2 className='text-3xl font-medium text-gray-800'>Learn from the best</h2>
-      <p className='text-sm md:text-base text-gray-500 mt-3'>
-        Discover the love from us hehehe maya nai jindagi ko lakshya ho xordeu <br />
-        padhna padhyara kam xaina
-      </p>
+    <div className='w-full max-w-7xl mx-auto py-20 px-4'>
+      <div className="text-center mb-16">
+        <h2 className='text-4xl font-bold text-gray-800 mb-4'>Learn from the best</h2>
+        <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
+          Discover high-quality learning packages designed to transform your skills and career
+        </p>
+      </div>
 
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 px-4 md:px-0 md:my-16 my-10 gap-4'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12'>
         {randomCourses.map((course, index) => (
           <CourseCard key={course._id || index} course={course} />
         ))}
       </div>
 
-      <Link
-        to={'/course-list'}
-        onClick={() => scrollTo(0, 0)}
-        className='text-gray-500 border border-gray-500/30 px-10 py-3 rounded'
-      >
-        Show all courses
-      </Link>
+      <div className="text-center">
+        <Link
+          to={'/packages-list'}
+          onClick={() => window.scrollTo(0, 0)}
+          className='inline-block bg-gradient-to-r from-rose-500 to-pink-600 text-white px-10 py-4 rounded-full text-lg font-semibold hover:from-rose-600 hover:to-pink-700 transition-all duration-300 hover:shadow-xl transform hover:scale-105'
+        >
+          Show all packages
+        </Link>
+      </div>
     </div>
   );
 };

@@ -6,7 +6,7 @@ import axios from 'axios'
 import { AppContext } from '../../context/AppContext'
 import { assets } from '../../assets/assets'
 
-const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
+const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
   const { backendUrl, getToken, currency } = useContext(AppContext)
   const quillRef = useRef(null)
   const editorRef = useRef(null)
@@ -594,4 +594,4 @@ const UpdateCoursePopup = ({ course, onClose, onUpdate }) => {
   )
 }
 
-export default UpdateCoursePopup
+export default UpdatePackagePopup

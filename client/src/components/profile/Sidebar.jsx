@@ -14,12 +14,20 @@ import {
   FaUserCircle           // Profile Icon
 } from 'react-icons/fa';
 
-const ProfileHeader = ({ onCloseMobile, isMobile }) => (
+const ProfileHeader = ({ onCloseMobile, isMobile, userData }) => (
   <div className="p-4 bg-gradient-to-r from-rose-500 to-pink-600">
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-3">
         <div className="text-white text-3xl">
-          <FaUserCircle />
+          {userData?.imageUrl ? (
+            <img 
+              src={userData.imageUrl} 
+              alt="Profile" 
+              className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
+            />
+          ) : (
+            <FaUserCircle />
+          )}
         </div>
         <h2 className="text-white font-medium">Profile</h2>
       </div>
@@ -44,13 +52,14 @@ const Sidebar = ({
   purchasedCourses, 
   currency,
   sidebarOpen,
-  setSidebarOpen 
+  setSidebarOpen,
+  userData
 }) => {
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
     { id: 'earnings', label: 'Earnings', icon: <FaDollarSign /> },
     { id: 'referrals', label: 'Teams', icon: <FaUsers /> },
-    { id: 'courses', label: 'My Courses', icon: <FaBook /> },
+    { id: 'courses', label: 'My Packages', icon: <FaBook /> },
     { id: 'statements', label: 'Referral Earning', icon: <FaFileAlt /> },
     { id: 'purchase-history', label: 'Purchase History', icon: <FaShoppingCart /> },
     { id: 'leaderboard', label: 'Leaderboard', icon: <FaTrophy /> },
@@ -107,7 +116,7 @@ const Sidebar = ({
               delay={400} 
             />
           </div>
-          <div className="text-xs text-gray-600">Courses</div>
+          <div className="text-xs text-gray-600">Packages</div>
         </div>
       </div>
     </div>
@@ -117,7 +126,7 @@ const Sidebar = ({
     <>
       {/* Desktop Sidebar */}
       <div className="hidden lg:block w-72 xl:w-80 bg-white shadow-xl h-screen sticky top-0 border-r border-gray-200">
-        <ProfileHeader isMobile={false} />
+        <ProfileHeader isMobile={false} userData={userData} />
         <Navigation />
         <QuickStats />
       </div>
@@ -127,6 +136,7 @@ const Sidebar = ({
         <ProfileHeader 
           isMobile={true}
           onCloseMobile={() => setSidebarOpen(false)}
+          userData={userData}
         />
         <Navigation isMobile={true} />
         <QuickStats />

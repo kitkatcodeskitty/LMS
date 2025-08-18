@@ -32,7 +32,7 @@ const AboutUs = () => {
             data-aos-delay="200"
           >
             At Growth Skill, we believe learning is the bridge between potential and achievement.
-            We provide industry-relevant courses in leadership, communication, personal productivity,
+            We provide industry-relevant packages in leadership, communication, personal productivity,
             and more — designed to help you thrive in an ever-changing world.
           </p>
         </div>
@@ -71,7 +71,7 @@ const AboutUs = () => {
           className="mt-20 w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-y-10 gap-x-8 text-center text-gray-800"
         >
           {[
-            { title: 'Expert-Led Learning', desc: 'Courses taught by industry leaders and proven experts.' },
+            { title: 'Expert-Led Learning', desc: 'Packages taught by industry leaders and proven experts.' },
             { title: 'Practical Skills', desc: 'Real-world projects and exercises to apply your knowledge.' },
             { title: 'Global Community', desc: 'Network with learners and professionals worldwide.' },
           ].map(({ title, desc }, i) => (

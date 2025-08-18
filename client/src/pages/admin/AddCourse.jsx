@@ -6,12 +6,13 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
 
-const AddCourse = () => {
+const AddPackage = () => {
   const { backendUrl, getToken, currency } = useContext(AppContext);
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
   const [courseTitle, setCourseTitle] = useState('');
+  const [packageType, setPackageType] = useState('premium');
   const [coursePrice, setCoursePrice] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [discountType, setDiscountType] = useState('percentage');
@@ -105,13 +106,14 @@ const AddCourse = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (!image) {
-        toast.error('Please upload a course thumbnail');
-        return;
-      }
+             if (!image) {
+         toast.error('Please upload a package thumbnail');
+         return;
+       }
 
       const courseData = {
         courseTitle,
+        packageType,
         courseDescription: quillRef.current.root.innerHTML,
         coursePrice: parseFloat(coursePrice),
         discount: parseInt(discount),
@@ -132,20 +134,21 @@ const AddCourse = () => {
       });
 
       if (data.success) {
-        toast.success('Course added successfully');
+                 toast.success('Package added successfully');
         setCourseTitle('');
+        setPackageType('premium');
         setCoursePrice(0);
         setDiscount(0);
         setDiscountType('percentage');
         setImage(null);
         setChapters([]);
         quillRef.current.root.innerHTML = '';
-      } else {
-        toast.error(data.message || 'Failed to add course');
-      }
-    } catch (error) {
-      toast.error(error.message || 'An error occurred while adding the course');
-    }
+             } else {
+         toast.error(data.message || 'Failed to add package');
+       }
+         } catch (error) {
+       toast.error(error.message || 'An error occurred while adding the package');
+     }
   };
 
   useEffect(() => {
@@ -160,9 +163,9 @@ const AddCourse = () => {
         onSubmit={handleSubmit}
         className='flex flex-col gap-4 max-w-md w-full text-gray-500'
       >
-        {/* Course Title */}
-        <div className='flex flex-col gap-1'>
-          <p>Course Title</p>
+                 {/* Package Title */}
+         <div className='flex flex-col gap-1'>
+           <p>Package Title</p>
           <input
             onChange={(e) => setCourseTitle(e.target.value)}
             value={courseTitle}
@@ -173,16 +176,31 @@ const AddCourse = () => {
           />
         </div>
 
-        {/* Course Description (Quill editor) */}
+        {/* Package Type Selection */}
         <div className='flex flex-col gap-1'>
-          <p>Course Description</p>
+          <p>Package Type</p>
+          <select
+            value={packageType}
+            onChange={(e) => setPackageType(e.target.value)}
+            className='outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500'
+            required
+          >
+            <option value='premium'>Premium Package</option>
+            <option value='elite'>Elite Package</option>
+            <option value='supreme'>Supreme Package</option>
+          </select>
+        </div>
+
+                 {/* Package Description (Quill editor) */}
+         <div className='flex flex-col gap-1'>
+           <p>Package Description</p>
           <div ref={editorRef}></div>
         </div>
 
-        {/* Course Price and Thumbnail */}
+                 {/* Package Price and Thumbnail */}
         <div className='flex items-center justify-between flex-wrap'>
           <div className='flex flex-col gap-1'>
-            <p>Course Price</p>
+                         <p>Package Price</p>
             <input
               onChange={(e) => setCoursePrice(e.target.value)}
               value={coursePrice}
@@ -194,7 +212,7 @@ const AddCourse = () => {
           </div>
 
           <div className='flex md:flex-row flex-col items-center gap-3'>
-            <p>Course Thumbnail</p>
+                         <p>Package Thumbnail</p>
             <label htmlFor='thumbnailImage' className='flex items-center gap-3 cursor-pointer'>
               <img src={assets.file_upload_icon} alt='' className='p-3 bg-blue-500 rounded' />
               <input
@@ -392,4 +410,4 @@ const AddCourse = () => {
   );
 };
 
-export default AddCourse;
+export default AddPackage;

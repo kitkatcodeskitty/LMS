@@ -24,14 +24,22 @@ const Kyc = () => {
   const [form, setForm] = useState({
     fullName: '',
     dob: '',
+    gender: '',
+    nationality: '',
+    occupation: '',
+    maritalStatus: '',
     addressLine1: '',
     phoneNumber: '',
+    alternatePhone: '',
     city: '',
     state: '',
     postalCode: '',
     country: '',
     idType: 'national_id',
     idNumber: '',
+    documentIssueDate: '',
+    documentExpiryDate: '',
+    documentIssuingAuthority: '',
   });
   const [files, setFiles] = useState({ idFront: null, idBack: null, selfie: null });
   const [filePreviews, setFilePreviews] = useState({ idFront: null, idBack: null, selfie: null });
@@ -50,14 +58,22 @@ const Kyc = () => {
           setForm({
             fullName: data.kyc.fullName || '',
             dob: data.kyc.dob || '',
+            gender: data.kyc.gender || '',
+            nationality: data.kyc.nationality || '',
+            occupation: data.kyc.occupation || '',
+            maritalStatus: data.kyc.maritalStatus || '',
             addressLine1: data.kyc.addressLine1 || '',
             phoneNumber: data.kyc.phoneNumber || '',
+            alternatePhone: data.kyc.alternatePhone || '',
             city: data.kyc.city || '',
             state: data.kyc.state || '',
             postalCode: data.kyc.postalCode || '',
             country: data.kyc.country || '',
             idType: data.kyc.idType || 'national_id',
             idNumber: data.kyc.idNumber || '',
+            documentIssueDate: data.kyc.documentIssueDate || '',
+            documentExpiryDate: data.kyc.documentExpiryDate || '',
+            documentIssuingAuthority: data.kyc.documentIssuingAuthority || '',
           });
         }
       }
@@ -233,18 +249,18 @@ const Kyc = () => {
       <div className="flex-grow">
         <div className="max-w-4xl mx-auto px-4 py-8">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 animate-fade-in-up">
             <div className="flex items-center justify-center mb-4">
-              <FaShieldAlt className="text-4xl text-rose-600 mr-3" />
+              <FaShieldAlt className="text-4xl text-rose-600 mr-3 animate-pulse" />
               <h1 className="text-3xl font-bold text-gray-900">KYC Verification</h1>
             </div>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
               Complete your Know Your Customer (KYC) verification to unlock all platform features and ensure account security.
             </p>
           </div>
 
           {/* Status Card */}
-          <div className={`${statusConfig.bgColor} ${statusConfig.borderColor} border rounded-xl p-6 mb-8`}>
+          <div className={`${statusConfig.bgColor} ${statusConfig.borderColor} border rounded-xl p-6 mb-8 animate-fade-in-up animation-delay-300`}>
             <div className="flex items-start space-x-4">
               <StatusIcon className={`text-2xl ${statusConfig.color} mt-1`} />
               <div className="flex-1">
@@ -264,7 +280,7 @@ const Kyc = () => {
 
           {/* KYC Form */}
           {(status === 'unsubmitted' || status === 'rejected') && (
-            <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="bg-white rounded-xl shadow-lg p-8 animate-fade-in-up animation-delay-400 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center mb-6">
                 <FaUser className="text-2xl text-rose-600 mr-3" />
                 <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
@@ -272,7 +288,7 @@ const Kyc = () => {
 
               <form onSubmit={onSubmit} className="space-y-6">
                 {/* Personal Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up animation-delay-500">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full Name *
@@ -309,6 +325,67 @@ const Kyc = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Gender
+                    </label>
+                    <select
+                      name="gender"
+                      value={form.gender}
+                      onChange={onChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nationality
+                    </label>
+                    <input
+                      name="nationality"
+                      value={form.nationality}
+                      onChange={onChange}
+                      placeholder="Enter your nationality"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Occupation
+                    </label>
+                    <input
+                      name="occupation"
+                      value={form.occupation}
+                      onChange={onChange}
+                      placeholder="Enter your occupation"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Marital Status
+                    </label>
+                    <select
+                      name="maritalStatus"
+                      value={form.maritalStatus}
+                      onChange={onChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    >
+                      <option value="">Select Marital Status</option>
+                      <option value="single">Single</option>
+                      <option value="married">Married</option>
+                      <option value="divorced">Divorced</option>
+                      <option value="widowed">Widowed</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Phone Number *
                     </label>
                     <input
@@ -322,6 +399,19 @@ const Kyc = () => {
                       required
                     />
                     {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Alternate Phone
+                    </label>
+                    <input
+                      name="alternatePhone"
+                      value={form.alternatePhone}
+                      onChange={onChange}
+                      placeholder="+1 234 567 8900 (optional)"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                    />
                   </div>
 
                   <div>
@@ -411,7 +501,7 @@ const Kyc = () => {
                 </div>
 
                 {/* ID Information */}
-                <div className="border-t pt-6">
+                <div className="border-t pt-6 animate-fade-in-up animation-delay-600">
                   <div className="flex items-center mb-6">
                     <FaIdCard className="text-2xl text-rose-600 mr-3" />
                     <h3 className="text-xl font-bold text-gray-900">Identity Verification</h3>
@@ -428,9 +518,10 @@ const Kyc = () => {
                         onChange={onChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
                       >
-                        <option value="national_id">National ID</option>
                         <option value="passport">Passport</option>
-                        <option value="driver_license">Driver's License</option>
+                        <option value="national_id">National ID</option>
+                        <option value="driving_license">Driving License</option>
+                        <option value="voter_id">Voter ID</option>
                       </select>
                     </div>
 
@@ -450,11 +541,50 @@ const Kyc = () => {
                       />
                       {errors.idNumber && <p className="text-red-500 text-sm mt-1">{errors.idNumber}</p>}
                     </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Document Issue Date
+                      </label>
+                      <input
+                        name="documentIssueDate"
+                        type="date"
+                        value={form.documentIssueDate}
+                        onChange={onChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Document Expiry Date
+                      </label>
+                      <input
+                        name="documentExpiryDate"
+                        type="date"
+                        value={form.documentExpiryDate}
+                        onChange={onChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Document Issuing Authority
+                      </label>
+                      <input
+                        name="documentIssuingAuthority"
+                        value={form.documentIssuingAuthority}
+                        onChange={onChange}
+                        placeholder="Enter the authority that issued your document"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {/* File Uploads */}
-                <div className="border-t pt-6">
+                <div className="border-t pt-6 animate-fade-in-up animation-delay-700">
                   <div className="flex items-center mb-6">
                     <FaCamera className="text-2xl text-rose-600 mr-3" />
                     <h3 className="text-xl font-bold text-gray-900">Document Upload</h3>
@@ -521,11 +651,11 @@ const Kyc = () => {
                 </div>
 
                 {/* Submit Button */}
-                <div className="border-t pt-6">
+                <div className="border-t pt-6 animate-fade-in-up animation-delay-800">
                   <button
                     disabled={loading}
                     type="submit"
-                    className="w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-4 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 hover:scale-105 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-4 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl disabled:cursor-not-allowed transform"
                   >
                     {loading ? (
                       <div className="flex items-center justify-center space-x-2">
@@ -546,7 +676,7 @@ const Kyc = () => {
 
           {/* Already Submitted Message */}
           {(status === 'pending' || status === 'verified') && (
-            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center animate-fade-in-up animation-delay-400 hover:shadow-xl transition-all duration-300">
               <StatusIcon className={`text-6xl ${statusConfig.color} mx-auto mb-4`} />
               <h3 className="text-2xl font-bold text-gray-900 mb-2">KYC {statusConfig.title}</h3>
               <p className="text-gray-600 mb-6">{statusConfig.description}</p>

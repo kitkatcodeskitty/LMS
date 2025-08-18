@@ -8,7 +8,7 @@ import Footer from '../../components/users/Footer'
 import Youtube from 'react-youtube'
 import { toast } from 'react-toastify'
 
-const CourseDetails = () => {
+const PackageDetails = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const [courseData, setCourseData] = useState(null)
@@ -51,11 +51,11 @@ const CourseDetails = () => {
       if (data.success && data.course) {
         setCourseData(data.course)
       } else {
-        throw new Error(data.message || 'Course not found')
+        throw new Error(data.message || 'Package not found')
       }
       setIsAlreadyEnrolled(false)
     } catch (error) {
-      toast.error('Failed to load course. ' + error.message)
+      toast.error('Failed to load package. ' + error.message)
     }
   }
 
@@ -89,7 +89,7 @@ const CourseDetails = () => {
     }
 
     if (userData.isAdmin) {
-      toast.info('Admins cannot enroll in courses.')
+      toast.info('Admins cannot enroll in packages.')
       return
     }
 
@@ -154,14 +154,14 @@ const CourseDetails = () => {
             </p>
           </div>
           <p>
-            Course by{' '}
+            Package by{' '}
             <span className="text-blue-600 underline">
               {courseData.admin?.firstName} {courseData.admin?.lastName}
             </span>
           </p>
 
           <div className="pt-8 text-gray-800">
-            <h2 className="text-xl font-semibold">Course Structure</h2>
+            <h2 className="text-xl font-semibold">Package Structure</h2>
 
             <div className="pt-5">
               {courseData.courseContent?.map((chapter, index) => (
@@ -231,7 +231,7 @@ const CourseDetails = () => {
           </div>
 
           <div className="py-20 text-sm md:text-default">
-            <h3 className="text-xl font-semibold text-gray-800">Course Description</h3>
+            <h3 className="text-xl font-semibold text-gray-800">Package Description</h3>
             <p
               className="pt-3 rich-text"
               dangerouslySetInnerHTML={{ __html: courseData.courseDescription }}
@@ -321,7 +321,7 @@ const CourseDetails = () => {
             )}
 
             <div>
-              <p className="md:text-xl text-lg font-medium text-gray-800 mt-2">What's in the course?</p>
+                             <p className="md:text-xl text-lg font-medium text-gray-800 mt-2">What's in the package?</p>
               <ul className="ml-4 pt-2 text-sm md:text-default list-disc text-gray-500">
                 <li>Lifetime access with free updates.</li>
                 <li>Expert instructors and community support.</li>
@@ -338,4 +338,4 @@ const CourseDetails = () => {
   )
 }
 
-export default CourseDetails
+export default PackageDetails

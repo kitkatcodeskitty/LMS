@@ -10,7 +10,7 @@ const SearchBar = () => {
     e.preventDefault()
     const trimmedInput = input.trim()
     if(trimmedInput.length > 0) {
-      navigate('/course-list/' + encodeURIComponent(trimmedInput))
+      navigate('/packages-list/' + encodeURIComponent(trimmedInput))
     }
   }
 

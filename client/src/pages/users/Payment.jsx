@@ -26,10 +26,10 @@ const PaymentPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Card className="text-center max-w-md" padding="lg">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Course Data Missing</h2>
-          <p className="text-gray-600 mb-6">No course information found. Please select a course first.</p>
-          <Button onClick={() => navigate('/courses')} variant="info">
-            Browse Courses
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">Package Data Missing</h2>
+        <p className="text-gray-600 mb-6">No package information found. Please select a package first.</p>
+        <Button onClick={() => navigate('/packages-list')} variant="info">
+          Browse Packages
           </Button>
         </Card>
       </div>
@@ -151,16 +151,16 @@ const PaymentPage = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Payment</h1>
-          <p className="text-gray-600">Secure payment for your course enrollment</p>
+          <p className="text-gray-600">Secure payment for your package enrollment</p>
         </div>
 
         {/* Course Summary Card */}
         <Card className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Course Summary</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Package Summary</h2>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-xl font-medium text-gray-900">{courseTitle}</h3>
-              <p className="text-sm text-gray-500 mt-1">Course ID: {courseId}</p>
+              <p className="text-sm text-gray-500 mt-1">Package ID: {courseId}</p>
             </div>
             <div className="mt-4 sm:mt-0">
               <div className="text-3xl font-bold text-green-600">
@@ -245,7 +245,7 @@ const PaymentPage = () => {
                     type="url"
                     value={affiliateLink}
                     onChange={(e) => setAffiliateLink(e.target.value)}
-                    placeholder="https://example.com/course/123?ref=ABCD1234"
+                    placeholder="https://example.com/package/123?ref=ABCD1234"
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   />
                 </div>
@@ -359,16 +359,16 @@ const PaymentPage = () => {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
               <strong>What's next?</strong><br />
-              You'll receive an email confirmation once your payment is verified and your course access is activated.
+              You'll receive an email confirmation once your payment is verified and your package access is activated.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
-              onClick={() => navigate('/courses')}
+                              onClick={() => navigate('/packages-list')}
               variant="secondary"
               fullWidth
             >
-              Browse More Courses
+                              Browse More Packages
             </Button>
             <Button
               onClick={closeModal}

@@ -89,7 +89,7 @@ const MyEnrollments = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">My Enrollments</h1>
           <p className="text-gray-600">
-            {purchasedCourses.length} course{purchasedCourses.length !== 1 ? 's' : ''} enrolled
+            {purchasedCourses.length} package{purchasedCourses.length !== 1 ? 's' : ''} enrolled
           </p>
         </div>
 
@@ -97,12 +97,12 @@ const MyEnrollments = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <div className="text-gray-400 text-6xl mb-4">📚</div>
             <h3 className="text-xl font-medium text-gray-900 mb-2">No Enrollments Yet</h3>
-            <p className="text-gray-600 mb-6">You haven't enrolled in any courses yet. Start learning today!</p>
+            <p className="text-gray-600 mb-6">You haven't enrolled in any packages yet. Start learning today!</p>
             <button
-              onClick={() => navigate('/courses')}
+                              onClick={() => navigate('/packages-list')}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              Browse Courses
+                              Browse Packages
             </button>
           </div>
         ) : (
