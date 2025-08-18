@@ -146,7 +146,7 @@ const EditProfile = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Total Earnings</label>
             <p className="text-sm text-green-600 font-medium">
-              {currency}{(userData.affiliateEarnings || 0).toFixed(2)}
+              {currency}{Math.round(userData.affiliateEarnings || 0)}
             </p>
           </div>
         </div>

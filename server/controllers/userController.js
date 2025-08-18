@@ -118,7 +118,16 @@ export const updateUser = async (req, res) => {
       affiliateCode,
       isAdmin,
       isSubAdmin,
-      referredBy 
+      referredBy,
+      // New earnings and balance fields
+      withdrawableBalance,
+      totalWithdrawn,
+      pendingWithdrawals,
+      lifetimeEarnings,
+      dailyEarnings,
+      weeklyEarnings,
+      monthlyEarnings,
+      currentBalance
     } = req.body;
 
     if (!firstName || !lastName || !email) {
@@ -147,7 +156,18 @@ export const updateUser = async (req, res) => {
       affiliateEarnings: affiliateEarnings || 0,
       affiliateCode: affiliateCode || null,
       isAdmin: Boolean(isAdmin),
-      referredBy: referredBy || null
+      referredBy: referredBy || null,
+      // Add new earnings and balance fields
+      withdrawableBalance: withdrawableBalance || 0,
+      totalWithdrawn: totalWithdrawn || 0,
+      pendingWithdrawals: pendingWithdrawals || 0,
+      lifetimeEarnings: lifetimeEarnings || 0,
+      dailyEarnings: dailyEarnings || 0,
+      weeklyEarnings: weeklyEarnings || 0,
+      monthlyEarnings: monthlyEarnings || 0,
+      currentBalance: currentBalance || 0,
+      // Set admin update timestamp
+      lastAdminUpdate: new Date()
     };
 
     // Set role based on admin status

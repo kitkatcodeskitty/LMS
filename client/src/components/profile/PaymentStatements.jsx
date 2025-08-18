@@ -33,7 +33,7 @@ const PaymentStatements = ({ paymentStatements, currency }) => {
                       {statement.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      {currency}{statement.amount.toFixed(2)}
+                      {currency}{Math.round(statement.amount)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statement.status === 'paid' ? 'bg-green-100 text-green-800' :

@@ -305,7 +305,7 @@ const Dashboard = () => {
             <div>
               <p className="text-2xl font-medium text-gray-600">
                 {currency}
-                {totalEarnings.toFixed(2)}
+                {Math.round(totalEarnings)}
               </p>
               <p className="text-base text-gray-500">Total Earnings</p>
             </div>
@@ -321,7 +321,7 @@ const Dashboard = () => {
             <div>
               <p className="text-2xl font-medium text-gray-600">
                 {currency}
-                {totalProfit.toFixed(2)}
+                {Math.round(totalProfit)}
               </p>
               <p className="text-base text-gray-500">Total Profit</p>
             </div>
@@ -367,7 +367,7 @@ const Dashboard = () => {
                       </h4>
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-bold text-green-600">
-                          Total: {currency}{studentData.totalSpent?.toFixed(2) || '0.00'}
+                          Total: {currency}{Math.round(studentData.totalSpent) || '0'}
                         </span>
                         <span className="text-xs text-gray-500">
                           {formatDateTime(latestPurchase.createdAt)}
@@ -387,7 +387,7 @@ const Dashboard = () => {
                       <div className="flex justify-between">
                         <span className="font-medium text-gray-700">Total Spent:</span>
                         <span className="text-green-600 font-medium">
-                          {currency}{studentData.totalSpent?.toFixed(2) || '0.00'}
+                          {currency}{Math.round(studentData.totalSpent) || '0'}
                         </span>
                       </div>
 

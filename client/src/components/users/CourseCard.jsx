@@ -51,7 +51,7 @@ const CourseCard = ({ course }) => {
         {/* Price Section */}
         <p className='text-base font-semibold text-gray-800'>
           {currency}
-          {calculateDiscountedPrice(course).toFixed(2)}
+          {calculateDiscountedPrice(course)}
         </p>
       </div>
     </Link>

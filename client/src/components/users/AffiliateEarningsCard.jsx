@@ -40,15 +40,15 @@ const AffiliateEarningsCard = () => {
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="border rounded-lg p-3">
             <p className="text-xs text-gray-500">Today</p>
-            <p className="text-base font-semibold text-gray-800">{currency} {Number(earnings.today).toFixed(2)}</p>
+            <p className="text-base font-semibold text-gray-800">{currency} {Math.round(Number(earnings.today))}</p>
           </div>
           <div className="border rounded-lg p-3">
             <p className="text-xs text-gray-500">Last 7 days</p>
-            <p className="text-base font-semibold text-gray-800">{currency} {Number(earnings.last7).toFixed(2)}</p>
+            <p className="text-base font-semibold text-gray-800">{currency} {Math.round(Number(earnings.last7))}</p>
           </div>
           <div className="border rounded-lg p-3">
             <p className="text-xs text-gray-500">Last 30 days</p>
-            <p className="text-base font-semibold text-gray-800">{currency} {Number(earnings.last30).toFixed(2)}</p>
+            <p className="text-base font-semibold text-gray-800">{currency} {Math.round(Number(earnings.last30))}</p>
           </div>
         </div>
       )}

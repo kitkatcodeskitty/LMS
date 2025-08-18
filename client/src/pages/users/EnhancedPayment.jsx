@@ -336,7 +336,7 @@ const EnhancedPayment = () => {
             </div>
             <div className="mt-4 sm:mt-0">
               <div className="text-3xl font-bold text-green-600">
-                {appCurrency}{course.coursePrice?.toFixed(2) || '0.00'}
+                {appCurrency}{Math.round(course.coursePrice) || '0'}
               </div>
             </div>
           </div>
@@ -543,7 +543,7 @@ const EnhancedPayment = () => {
                     </div>
                     <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                       <p className="text-lg font-bold text-red-700">
-                        Pay Exactly: {appCurrency}{course.coursePrice?.toFixed(2) || '0.00'}
+                        Pay Exactly: {appCurrency}{Math.round(course.coursePrice) || '0'}
                       </p>
                     </div>
                   </div>
@@ -626,7 +626,7 @@ const EnhancedPayment = () => {
                 </div>
                 <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-lg font-bold text-red-700 mb-2">
-                    Pay Exactly: {appCurrency}{course.coursePrice?.toFixed(2) || '0.00'}
+                    Pay Exactly: {appCurrency}{Math.round(course.coursePrice) || '0'}
                   </p>
                   <p className="text-sm text-red-600">
                     Scan the QR code above to make payment
@@ -649,7 +649,7 @@ const EnhancedPayment = () => {
                   <h3 className="font-semibold text-blue-800 mb-2">📱 Payment Steps:</h3>
                   <ol className="text-sm text-blue-700 space-y-1">
                     <li>1. Scan the QR code with your payment app</li>
-                    <li>2. Enter the exact amount: {appCurrency}{course.coursePrice?.toFixed(2) || '0.00'}</li>
+                    <li>2. Enter the exact amount: {appCurrency}{Math.round(course.coursePrice) || '0'}</li>
                     <li>3. Complete the payment</li>
                     <li>4. Take a screenshot of the confirmation</li>
                     <li>5. Fill the form and upload the screenshot</li>

@@ -4,7 +4,6 @@ import useCountAnimation from '../../hooks/useCountAnimation';
 const AnimatedNumber = ({ 
   value, 
   currency = '', 
-  decimals = 2, 
   duration = 2000, 
   delay = 0,
   className = '',
@@ -14,10 +13,8 @@ const AnimatedNumber = ({
   const animatedValue = useCountAnimation(value, duration, delay);
 
   const formatNumber = (num) => {
-    if (decimals === 0) {
-      return Math.floor(num).toLocaleString();
-    }
-    return num.toFixed(decimals);
+    // Always round to whole numbers
+    return Math.round(num).toLocaleString();
   };
 
   return (

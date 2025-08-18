@@ -164,7 +164,7 @@ const PaymentPage = () => {
             </div>
             <div className="mt-4 sm:mt-0">
               <div className="text-3xl font-bold text-green-600">
-                {currency}{coursePrice.toFixed(2)}
+                {currency}{Math.round(coursePrice)}
               </div>
             </div>
           </div>
@@ -180,7 +180,7 @@ const PaymentPage = () => {
               </div>
               <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-lg font-bold text-red-700 mb-2">
-                  Pay Exactly: {currency}{coursePrice.toFixed(2)}
+                  Pay Exactly: {currency}{Math.round(coursePrice)}
                 </p>
                 <p className="text-sm text-red-600">
                   Scan the QR code above to make payment
@@ -203,7 +203,7 @@ const PaymentPage = () => {
                 <h3 className="font-semibold text-blue-800 mb-2">📱 Payment Steps:</h3>
                 <ol className="text-sm text-blue-700 space-y-1">
                   <li>1. Scan the QR code with your payment app</li>
-                  <li>2. Enter the exact amount: {currency}{coursePrice.toFixed(2)}</li>
+                  <li>2. Enter the exact amount: {currency}{Math.round(coursePrice)}</li>
                   <li>3. Complete the payment</li>
                   <li>4. Take a screenshot of the confirmation</li>
                   <li>5. Fill the form and upload the screenshot</li>

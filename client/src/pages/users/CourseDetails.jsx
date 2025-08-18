@@ -261,7 +261,7 @@ const CourseDetails = () => {
             <div className="flex gap-3 items-center pt-2">
               <p className="text-gray-800 md:text-4xl text-2xl font-semibold">
                 {currency}{' '}
-                {calculateDiscountedPrice(courseData).toFixed(2)}
+                {calculateDiscountedPrice(courseData)}
               </p>
               <p className="md:text-lg text-gray-500 line-through">
                 {currency}

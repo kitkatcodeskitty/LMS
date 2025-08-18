@@ -46,7 +46,7 @@ const Referrals = ({ referralData, currency, setActiveTab }) => {
                             </p>
                           </div>
                           <div className="text-right ml-2">
-                            <p className="text-sm font-medium text-green-600">{currency}{(referral.commissionEarned || 0).toFixed(2)}</p>
+                            <p className="text-sm font-medium text-green-600">{currency}{Math.round(referral.commissionEarned || 0)}</p>
                             <p className="text-xs text-gray-500">{referral.coursesBought || 0} courses</p>
                           </div>
                         </div>
@@ -93,7 +93,7 @@ const Referrals = ({ referralData, currency, setActiveTab }) => {
                         </span>
                       </td>
                       <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                        {currency}{(referral.commissionEarned || 0).toFixed(2)}
+                        {currency}{Math.round(referral.commissionEarned || 0)}
                       </td>
                     </tr>
                   ))}
@@ -109,7 +109,7 @@ const Referrals = ({ referralData, currency, setActiveTab }) => {
                 </div>
                 <div className="text-gray-600 mt-1 sm:mt-0">
                   Total Commission: <span className="font-medium text-green-600">
-                    {currency}{referralData.reduce((sum, ref) => sum + (ref.commissionEarned || 0), 0).toFixed(2)}
+                    {currency}{Math.round(referralData.reduce((sum, ref) => sum + (ref.commissionEarned || 0), 0))}
                   </span>
                 </div>
               </div>

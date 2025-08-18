@@ -58,7 +58,7 @@ const PurchaseHistory = ({ purchaseHistory, currency, navigate }) => {
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
                         <span className="text-gray-600">Amount:</span>
-                        <p className="font-medium text-green-600">{currency}{(purchase.amount || 0).toFixed(2)}</p>
+                        <p className="font-medium text-green-600">{currency}{Math.round(purchase.amount || 0)}</p>
                       </div>
                       <div>
                         <span className="text-gray-600">Status:</span>
@@ -146,7 +146,7 @@ const PurchaseHistory = ({ purchaseHistory, currency, navigate }) => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-green-600">
-                          {currency}{(purchase.amount || 0).toFixed(2)}
+                          {currency}{Math.round(purchase.amount || 0)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -206,7 +206,7 @@ const PurchaseHistory = ({ purchaseHistory, currency, navigate }) => {
                 </div>
                 <div className="text-sm text-gray-600 mt-2 sm:mt-0">
                   Total Spent: <span className="font-medium text-green-600">
-                    {currency}{purchaseHistory.reduce((sum, purchase) => sum + (purchase.amount || 0), 0).toFixed(2)}
+                    {currency}{Math.round(purchaseHistory.reduce((sum, purchase) => sum + (purchase.amount || 0), 0))}
                   </span>
                 </div>
               </div>

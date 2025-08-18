@@ -89,24 +89,22 @@ const Sidebar = ({
     <div className="p-4 border-t border-gray-200 bg-gray-50">
       <div className="grid grid-cols-2 gap-3">
         <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-          <div className="text-lg font-bold text-green-600">
+          <div className="text-2xl font-bold text-green-600">
             <AnimatedNumber 
-              value={earningsData.lifetime} 
+              value={earningsData?.lifetime || 0} 
               currency={currency} 
-              decimals={0}
-              duration={2000}
-              delay={300}
+              duration={1500} 
+              delay={200} 
             />
           </div>
           <div className="text-xs text-gray-600">Total Earned</div>
         </div>
         <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-          <div className="text-lg font-bold text-blue-600">
+          <div className="text-2xl font-bold text-blue-600">
             <AnimatedNumber 
-              value={purchasedCourses.length} 
-              decimals={0}
-              duration={1500}
-              delay={500}
+              value={purchasedCourses?.length || 0} 
+              duration={1500} 
+              delay={400} 
             />
           </div>
           <div className="text-xs text-gray-600">Courses</div>

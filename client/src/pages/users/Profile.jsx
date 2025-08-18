@@ -338,6 +338,7 @@ const Profile = () => {
             leaderboard={leaderboard}
             userData={userData}
             currency={currency}
+            earningsData={earningsData}
           />
         );
       case 'edit':

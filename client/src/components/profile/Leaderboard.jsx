@@ -1,23 +1,28 @@
 import React from 'react';
 import ProfileImage from '../common/ProfileImage';
+import { FaTrophy, FaMedal, FaStar, FaGem, FaCrown, FaUsers, FaMoneyBillWave, FaMapMarkerAlt, FaRocket, FaChartBar } from 'react-icons/fa';
 
-const Leaderboard = ({ leaderboard, userData, currency }) => {
+const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
   if (leaderboard.length === 0) {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-            🏆 Leaderboard
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2 flex items-center justify-center">
+            <FaTrophy className="w-6 h-6 mr-2" />
+            Leaderboard
           </h2>
           <p className="text-gray-600">Top performers based on affiliate earnings</p>
         </div>
         
         <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-8 text-center border border-purple-200">
-          <div className="text-6xl mb-4">🏆</div>
+          <div className="text-6xl mb-4">
+            <FaTrophy className="w-24 h-24 mx-auto text-purple-600" />
+          </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Competition Starting Soon!</h3>
           <p className="text-gray-600">Be the first to earn and claim your spot on the leaderboard</p>
           <div className="mt-4 inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-            🚀 Start earning to join the rankings
+            <FaRocket className="w-4 h-4 mr-2" />
+            Start earning to join the rankings
           </div>
         </div>
       </div>
@@ -25,16 +30,17 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
   }
 
   const userRank = leaderboard.findIndex(user => user._id === userData._id) + 1;
-  const totalEarnings = leaderboard.reduce((sum, user) => sum + (user.affiliateEarnings || 0), 0);
+  // Use the same total earnings calculation as Dashboard for consistency
+  const totalEarnings = earningsData?.lifetime || 0;
   const top3 = leaderboard.slice(0, 3);
   const top10 = leaderboard.slice(0, 10);
 
   const getRankIcon = (index) => {
     switch (index) {
-      case 0: return '👑';
-      case 1: return '🥈';
-      case 2: return '🥉';
-      default: return '🏅';
+      case 0: return <FaCrown className="text-yellow-500" />;
+      case 1: return <FaMedal className="text-gray-400" />;
+      case 2: return <FaMedal className="text-orange-500" />;
+      default: return <FaMedal className="text-blue-500" />;
     }
   };
 
@@ -80,20 +86,24 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-          🏆 Leaderboard
-        </h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2 flex items-center justify-center">
+            <FaTrophy className="w-6 h-6 mr-2" />
+            Leaderboard
+          </h2>
         <p className="text-gray-600 mb-4">Top performers based on affiliate earnings</p>
         <div className="flex flex-wrap justify-center gap-3">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
-            👥 {leaderboard.length} participants
+            <FaUsers className="w-4 h-4 mr-1" />
+            {leaderboard.length} participants
           </span>
           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
-            💰 {currency}{totalEarnings.toFixed(2)} total earned
+            <FaMoneyBillWave className="w-4 h-4 mr-1" />
+            {currency}{Math.round(totalEarnings)} lifetime earned
           </span>
           {userRank > 0 && (
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-rose-100 text-rose-700">
-              📍 Your rank: #{userRank}
+              <FaMapMarkerAlt className="w-4 h-4 mr-1" />
+              Your rank: #{userRank}
             </span>
           )}
         </div>
@@ -102,7 +112,10 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
       {/* Top 3 Champions Section */}
       <div className="bg-gradient-to-br from-yellow-50 via-white to-purple-50 rounded-3xl p-8 border-2 border-yellow-200 shadow-xl">
         <div className="text-center mb-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">🎖️ Champions</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center">
+            <FaMedal className="w-6 h-6 mr-2 text-yellow-600" />
+            Champions
+          </h3>
           <p className="text-gray-600">The elite top 3 performers</p>
         </div>
         
@@ -112,9 +125,8 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
             const user = top3[position];
             if (!user) return null;
             
-            const heights = ['h-32', 'h-40', 'h-28'];
-            const sizes = ['w-20 h-20', 'w-24 h-24', 'w-18 h-18'];
-            const crownSizes = ['text-3xl', 'text-4xl', 'text-2xl'];
+                         const heights = ['h-32', 'h-40', 'h-28'];
+             const iconSizes = ['text-3xl', 'text-4xl', 'text-2xl'];
             
             return (
               <div key={user._id} className="flex flex-col items-center">
@@ -122,11 +134,11 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                   <img
                     src={getProfileImage(user)}
                     alt={`${user.firstName} ${user.lastName}`}
-                    className={`${position === 0 ? 'w-24 h-24' : position === 1 ? 'w-20 h-20' : 'w-18 h-18'} rounded-full object-cover border-4 border-white shadow-2xl`}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-2xl"
                   />
-                  <div className={`absolute -top-4 left-1/2 transform -translate-x-1/2 ${crownSizes[position === 0 ? 1 : position === 1 ? 0 : 2]}`}>
-                    {getRankIcon(position)}
-                  </div>
+                                     <div className={`absolute -top-4 left-1/2 transform -translate-x-1/2 ${iconSizes[position === 0 ? 1 : position === 1 ? 0 : 2]}`}>
+                     {getRankIcon(position)}
+                   </div>
                   {user._id === userData._id && (
                     <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
                       <span className="bg-rose-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">YOU</span>
@@ -137,7 +149,7 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                 <div className={`bg-gradient-to-t ${getRankColor(position)} ${heights[position === 0 ? 1 : position === 1 ? 0 : 2]} w-24 rounded-t-2xl flex flex-col justify-end items-center p-4 shadow-xl`}>
                   <div className="text-white text-center">
                     <div className="font-bold text-xl">#{position + 1}</div>
-                    <div className="text-sm opacity-90">{currency}{(user.affiliateEarnings || 0).toFixed(0)}</div>
+                    <div className="text-sm opacity-90">{currency}{Math.round(user.affiliateEarnings || 0)}</div>
                   </div>
                 </div>
                 
@@ -178,7 +190,7 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                       <p className="text-sm text-gray-500 truncate">{user.email}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-green-600 text-xl">{currency}{(user.affiliateEarnings || 0).toFixed(2)}</p>
+                      <p className="font-bold text-green-600 text-xl">{currency}{Math.round(user.affiliateEarnings || 0)}</p>
                       <p className="text-xs text-gray-500">Champion</p>
                     </div>
                   </div>
@@ -194,7 +206,8 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4 text-white">
             <h3 className="text-xl font-bold flex items-center">
-              📊 Top 10 Leaderboard
+              <FaChartBar className="w-5 h-5 mr-2" />
+              Top 10 Leaderboard
               <span className="ml-3 bg-white/20 px-3 py-1 rounded-full text-sm">
                 Ranks 4-10
               </span>
@@ -229,7 +242,7 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                           <p className="text-sm text-gray-500 truncate">{user.email}</p>
                         </div>
                         <div className="text-right ml-4">
-                          <p className="font-bold text-green-600 text-lg">{currency}{(user.affiliateEarnings || 0).toFixed(2)}</p>
+                          <p className="font-bold text-green-600 text-lg">{currency}{Math.round(user.affiliateEarnings || 0)}</p>
                           <p className="text-xs text-gray-500">#{actualIndex + 1}</p>
                         </div>
                       </div>
@@ -243,7 +256,7 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                         <div className="w-14 h-14 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
                           {actualIndex + 1}
                         </div>
-                        <span className="text-2xl">🏅</span>
+                        <FaMedal className="text-2xl text-yellow-500" />
                       </div>
                       
                       <div className="flex items-center space-x-4">
@@ -256,9 +269,9 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                           <p className="font-semibold text-gray-900 text-lg flex items-center">
                             {user.firstName} {user.lastName}
                             {user._id === userData._id && (
-                              <span className="ml-3 bg-rose-500 text-white text-sm px-3 py-1 rounded-full font-bold">
-                                👤 YOU
-                              </span>
+                                                              <span className="ml-3 bg-rose-500 text-white text-sm px-3 py-1 rounded-full font-bold">
+                                  YOU
+                                </span>
                             )}
                           </p>
                           <p className="text-sm text-gray-500">{user.email}</p>
@@ -267,7 +280,7 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
                     </div>
                     
                     <div className="text-right">
-                      <p className="font-bold text-green-600 text-2xl">{currency}{(user.affiliateEarnings || 0).toFixed(2)}</p>
+                      <p className="font-bold text-green-600 text-2xl">{currency}{Math.round(user.affiliateEarnings || 0)}</p>
                       <p className="text-sm text-gray-500">Total Earnings</p>
                     </div>
                   </div>
@@ -296,37 +309,48 @@ const Leaderboard = ({ leaderboard, userData, currency }) => {
 
       {/* Achievement System */}
       <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">🎯 Achievements</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center flex items-center justify-center">
+          <FaTrophy className="w-5 h-5 mr-2 text-purple-600" />
+          Achievements
+        </h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className={`p-4 rounded-xl text-center transition-all ${userRank > 0 && userRank <= 10 ? 'bg-green-100 border-2 border-green-300' : 'bg-white border border-gray-200'}`}>
-            <div className="text-2xl mb-2">🎯</div>
+            <div className="text-2xl mb-2">
+              <FaTrophy className="w-6 h-6 mx-auto text-blue-600" />
+            </div>
             <div className="text-sm font-medium text-gray-900">Top 10</div>
             <div className="text-xs text-gray-500 mt-1">
-              {userRank > 0 && userRank <= 10 ? '✅ Achieved!' : 'Reach top 10'}
+              {userRank > 0 && userRank <= 10 ? 'Achieved!' : 'Reach top 10'}
             </div>
           </div>
           
           <div className={`p-4 rounded-xl text-center transition-all ${(userData.affiliateEarnings || 0) >= 100 ? 'bg-green-100 border-2 border-green-300' : 'bg-white border border-gray-200'}`}>
-            <div className="text-2xl mb-2">⭐</div>
+            <div className="text-2xl mb-2">
+              <FaStar className="w-6 h-6 mx-auto text-yellow-500" />
+            </div>
             <div className="text-sm font-medium text-gray-900">Rising Star</div>
             <div className="text-xs text-gray-500 mt-1">
-              {(userData.affiliateEarnings || 0) >= 100 ? '✅ Unlocked!' : 'Earn $100+'}
+              {(userData.affiliateEarnings || 0) >= 100 ? 'Unlocked!' : 'Earn $100+'}
             </div>
           </div>
           
           <div className={`p-4 rounded-xl text-center transition-all ${(userData.affiliateEarnings || 0) >= 1000 ? 'bg-green-100 border-2 border-green-300' : 'bg-white border border-gray-200'}`}>
-            <div className="text-2xl mb-2">💎</div>
+            <div className="text-2xl mb-2">
+              <FaGem className="w-6 h-6 mx-auto text-purple-600" />
+            </div>
             <div className="text-sm font-medium text-gray-900">Elite</div>
             <div className="text-xs text-gray-500 mt-1">
-              {(userData.affiliateEarnings || 0) >= 1000 ? '✅ Achieved!' : 'Earn $1000+'}
+              {(userData.affiliateEarnings || 0) >= 1000 ? 'Achieved!' : 'Earn $1000+'}
             </div>
           </div>
           
           <div className={`p-4 rounded-xl text-center transition-all ${userRank === 1 ? 'bg-yellow-100 border-2 border-yellow-300' : 'bg-white border border-gray-200'}`}>
-            <div className="text-2xl mb-2">👑</div>
+            <div className="text-2xl mb-2">
+              <FaCrown className="w-6 h-6 mx-auto text-yellow-600" />
+            </div>
             <div className="text-sm font-medium text-gray-900">Champion</div>
             <div className="text-xs text-gray-500 mt-1">
-              {userRank === 1 ? '🎉 You\'re #1!' : 'Reach #1'}
+              {userRank === 1 ? 'You\'re #1!' : 'Reach #1'}
             </div>
           </div>
         </div>

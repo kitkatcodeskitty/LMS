@@ -17,6 +17,14 @@ const userSchema = new mongoose.Schema(
     withdrawableBalance: { type: Number, default: 0 },
     totalWithdrawn: { type: Number, default: 0 },
     pendingWithdrawals: { type: Number, default: 0 },
+    // New earnings and balance fields
+    lifetimeEarnings: { type: Number, default: 0 },
+    dailyEarnings: { type: Number, default: 0 },
+    weeklyEarnings: { type: Number, default: 0 },
+    monthlyEarnings: { type: Number, default: 0 },
+    currentBalance: { type: Number, default: 0 },
+    // Track admin updates
+    lastAdminUpdate: { type: Date, default: null },
     notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
     kycStatus: { type: String, enum: ["unsubmitted", "pending", "verified", "rejected"], default: "unsubmitted" },
     phone: { type: String, default: "" },

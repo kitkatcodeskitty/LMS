@@ -27,6 +27,15 @@ const StudentEnrollment = () => {
     isAdmin: false,
     isSubAdmin: false,
     referredBy: '',
+    // New fields for comprehensive earnings management
+    withdrawableBalance: 0,
+    totalWithdrawn: 0,
+    pendingWithdrawals: 0,
+    lifetimeEarnings: 0,
+    dailyEarnings: 0,
+    weeklyEarnings: 0,
+    monthlyEarnings: 0,
+    currentBalance: 0
   })
   const [showPassword, setShowPassword] = useState(false)
   
@@ -130,6 +139,15 @@ const StudentEnrollment = () => {
       isAdmin: user.isAdmin || false,
       isSubAdmin: user.isSubAdmin || user.role === 'subadmin' || false,
       referredBy: user.referredBy || '',
+      // Populate all earnings and balance fields
+      withdrawableBalance: user.withdrawableBalance || 0,
+      totalWithdrawn: user.totalWithdrawn || 0,
+      pendingWithdrawals: user.pendingWithdrawals || 0,
+      lifetimeEarnings: user.lifetimeEarnings || user.affiliateEarnings || 0,
+      dailyEarnings: user.dailyEarnings || 0,
+      weeklyEarnings: user.weeklyEarnings || 0,
+      monthlyEarnings: user.monthlyEarnings || 0,
+      currentBalance: user.currentBalance || user.withdrawableBalance || 0
     })
   }
 
@@ -397,7 +415,7 @@ const StudentEnrollment = () => {
                             <div className="text-xs text-blue-600">Courses</div>
                           </div>
                           <div className="text-center p-3 bg-green-50 rounded-lg">
-                            <div className="text-xl sm:text-2xl font-bold text-green-600">{currency}{studentData.totalSpent.toFixed(0)}</div>
+                            <div className="text-xl sm:text-2xl font-bold text-green-600">{currency}{Math.round(studentData.totalSpent)}</div>
                             <div className="text-xs text-green-600">Spent</div>
                           </div>
                         </div>
@@ -407,7 +425,7 @@ const StudentEnrollment = () => {
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Affiliate Earnings:</span>
                             <span className="font-medium text-green-600">
-                              {currency}{(user.affiliateEarnings || 0).toFixed(2)}
+                              {currency}{Math.round(user.affiliateEarnings || 0)}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
@@ -640,11 +658,11 @@ const StudentEnrollment = () => {
                             <div className="text-xs text-gray-600">Courses</div>
                           </div>
                           <div className="text-center p-3 bg-white rounded-lg">
-                            <div className="text-xl sm:text-2xl font-bold text-green-600">{currency}{studentData.totalSpent.toFixed(0)}</div>
+                            <div className="text-xl sm:text-2xl font-bold text-green-600">{currency}{Math.round(studentData.totalSpent)}</div>
                             <div className="text-xs text-gray-600">Spent</div>
                           </div>
                           <div className="text-center p-3 bg-white rounded-lg">
-                            <div className="text-xl sm:text-2xl font-bold text-purple-600">{currency}{(user.affiliateEarnings || 0).toFixed(0)}</div>
+                            <div className="text-xl sm:text-2xl font-bold text-purple-600">{currency}{Math.round(user.affiliateEarnings || 0)}</div>
                             <div className="text-xs text-gray-600">Earnings</div>
                           </div>
                           <div className="text-center p-3 bg-white rounded-lg">
@@ -652,7 +670,7 @@ const StudentEnrollment = () => {
                             <div className="text-xs text-gray-600">Referrals</div>
                           </div>
                           <div className="text-center p-3 bg-white rounded-lg">
-                            <div className="text-xl sm:text-2xl font-bold text-indigo-600">{studentData.totalAffiliateEarned.toFixed(0)}</div>
+                            <div className="text-xl sm:text-2xl font-bold text-indigo-600">{Math.round(studentData.totalAffiliateEarned)}</div>
                             <div className="text-xs text-gray-600">From Refs</div>
                           </div>
                           <div className="text-center p-3 bg-white rounded-lg">
@@ -949,7 +967,7 @@ const StudentEnrollment = () => {
                                     </div>
                                     <div className="flex justify-between">
                                       <span className="font-medium text-gray-700">Amount:</span>
-                                      <span className="font-medium text-green-600">{currency}{(purchase.amount || 0).toFixed(2)}</span>
+                                      <span className="font-medium text-green-600">{currency}{Math.round(purchase.amount || 0)}</span>
                                     </div>
                                     <div className="flex justify-between">
                                       <span className="font-medium text-gray-700">Date:</span>
@@ -1013,7 +1031,7 @@ const StudentEnrollment = () => {
                                         </div>
                                       </td>
                                       <td className="px-3 py-3 text-sm font-medium text-green-600">
-                                        {currency}{(purchase.amount || 0).toFixed(2)}
+                                        {currency}{Math.round(purchase.amount || 0)}
                                       </td>
                                       <td className="px-3 py-3 text-sm text-gray-900">
                                         {formatDate(purchase.createdAt)}
@@ -1215,10 +1233,164 @@ const StudentEnrollment = () => {
                     value={editForm.affiliateEarnings}
                     onChange={handleChange}
                     min="0"
-                    step="0.01"
+                    step="1"
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
+                    placeholder="0"
                   />
+                </div>
+
+                {/* Comprehensive Earnings Management Section */}
+                <div className="col-span-2 border-t border-gray-200 pt-4 mt-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Earnings & Balance Management</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Time-based Earnings */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Lifetime Earnings ({currency})
+                      </label>
+                      <input
+                        type="number"
+                        name="lifetimeEarnings"
+                        value={editForm.lifetimeEarnings}
+                        onChange={handleChange}
+                        min="0"
+                        step="1"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Daily Earnings ({currency})
+                      </label>
+                      <input
+                        type="number"
+                        name="dailyEarnings"
+                        value={editForm.dailyEarnings}
+                        onChange={handleChange}
+                        min="0"
+                        step="1"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Weekly Earnings ({currency})
+                      </label>
+                      <input
+                        type="number"
+                        name="weeklyEarnings"
+                        value={editForm.weeklyEarnings}
+                        onChange={handleChange}
+                        min="0"
+                        step="1"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Monthly Earnings ({currency})
+                      </label>
+                      <input
+                        type="number"
+                        name="monthlyEarnings"
+                        value={editForm.monthlyEarnings}
+                        onChange={handleChange}
+                        min="0"
+                        step="1"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    {/* Balance Management */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Current Balance ({currency})
+                      </label>
+                      <input
+                        type="number"
+                        name="currentBalance"
+                        value={editForm.currentBalance}
+                        onChange={handleChange}
+                        min="0"
+                        step="1"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Withdrawable Balance ({currency})
+                      </label>
+                      <input
+                        type="number"
+                        name="withdrawableBalance"
+                        value={editForm.withdrawableBalance}
+                        onChange={handleChange}
+                        min="0"
+                        step="1"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Total Withdrawn ({currency})
+                      </label>
+                      <input
+                        type="number"
+                        name="totalWithdrawn"
+                        value={editForm.totalWithdrawn}
+                        onChange={handleChange}
+                        min="0"
+                        step="1"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Pending Withdrawals ({currency})
+                      </label>
+                      <input
+                        type="number"
+                        name="pendingWithdrawals"
+                        value={editForm.pendingWithdrawals}
+                        onChange={handleChange}
+                        min="0"
+                        step="1"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start space-x-2">
+                      <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium mb-1">Admin Earnings Management:</p>
+                        <p className="text-xs">
+                          • <strong>Lifetime Earnings:</strong> Total earnings from all time<br/>
+                          • <strong>Time-based Earnings:</strong> Daily, weekly, monthly earnings<br/>
+                          • <strong>Balance Management:</strong> Current, withdrawable, and pending amounts<br/>
+                          • <strong>Note:</strong> Changes are reflected immediately on user dashboard
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div>

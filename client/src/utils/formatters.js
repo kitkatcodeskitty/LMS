@@ -33,8 +33,8 @@ export const formatRelativeTime = (dateString) => {
 };
 
 // Currency formatting
-export const formatCurrency = (amount, currency = '$', decimals = 2) => {
-    return `${currency}${Number(amount).toFixed(decimals)}`;
+export const formatCurrency = (amount, currency = '$', decimals = 0) => {
+    return `${currency}${Math.round(Number(amount))}`;
 };
 
 // Number formatting
@@ -67,7 +67,7 @@ export const formatFileSize = (bytes) => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return Math.round(bytes / Math.pow(k, i)) + ' ' + sizes[i];
 };
 
 // Validation utilities
