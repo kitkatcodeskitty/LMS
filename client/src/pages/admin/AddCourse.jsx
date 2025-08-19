@@ -20,6 +20,8 @@ const AddPackage = () => {
   const [chapters, setChapters] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [currentChapterId, setCurrentChapterId] = useState(null);
+  const [existingPackageTypes, setExistingPackageTypes] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [lectureDetails, setLectureDetails] = useState({
     lectureTitle: '',
@@ -27,6 +29,25 @@ const AddPackage = () => {
     lectureUrl: '',
     isPreviewFree: false,
   });
+
+  // Fetch existing package types
+  const fetchExistingPackageTypes = async () => {
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/course/existing-package-types`);
+      if (data.success) {
+        setExistingPackageTypes(data.existingPackageTypes);
+      }
+    } catch (error) {
+      console.error('Error fetching existing package types:', error);
+    }
+  };
+
+  // Available package type options
+  const packageTypeOptions = [
+    { value: 'premium', label: 'Premium Package' },
+    { value: 'elite', label: 'Elite Package' },
+    { value: 'supreme', label: 'Supreme Package' }
+  ];
 
   // Chapter handlers (add, remove, toggle)
   const handleChapter = (action, chapterId) => {
@@ -102,14 +123,23 @@ const AddPackage = () => {
     });
   };
 
-  // Submit handler
+    // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if the selected package type already exists
+    if (existingPackageTypes.includes(packageType)) {
+      toast.error(`${packageType.charAt(0).toUpperCase() + packageType.slice(1)} package already exists! Please choose a different package type.`);
+      return;
+    }
+    
+    setLoading(true);
     try {
-             if (!image) {
-         toast.error('Please upload a package thumbnail');
-         return;
-       }
+      if (!image) {
+        toast.error('Please upload a package thumbnail');
+        setLoading(false);
+        return;
+      }
 
       const courseData = {
         courseTitle,
@@ -133,8 +163,8 @@ const AddPackage = () => {
         },
       });
 
-      if (data.success) {
-                 toast.success('Package added successfully');
+            if (data.success) {
+        toast.success('Package added successfully');
         setCourseTitle('');
         setPackageType('premium');
         setCoursePrice(0);
@@ -143,19 +173,25 @@ const AddPackage = () => {
         setImage(null);
         setChapters([]);
         quillRef.current.root.innerHTML = '';
-             } else {
-         toast.error(data.message || 'Failed to add package');
-       }
-         } catch (error) {
-       toast.error(error.message || 'An error occurred while adding the package');
-     }
+        // Refresh existing package types after successful creation
+        fetchExistingPackageTypes();
+      } else {
+        toast.error(data.message || 'Failed to add package');
+      }
+    } catch (error) {
+      toast.error(error.message || 'An error occurred while adding the package');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     if (!quillRef.current && editorRef.current) {
       quillRef.current = new Quill(editorRef.current, { theme: 'snow' });
     }
-  }, []);
+    // Fetch existing package types on component mount
+    fetchExistingPackageTypes();
+  }, [backendUrl]);
 
   return (
     <div className='h-screen overflow-scroll flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
@@ -185,10 +221,30 @@ const AddPackage = () => {
             className='outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500'
             required
           >
-            <option value='premium'>Premium Package</option>
-            <option value='elite'>Elite Package</option>
-            <option value='supreme'>Supreme Package</option>
+            {packageTypeOptions.map((option) => {
+              const isDisabled = existingPackageTypes.includes(option.value);
+              return (
+                <option 
+                  key={option.value} 
+                  value={option.value}
+                  disabled={isDisabled}
+                  style={{ 
+                    color: isDisabled ? '#ccc' : 'inherit',
+                    backgroundColor: isDisabled ? '#f5f5f5' : 'inherit'
+                  }}
+                >
+                  {option.label} {isDisabled ? '(Already exists)' : ''}
+                </option>
+              );
+            })}
           </select>
+          {existingPackageTypes.length > 0 && (
+            <p className='text-sm text-gray-600 mt-1'>
+              Existing packages: {existingPackageTypes.map(type => 
+                type.charAt(0).toUpperCase() + type.slice(1)
+              ).join(', ')}
+            </p>
+          )}
         </div>
 
                  {/* Package Description (Quill editor) */}
@@ -402,8 +458,12 @@ const AddPackage = () => {
           )}
         </div>
 
-        <button type='submit' className='bg-black text-white w-max py-2.5 px-8 rounded my-4'>
-          ADD
+        <button 
+          type='submit' 
+          className='bg-black text-white w-max py-2.5 px-8 rounded my-4 disabled:opacity-50 disabled:cursor-not-allowed'
+          disabled={loading}
+        >
+          {loading ? 'Adding...' : 'ADD'}
         </button>
       </form>
     </div>

@@ -87,6 +87,24 @@ export const deleteCourse = async (req, res) => {
 };
 
 
+// get existing package types
+export const getExistingPackageTypes = async (req, res) => {
+  try {
+    const existingPackageTypes = await Course.distinct('packageType');
+    
+    res.json({
+      success: true,
+      existingPackageTypes,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      errorCode: "SERVER_ERROR",
+    });
+  }
+};
+
 // update controller 
 export const updateCourse = async (req, res) => {
   try {
