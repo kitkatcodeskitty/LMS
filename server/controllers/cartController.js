@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import Course from '../models/Course.js';
 import { v2 as cloudinary } from 'cloudinary';
 import { createNotification } from './notificationController.js';
+import { calculateDiscountedPrice } from '../utils/priceHelpers.js';
 
 export const addToCart = async (req, res) => {
   try {
@@ -51,15 +52,7 @@ export const addToCart = async (req, res) => {
       return res.status(404).json({ success: false, message: "Course not found" });
     }
 
-    // Calculate discounted price
-    const calculateDiscountedPrice = (course) => {
-      if (course.discountType === 'amount') {
-        return Math.max(0, course.coursePrice - course.discount);
-      } else {
-        // percentage discount
-        return course.coursePrice - (course.discount * course.coursePrice) / 100;
-      }
-    };
+
 
     const discountedPrice = calculateDiscountedPrice(course);
 

@@ -2,20 +2,13 @@ import React, { useContext } from 'react';
 import { assets } from '../../assets/assets';
 import { AppContext } from '../../context/AppContext';
 import { Link } from 'react-router-dom';
+import { calculateDiscountedPrice } from '../../utils/priceUtils';
 
 const CourseCard = ({ course }) => {
   const { currency } = useContext(AppContext);
 
   const avgRating = 4.5; 
-  const totalRatings = 120; 
-
-  const calculateDiscountedPrice = (course) => {
-    if (course.discountType === 'amount') {
-      return Math.max(0, course.coursePrice - course.discount);
-    } else {
-      return course.coursePrice - (course.discount * course.coursePrice) / 100;
-    }
-  };
+  const totalRatings = 120;
 
   // Get package styling based on package type
   const getPackageStyling = () => {
@@ -93,11 +86,11 @@ const CourseCard = ({ course }) => {
           <p className='text-gray-500'>{totalRatings}</p>
         </div>
 
-        {/* Price Section */}
-        <p className='text-base font-semibold text-gray-800'>
-          {currency}
-          {calculateDiscountedPrice(course)}
-        </p>
+                 {/* Price Section */}
+         <p className='text-base font-semibold text-gray-800'>
+           {currency}
+           {calculateDiscountedPrice(course)}
+         </p>
       </div>
     </Link>
   );

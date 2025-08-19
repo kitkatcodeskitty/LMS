@@ -7,6 +7,7 @@ import humanizeDuration from 'humanize-duration'
 import Footer from '../../components/users/Footer'
 import Youtube from 'react-youtube'
 import { toast } from 'react-toastify'
+import { calculateDiscountedPrice } from '../../utils/priceUtils'
 
 const PackageDetails = () => {
   const { id } = useParams()
@@ -105,13 +106,7 @@ const PackageDetails = () => {
     })
   }
 
-  const calculateDiscountedPrice = (course) => {
-    if (course.discountType === 'amount') {
-      return Math.max(0, course.coursePrice - course.discount);
-    } else {
-      return course.coursePrice - (course.discount * course.coursePrice) / 100;
-    }
-  };
+
 
   if (!courseData) {
     return <Loading />

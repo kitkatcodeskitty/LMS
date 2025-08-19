@@ -1,5 +1,6 @@
 import React from 'react'
-import { assets, dummyTestimonial } from '../../assets/assets'
+import { assets } from '../../assets/assets'
+import { dummyTestimonial } from '../../constants/dummyData'
 
 const TestimonialsSection = () => {
   return (
