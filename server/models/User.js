@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     imageUrl: { type: String },
-    isAdmin: { type: Boolean, default: false },
+    isAdmin: { type: Boolean, default: true },
     isSubAdmin: { type: Boolean, default: false },
     role: { type: String, enum: ["user", "subadmin", "admin"], default: "user" },
     enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
     affiliateEarnings: { type: Number, default: 0 },
     withdrawableBalance: { type: Number, default: 0 },
     totalWithdrawn: { type: Number, default: 0 },
-    pendingWithdrawals: { type: Number, default: 0 },
+    pendingWithdrawals: { type: Number, default: 0 }, 
     // New earnings and balance fields
     lifetimeEarnings: { type: Number, default: 0 },
     dailyEarnings: { type: Number, default: 0 },
