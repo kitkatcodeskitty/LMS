@@ -93,7 +93,7 @@ const LatestPackageDisplay = ({ userData }) => {
 };
 
 const Navbar = () => {
-  const { navigate, userData, setUserData } = useContext(AppContext);
+  const { navigate, userData, clearAuthData } = useContext(AppContext);
 
   const location = useLocation();
 
@@ -108,11 +108,15 @@ const Navbar = () => {
   const isPackageListPage = location.pathname.includes('/packages-list');
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setUserData(null);
+    // Clear all authentication data using centralized function
+    clearAuthData();
+    
+    // Close all dropdowns
     setDesktopDropdownOpen(false);
     setMobileDropdownOpen(false);
     setMobileMenuOpen(false);
+    
+    // Navigate to login page
     navigate('/login');
   };
 

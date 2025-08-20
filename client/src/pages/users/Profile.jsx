@@ -17,6 +17,7 @@ import MobileHeader from '../../components/profile/MobileHeader';
 import Affilated from '../../components/profile/Affilated';
 import WithdrawalRequest from '../../components/profile/WithdrawalRequest';
 import WithdrawalHistory from '../../components/profile/WithdrawalHistory';
+import Footer from '../../components/users/Footer';
 
 const customStyles = `
   .scrollbar-hide {
@@ -422,6 +423,9 @@ const Profile = () => {
             </div>
           </div>
         </div>
+        
+        {/* Footer */}
+        <Footer />
       </div>
     </>
   );

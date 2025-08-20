@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     imageUrl: { type: String },
-    isAdmin: { type: Boolean, default: true },
+    isAdmin: { type: Boolean, default: false },
     isSubAdmin: { type: Boolean, default: false },
     role: { type: String, enum: ["user", "subadmin", "admin"], default: "user" },
     enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],

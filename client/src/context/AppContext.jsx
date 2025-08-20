@@ -20,9 +20,22 @@ export const AppContextProvider = (props) => {
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
-  // Get token from localStorage
+  // Get token from localStorage or sessionStorage
   const getToken = () => {
     return localStorage.getItem("token") || sessionStorage.getItem("token");
+  };
+
+  // Clear all authentication data
+  const clearAuthData = () => {
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+    setUserData(null);
+    setIsEducator(false);
+    setIsSubAdmin(false);
+    setEnrolledCourses([]);
+    setNotifications([]);
+    setUnreadNotificationCount(0);
+    setPendingOrdersCount(0);
   };
   
 
@@ -313,6 +326,7 @@ useEffect(() => {
     userData,
     setUserData,
     getToken,
+    clearAuthData,
     fetchAllCourses,
     calculateChapterTime,
     calculateCourseDuration,

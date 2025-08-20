@@ -4,11 +4,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 
 const Navbar = () => {
-  const { userData, isEducator, isSubAdmin } = useContext(AppContext);
+  const { userData, isEducator, isSubAdmin, clearAuthData } = useContext(AppContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    // Clear all authentication data using centralized function
+    clearAuthData();
+    
+    // Reload the page to clear all context
     window.location.reload(); 
   };
 
