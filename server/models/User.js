@@ -35,32 +35,61 @@ const userSchema = new mongoose.Schema(
 
 // Instance method to calculate available withdrawal balance
 userSchema.methods.getAvailableBalance = function() {
-  return Math.max(0, this.withdrawableBalance - this.pendingWithdrawals);
+  // Ensure all values are numbers and handle edge cases
+  const withdrawable = Number(this.withdrawableBalance) || 0;
+  const pending = Number(this.pendingWithdrawals) || 0;
+  return Math.max(0, withdrawable - pending);
 };
 
 // Instance method to update withdrawable balance (100% of affiliate earnings for 50% commission)
 userSchema.methods.updateWithdrawableBalance = function(affiliateAmount) {
-  const withdrawableAmount = affiliateAmount; // Full affiliate amount is withdrawable (already 50% of course price)
-  this.withdrawableBalance += withdrawableAmount;
-  this.affiliateEarnings += affiliateAmount;
+  // Ensure affiliateAmount is a valid number
+  const amount = Number(affiliateAmount) || 0;
+  if (amount <= 0) {
+    throw new Error('Affiliate amount must be positive');
+  }
+  
+  const withdrawableAmount = amount; // Full affiliate amount is withdrawable (already the commission)
+  this.withdrawableBalance = (Number(this.withdrawableBalance) || 0) + withdrawableAmount;
+  this.affiliateEarnings = (Number(this.affiliateEarnings) || 0) + amount;
+  
+  // Ensure values are never negative
+  this.withdrawableBalance = Math.max(0, this.withdrawableBalance);
+  this.affiliateEarnings = Math.max(0, this.affiliateEarnings);
+  
   return withdrawableAmount;
 };
 
 // Instance method to process withdrawal approval
 userSchema.methods.processWithdrawalApproval = function(withdrawalAmount) {
-  this.withdrawableBalance -= withdrawalAmount;
-  this.totalWithdrawn += withdrawalAmount;
-  this.pendingWithdrawals -= withdrawalAmount;
+  const amount = Number(withdrawalAmount) || 0;
+  if (amount <= 0) {
+    throw new Error('Withdrawal amount must be positive');
+  }
+  
+  this.withdrawableBalance = Math.max(0, (Number(this.withdrawableBalance) || 0) - amount);
+  this.totalWithdrawn = (Number(this.totalWithdrawn) || 0) + amount;
+  this.pendingWithdrawals = Math.max(0, (Number(this.pendingWithdrawals) || 0) - amount);
 };
 
 // Instance method to process withdrawal rejection
 userSchema.methods.processWithdrawalRejection = function(withdrawalAmount) {
-  this.pendingWithdrawals -= withdrawalAmount;
+  const amount = Number(withdrawalAmount) || 0;
+  if (amount <= 0) {
+    throw new Error('Withdrawal amount must be positive');
+  }
+  
+  this.pendingWithdrawals = Math.max(0, (Number(this.pendingWithdrawals) || 0) - amount);
 };
 
 // Instance method to add pending withdrawal
 userSchema.methods.addPendingWithdrawal = function(withdrawalAmount) {
-  this.pendingWithdrawals += withdrawalAmount;
+  const amount = Number(withdrawalAmount) || 0;
+  if (amount <= 0) {
+    throw new Error('Withdrawal amount must be positive');
+  }
+  
+  this.pendingWithdrawals = (Number(this.pendingWithdrawals) || 0) + amount;
 };
 
 // Static method to update user balance after purchase

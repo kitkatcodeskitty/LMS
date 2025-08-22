@@ -22,6 +22,9 @@ export const VALIDATION_ERRORS = {
   INVALID_ACCOUNT_NUMBER: 'INVALID_ACCOUNT_NUMBER',
   INVALID_BANK_NAME: 'INVALID_BANK_NAME',
   INVALID_ACCOUNT_NAME: 'INVALID_ACCOUNT_NAME',
+  INVALID_IBAN: 'INVALID_IBAN',
+  INVALID_SWIFT_CODE: 'INVALID_SWIFT_CODE',
+  INVALID_COUNTRY: 'INVALID_COUNTRY',
   
   // Security and permission errors
   DUPLICATE_REQUEST: 'DUPLICATE_REQUEST',
@@ -217,16 +220,16 @@ export const validateWithdrawalAmount = (amount, availableBalance = null, method
 };
 
 /**
- * Validate mobile banking details
+ * Validate mobile banking details with enhanced validation
  * @param {Object} details - Mobile banking details
  * @returns {Object} Validation result
  */
 export const validateMobileBankingDetails = (details) => {
-  if (!details || typeof details !== 'object') {
+  if (!details) {
     return {
       valid: false,
       error: {
-        code: VALIDATION_ERRORS.MISSING_MOBILE_BANKING_DETAILS,
+        code: VALIDATION_ERRORS.MISSING_REQUIRED_FIELDS,
         message: 'Mobile banking details are required'
       }
     };
@@ -235,72 +238,77 @@ export const validateMobileBankingDetails = (details) => {
   const { accountHolderName, mobileNumber, provider } = details;
 
   // Validate account holder name
-  if (!accountHolderName) {
+  if (!accountHolderName || typeof accountHolderName !== 'string') {
     return {
       valid: false,
       error: {
-        code: VALIDATION_ERRORS.MISSING_MOBILE_BANKING_DETAILS,
+        code: VALIDATION_ERRORS.MISSING_REQUIRED_FIELDS,
         message: 'Account holder name is required'
       }
     };
   }
 
-  const nameValidation = sanitizeInput(accountHolderName, {
-    minLength: VALIDATION_CONSTANTS.MIN_ACCOUNT_HOLDER_NAME_LENGTH,
-    maxLength: VALIDATION_CONSTANTS.MAX_ACCOUNT_HOLDER_NAME_LENGTH,
-    pattern: VALIDATION_CONSTANTS.NAME_REGEX,
-    patternError: 'Account holder name contains invalid characters',
-    removeDangerous: true
-  });
-
-  if (!nameValidation.valid) {
+  const trimmedName = accountHolderName.trim();
+  if (trimmedName.length < 2 || trimmedName.length > VALIDATION_CONSTANTS.MAX_ACCOUNT_HOLDER_NAME_LENGTH) {
     return {
       valid: false,
       error: {
         code: VALIDATION_ERRORS.INVALID_ACCOUNT_HOLDER_NAME,
-        message: nameValidation.error
+        message: `Account holder name must be between 2 and ${VALIDATION_CONSTANTS.MAX_ACCOUNT_HOLDER_NAME_LENGTH} characters`
       }
     };
   }
 
-  // Validate mobile number
-  if (!mobileNumber) {
+  // Validate mobile number with enhanced format support
+  if (!mobileNumber || typeof mobileNumber !== 'string') {
     return {
       valid: false,
       error: {
-        code: VALIDATION_ERRORS.MISSING_MOBILE_BANKING_DETAILS,
+        code: VALIDATION_ERRORS.MISSING_REQUIRED_FIELDS,
         message: 'Mobile number is required'
       }
     };
   }
 
-  if (!VALIDATION_CONSTANTS.MOBILE_NUMBER_REGEX.test(mobileNumber)) {
+  const cleanMobileNumber = mobileNumber.replace(/\D/g, '');
+  
+  // Support multiple mobile number formats
+  const mobileFormats = [
+    /^(98|97)\d{8}$/, // Nepali format
+    /^\+?[1-9]\d{1,14}$/, // International format (E.164)
+    /^\d{10,15}$/ // General format for other countries
+  ];
+  
+  const isValidFormat = mobileFormats.some(format => format.test(cleanMobileNumber));
+  
+  if (!isValidFormat) {
     return {
       valid: false,
       error: {
         code: VALIDATION_ERRORS.INVALID_MOBILE_NUMBER,
-        message: 'Invalid mobile number format. Must be a valid Nepali mobile number (98XXXXXXXX or 97XXXXXXXX)'
+        message: 'Invalid mobile number format. Please enter a valid mobile number.'
       }
     };
   }
 
   // Validate provider
-  if (!provider) {
+  if (!provider || typeof provider !== 'string') {
     return {
       valid: false,
       error: {
-        code: VALIDATION_ERRORS.MISSING_MOBILE_BANKING_DETAILS,
+        code: VALIDATION_ERRORS.MISSING_REQUIRED_FIELDS,
         message: 'Mobile banking provider is required'
       }
     };
   }
 
-  if (!VALIDATION_CONSTANTS.VALID_MOBILE_PROVIDERS.includes(provider)) {
+  const validProviders = ["eSewa", "Khalti", "IME Pay", "ConnectIPS", "Other"];
+  if (!validProviders.includes(provider)) {
     return {
       valid: false,
       error: {
         code: VALIDATION_ERRORS.INVALID_PROVIDER,
-        message: `Provider must be one of: ${VALIDATION_CONSTANTS.VALID_MOBILE_PROVIDERS.join(', ')}`
+        message: 'Invalid mobile banking provider'
       }
     };
   }
@@ -308,116 +316,148 @@ export const validateMobileBankingDetails = (details) => {
   return {
     valid: true,
     sanitizedData: {
-      accountHolderName: nameValidation.sanitized,
-      mobileNumber: mobileNumber.trim(),
-      provider: provider.trim()
+      accountHolderName: trimmedName,
+      mobileNumber: cleanMobileNumber,
+      provider
     }
   };
 };
 
 /**
- * Validate bank transfer details
+ * Validate bank transfer details with enhanced international support
  * @param {Object} details - Bank transfer details
  * @returns {Object} Validation result
  */
 export const validateBankTransferDetails = (details) => {
-  if (!details || typeof details !== 'object') {
+  if (!details) {
     return {
       valid: false,
       error: {
-        code: VALIDATION_ERRORS.MISSING_BANK_TRANSFER_DETAILS,
+        code: VALIDATION_ERRORS.MISSING_REQUIRED_FIELDS,
         message: 'Bank transfer details are required'
       }
     };
   }
 
-  const { accountName, accountNumber, bankName } = details;
+  const { accountName, accountNumber, bankName, iban, swiftCode, country } = details;
 
   // Validate account name
-  if (!accountName) {
+  if (!accountName || typeof accountName !== 'string') {
     return {
       valid: false,
       error: {
-        code: VALIDATION_ERRORS.MISSING_BANK_TRANSFER_DETAILS,
+        code: VALIDATION_ERRORS.MISSING_REQUIRED_FIELDS,
         message: 'Account name is required'
       }
     };
   }
 
-  const accountNameValidation = sanitizeInput(accountName, {
-    minLength: VALIDATION_CONSTANTS.MIN_ACCOUNT_HOLDER_NAME_LENGTH,
-    maxLength: VALIDATION_CONSTANTS.MAX_ACCOUNT_HOLDER_NAME_LENGTH,
-    pattern: VALIDATION_CONSTANTS.NAME_REGEX,
-    patternError: 'Account name contains invalid characters',
-    removeDangerous: true
-  });
-
-  if (!accountNameValidation.valid) {
+  const trimmedAccountName = accountName.trim();
+  if (trimmedAccountName.length < 2 || trimmedAccountName.length > VALIDATION_CONSTANTS.MAX_ACCOUNT_HOLDER_NAME_LENGTH) {
     return {
       valid: false,
       error: {
-        code: VALIDATION_ERRORS.INVALID_ACCOUNT_NAME,
-        message: accountNameValidation.error
+        code: VALIDATION_ERRORS.INVALID_ACCOUNT_HOLDER_NAME,
+        message: `Account name must be between 2 and ${VALIDATION_CONSTANTS.MAX_ACCOUNT_HOLDER_NAME_LENGTH} characters`
       }
     };
   }
 
   // Validate account number
-  if (!accountNumber) {
+  if (!accountNumber || typeof accountNumber !== 'string') {
     return {
       valid: false,
       error: {
-        code: VALIDATION_ERRORS.MISSING_BANK_TRANSFER_DETAILS,
+        code: VALIDATION_ERRORS.MISSING_REQUIRED_FIELDS,
         message: 'Account number is required'
       }
     };
   }
 
-  if (!VALIDATION_CONSTANTS.ACCOUNT_NUMBER_REGEX.test(accountNumber.trim())) {
+  const cleanAccountNumber = accountNumber.replace(/\s/g, '');
+  if (cleanAccountNumber.length < 5 || cleanAccountNumber.length > 50) {
     return {
       valid: false,
       error: {
         code: VALIDATION_ERRORS.INVALID_ACCOUNT_NUMBER,
-        message: 'Invalid account number format. Must be 8-20 alphanumeric characters'
+        message: 'Account number must be between 5 and 50 characters'
       }
     };
   }
 
   // Validate bank name
-  if (!bankName) {
+  if (!bankName || typeof bankName !== 'string') {
     return {
       valid: false,
       error: {
-        code: VALIDATION_ERRORS.MISSING_BANK_TRANSFER_DETAILS,
+        code: VALIDATION_ERRORS.MISSING_REQUIRED_FIELDS,
         message: 'Bank name is required'
       }
     };
   }
 
-  const bankNameValidation = sanitizeInput(bankName, {
-    minLength: VALIDATION_CONSTANTS.MIN_BANK_NAME_LENGTH,
-    maxLength: VALIDATION_CONSTANTS.MAX_BANK_NAME_LENGTH,
-    pattern: VALIDATION_CONSTANTS.BANK_NAME_REGEX,
-    patternError: 'Bank name contains invalid characters',
-    removeDangerous: true
-  });
-
-  if (!bankNameValidation.valid) {
+  const trimmedBankName = bankName.trim();
+  if (trimmedBankName.length < 2 || trimmedBankName.length > 100) {
     return {
       valid: false,
       error: {
         code: VALIDATION_ERRORS.INVALID_BANK_NAME,
-        message: bankNameValidation.error
+        message: 'Bank name must be between 2 and 100 characters'
       }
     };
+  }
+
+  // Validate IBAN if provided (for international transfers)
+  if (iban && typeof iban === 'string') {
+    const cleanIban = iban.replace(/\s/g, '').toUpperCase();
+    if (cleanIban.length < 15 || cleanIban.length > 34) {
+      return {
+        valid: false,
+        error: {
+          code: VALIDATION_ERRORS.INVALID_IBAN,
+          message: 'IBAN must be between 15 and 34 characters'
+        }
+      };
+    }
+  }
+
+  // Validate SWIFT code if provided (for international transfers)
+  if (swiftCode && typeof swiftCode === 'string') {
+    const cleanSwiftCode = swiftCode.replace(/\s/g, '').toUpperCase();
+    if (cleanSwiftCode.length !== 8 && cleanSwiftCode.length !== 11) {
+      return {
+        valid: false,
+        error: {
+          code: VALIDATION_ERRORS.INVALID_SWIFT_CODE,
+          message: 'SWIFT code must be 8 or 11 characters'
+        }
+      };
+    }
+  }
+
+  // Validate country if provided
+  if (country && typeof country === 'string') {
+    const trimmedCountry = country.trim();
+    if (trimmedCountry.length < 2 || trimmedCountry.length > 50) {
+      return {
+        valid: false,
+        error: {
+          code: VALIDATION_ERRORS.INVALID_COUNTRY,
+          message: 'Country must be between 2 and 50 characters'
+        }
+      };
+    }
   }
 
   return {
     valid: true,
     sanitizedData: {
-      accountName: accountNameValidation.sanitized,
-      accountNumber: accountNumber.trim(),
-      bankName: bankNameValidation.sanitized
+      accountName: trimmedAccountName,
+      accountNumber: cleanAccountNumber,
+      bankName: trimmedBankName,
+      iban: iban ? iban.replace(/\s/g, '').toUpperCase() : undefined,
+      swiftCode: swiftCode ? swiftCode.replace(/\s/g, '').toUpperCase() : undefined,
+      country: country ? country.trim() : undefined
     }
   };
 };

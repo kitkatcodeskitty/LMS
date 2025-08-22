@@ -162,11 +162,11 @@ export const getUserEarningsData = async (userId) => {
             throw new Error('User not found');
         }
 
-        // Calculate time-based earnings
+        // Calculate time-based earnings using UTC to avoid timezone issues
         const now = new Date();
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
         const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
         const sumAffiliate = async (fromDate, toDate = null) => {
             const query = {
@@ -176,11 +176,23 @@ export const getUserEarningsData = async (userId) => {
             };
             if (toDate) query.createdAt.$lt = toDate;
 
-            const docs = await Purchase.find(query).select('affiliateAmount withdrawableAmount');
-            return docs.reduce((acc, p) => ({
-                affiliate: acc.affiliate + (Number(p.affiliateAmount) || 0),
-                withdrawable: acc.withdrawable + (Number(p.withdrawableAmount) || 0)
-            }), { affiliate: 0, withdrawable: 0 });
+            const docs = await Purchase.find(query).select('affiliateAmount withdrawableAmount createdAt');
+            
+            // Additional validation to ensure we only count valid amounts
+            return docs.reduce((acc, p) => {
+                const affiliateAmount = Number(p.affiliateAmount) || 0;
+                const withdrawableAmount = Number(p.withdrawableAmount) || 0;
+                
+                // Only count positive amounts
+                if (affiliateAmount > 0) {
+                    acc.affiliate += affiliateAmount;
+                }
+                if (withdrawableAmount > 0) {
+                    acc.withdrawable += withdrawableAmount;
+                }
+                
+                return acc;
+            }, { affiliate: 0, withdrawable: 0 });
         };
 
         const [today, lastSevenDays, thisMonth] = await Promise.all([

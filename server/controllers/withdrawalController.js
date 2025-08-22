@@ -51,7 +51,7 @@ export const createWithdrawalRequest = async (req, res) => {
     const userId = req.user.id;
     const requestData = req.body;
 
-    // Get user
+    // Get user with session for transaction
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json(
@@ -59,7 +59,7 @@ export const createWithdrawalRequest = async (req, res) => {
       );
     }
 
-    // Get client IP address for rate limiting
+    // Get client IP address for rate limiting and audit
     const clientIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 
                     (req.connection.socket ? req.connection.socket.remoteAddress : null);
 
@@ -87,114 +87,131 @@ export const createWithdrawalRequest = async (req, res) => {
     // Use sanitized data from validation
     const { method, amount, mobileBankingDetails, bankTransferDetails } = validation.sanitizedData;
 
-    // Create withdrawal request with sanitized data
-    const withdrawalData = {
-      userId,
-      method,
-      amount,
-      status: 'pending'
-    };
+    // Start database transaction for data consistency
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    if (method === 'mobile_banking') {
-      withdrawalData.mobileBankingDetails = mobileBankingDetails;
-    } else {
-      withdrawalData.bankTransferDetails = bankTransferDetails;
-    }
-
-    const withdrawal = new Withdrawal(withdrawalData);
-    await withdrawal.save();
-
-    // Update user's pending withdrawals
-    user.addPendingWithdrawal(amount);
-    await user.save();
-
-    // Send notifications
     try {
-      await notifyWithdrawalSubmitted(userId, amount, method);
-      
-      // Notify admin users about new withdrawal request
-      const adminUsers = await User.find({ 
-        $or: [{ isAdmin: true }, { isSubAdmin: true }, { role: { $in: ['admin', 'subadmin'] } }] 
-      });
-      
-      if (adminUsers.length > 0) {
-        await notifyAdminNewWithdrawal(adminUsers, user, amount, method);
+      // Create withdrawal request with sanitized data and audit info
+      const withdrawalData = {
+        userId,
+        method,
+        amount,
+        status: 'pending',
+        clientIP,
+        userAgent: req.get('User-Agent') || 'Unknown'
+      };
+
+      if (method === 'mobile_banking') {
+        withdrawalData.mobileBankingDetails = mobileBankingDetails;
+      } else {
+        withdrawalData.bankTransferDetails = bankTransferDetails;
       }
 
-      // Send email notification if email service is available
-      await sendWithdrawalEmailNotification(user.email, 'submitted', {
-        amount,
-        method,
-        withdrawalId: withdrawal._id
-      });
+      const withdrawal = new Withdrawal(withdrawalData);
+      
+      // Add initial audit log entry
+      withdrawal.addAuditLog('created', userId, 'Withdrawal request created');
+      
+      await withdrawal.save({ session });
 
-      // Create in-app notification for user
-      await createNotification(
-        userId,
-        "Withdrawal Request Submitted 💰",
-        `Your withdrawal request of ${amount} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'} has been submitted successfully. We'll process it within 1-3 business days.`,
-        "info",
-        null,
-        "withdrawal_submitted"
-      );
+      // Update user's pending withdrawals
+      user.addPendingWithdrawal(amount);
+      await user.save({ session });
 
-      // Create notifications for admin users
-      for (const admin of adminUsers) {
+      // Commit transaction
+      await session.commitTransaction();
+
+      // Send notifications (outside transaction to avoid blocking)
+      try {
+        await notifyWithdrawalSubmitted(userId, amount, method);
+        
+        // Notify admin users about new withdrawal request
+        const adminUsers = await User.find({ 
+          $or: [{ isAdmin: true }, { isSubAdmin: true }, { role: { $in: ['admin', 'subadmin'] } }] 
+        });
+        
+        if (adminUsers.length > 0) {
+          await notifyAdminNewWithdrawal(adminUsers, user, amount, method);
+        }
+
+        // Send email notification if email service is available
+        await sendWithdrawalEmailNotification(user.email, 'submitted', {
+          amount,
+          method,
+          withdrawalId: withdrawal._id
+        });
+
+        // Create in-app notification for user
         await createNotification(
-          admin._id,
-          "New Withdrawal Request 🔔",
-          `A new withdrawal request of ${amount} has been submitted by ${user.firstName} ${user.lastName} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'}.`,
+          userId,
+          "Withdrawal Request Submitted 💰",
+          `Your withdrawal request of ₹${amount} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'} has been submitted successfully. We'll process it within 1-3 business days.`,
           "info",
           null,
-          "admin_new_withdrawal"
+          "withdrawal_submitted"
         );
-      }
-    } catch (notificationError) {
-      console.error('Error sending notifications:', notificationError);
-      // Don't fail the request if notifications fail
-    }
 
-    // Return success response
-    res.status(201).json(createSuccessResponse(
-      "Withdrawal request created successfully",
-      {
-        withdrawal: {
-          _id: withdrawal._id,
-          method: withdrawal.method,
-          amount: withdrawal.amount,
-          status: withdrawal.status,
-          createdAt: withdrawal.createdAt,
-          ...(method === 'mobile_banking' ? { mobileBankingDetails: withdrawal.mobileBankingDetails } : {}),
-          ...(method === 'bank_transfer' ? { bankTransferDetails: withdrawal.bankTransferDetails } : {})
-        },
-        availableBalance: user.getAvailableBalance()
+        // Create notifications for admin users
+        for (const admin of adminUsers) {
+          await createNotification(
+            admin._id,
+            "New Withdrawal Request 🔔",
+            `A new withdrawal request of ₹${amount} has been submitted by ${user.firstName} ${user.lastName} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'}.`,
+            "info",
+            null,
+            "admin_new_withdrawal"
+          );
+        }
+      } catch (notificationError) {
+        console.error('Error sending notifications:', notificationError);
+        // Don't fail the request if notifications fail
       }
-    ));
+
+      // Return success response
+      res.status(201).json({
+        success: true,
+        message: 'Withdrawal request submitted successfully',
+        data: {
+          withdrawal: {
+            _id: withdrawal._id,
+            amount: withdrawal.amount,
+            method: withdrawal.method,
+            status: withdrawal.status,
+            createdAt: withdrawal.createdAt
+          },
+          availableBalance: user.getAvailableBalance(),
+          pendingWithdrawals: user.pendingWithdrawals
+        }
+      });
+
+    } catch (transactionError) {
+      // Rollback transaction on error
+      await session.abortTransaction();
+      throw transactionError;
+    } finally {
+      session.endSession();
+    }
 
   } catch (error) {
     console.error('Error creating withdrawal request:', error);
     
     // Handle specific error types
     if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json(createErrorResponse(
-        VALIDATION_ERRORS.VALIDATION_ERROR,
-        "Validation failed",
-        validationErrors
-      ));
+      return res.status(400).json(
+        createErrorResponse(VALIDATION_ERRORS.VALIDATION_FAILED, 'Validation failed', error.message)
+      );
     }
-
+    
     if (error.name === 'MongoError' && error.code === 11000) {
-      return res.status(409).json(createErrorResponse(
-        VALIDATION_ERRORS.DUPLICATE_REQUEST,
-        "A similar withdrawal request already exists"
-      ));
+      return res.status(409).json(
+        createErrorResponse(VALIDATION_ERRORS.DUPLICATE_REQUEST, 'Duplicate withdrawal request detected')
+      );
     }
-
-    res.status(500).json(createErrorResponse(
-      VALIDATION_ERRORS.INTERNAL_SERVER_ERROR,
-      "An error occurred while creating withdrawal request"
-    ));
+    
+    res.status(500).json(
+      createErrorResponse(VALIDATION_ERRORS.INTERNAL_SERVER_ERROR, 'Internal server error')
+    );
   }
 };
 

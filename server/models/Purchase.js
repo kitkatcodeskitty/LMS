@@ -26,12 +26,40 @@ const PurchaseSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Pre-save middleware to calculate withdrawable amount
+// Pre-save middleware to calculate withdrawable amount and validate data
 PurchaseSchema.pre('save', function(next) {
+  // Ensure all numeric fields are valid numbers
+  if (this.amount !== undefined) {
+    this.amount = Number(this.amount) || 0;
+  }
+  
+  if (this.affiliateAmount !== undefined) {
+    this.affiliateAmount = Number(this.affiliateAmount) || 0;
+  }
+  
+  if (this.commissionRate !== undefined) {
+    this.commissionRate = Number(this.commissionRate) || 0.5;
+  }
+  
+  // Calculate withdrawable amount when affiliate amount changes
   if (this.isModified('affiliateAmount') || this.isModified('commissionRate')) {
     // Withdrawable amount is the full affiliate amount (affiliate amount is already the commission)
-    this.withdrawableAmount = this.affiliateAmount;
+    this.withdrawableAmount = Math.max(0, this.affiliateAmount);
   }
+  
+  // Validate that amounts are never negative
+  if (this.amount < 0) {
+    return next(new Error('Purchase amount cannot be negative'));
+  }
+  
+  if (this.affiliateAmount < 0) {
+    return next(new Error('Affiliate amount cannot be negative'));
+  }
+  
+  if (this.commissionRate < 0 || this.commissionRate > 1) {
+    return next(new Error('Commission rate must be between 0 and 1'));
+  }
+  
   next();
 });
 

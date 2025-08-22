@@ -49,8 +49,9 @@ const withdrawalSchema = new mongoose.Schema(
         validate: {
           validator: function(value) {
             if (this.method !== "mobile_banking") return true;
-            // Validate Nepali mobile number format
-            return /^(98|97)\d{8}$/.test(value);
+            // Enhanced mobile number validation
+            const cleanNumber = value.replace(/\D/g, '');
+            return /^(98|97)\d{8}$/.test(cleanNumber) || /^\+?[1-9]\d{1,14}$/.test(cleanNumber);
           },
           message: "Invalid mobile number format"
         }
@@ -80,14 +81,7 @@ const withdrawalSchema = new mongoose.Schema(
           return this.method === "bank_transfer";
         },
         trim: true,
-        validate: {
-          validator: function(value) {
-            if (this.method !== "bank_transfer") return true;
-            // Basic account number validation (alphanumeric, 8-20 characters)
-            return /^[A-Za-z0-9]{8,20}$/.test(value);
-          },
-          message: "Invalid account number format"
-        }
+        maxlength: [50, "Account number too long"]
       },
       bankName: {
         type: String,
@@ -96,10 +90,33 @@ const withdrawalSchema = new mongoose.Schema(
         },
         trim: true,
         maxlength: [100, "Bank name too long"]
+      },
+      // International transfer support
+      iban: {
+        type: String,
+        trim: true,
+        maxlength: [34, "IBAN too long"]
+      },
+      swiftCode: {
+        type: String,
+        trim: true,
+        maxlength: [11, "SWIFT code too long"]
+      },
+      country: {
+        type: String,
+        trim: true,
+        maxlength: [50, "Country name too long"]
       }
     },
     
-    // Admin processing fields
+    // Transaction tracking
+    transactionReference: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+    
+    // Admin processing details
     processedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -109,38 +126,47 @@ const withdrawalSchema = new mongoose.Schema(
       type: Date,
       default: null
     },
+    
+    // Rejection details
     rejectionReason: {
       type: String,
-      trim: true,
       maxlength: [500, "Rejection reason too long"]
     },
-    transactionReference: {
-      type: String,
-      trim: true,
-      unique: true,
-      sparse: true
-    },
     
-    // Audit trail for edits
-    editHistory: [{
-      editedBy: {
+    // Audit trail
+    auditLog: [{
+      action: {
+        type: String,
+        enum: ["created", "updated", "approved", "rejected", "edited"],
+        required: true
+      },
+      performedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
       },
-      editedAt: {
+      performedAt: {
         type: Date,
         default: Date.now
       },
-      changes: {
-        type: mongoose.Schema.Types.Mixed,
-        required: true
+      details: {
+        type: String,
+        maxlength: [500, "Audit details too long"]
       },
       previousValues: {
-        type: mongoose.Schema.Types.Mixed,
-        required: true
+        type: mongoose.Schema.Types.Mixed
       }
-    }]
+    }],
+    
+    // Rate limiting and security
+    clientIP: {
+      type: String,
+      trim: true
+    },
+    userAgent: {
+      type: String,
+      trim: true
+    }
   },
   { 
     timestamps: true,
@@ -148,7 +174,9 @@ const withdrawalSchema = new mongoose.Schema(
     indexes: [
       { userId: 1, status: 1 },
       { status: 1, createdAt: -1 },
-      { userId: 1, createdAt: -1 }
+      { userId: 1, createdAt: -1 },
+      { method: 1, status: 1 },
+      { processedBy: 1, processedAt: -1 }
     ]
   }
 );
@@ -161,6 +189,21 @@ withdrawalSchema.pre('save', function(next) {
     const random = Math.random().toString(36).substr(2, 5);
     this.transactionReference = `WD${timestamp}${random}`.toUpperCase();
   }
+  
+  // Add audit log entry for status changes
+  if (this.isModified('status') && this.auditLog && this.auditLog.length > 0) {
+    const lastAudit = this.auditLog[this.auditLog.length - 1];
+    if (lastAudit.action !== this.status) {
+      this.auditLog.push({
+        action: this.status,
+        performedBy: this.processedBy || this.userId,
+        performedAt: new Date(),
+        details: `Status changed to ${this.status}`,
+        previousValues: { status: this._original?.status }
+      });
+    }
+  }
+  
   next();
 });
 
@@ -169,33 +212,46 @@ withdrawalSchema.methods.canBeEdited = function() {
   return this.status === 'pending';
 };
 
-// Instance method to add edit history
-withdrawalSchema.methods.addEditHistory = function(editedBy, changes, previousValues) {
-  this.editHistory.push({
-    editedBy,
-    changes,
+// Instance method to add audit log entry
+withdrawalSchema.methods.addAuditLog = function(action, performedBy, details, previousValues = null) {
+  this.auditLog.push({
+    action,
+    performedBy,
+    performedAt: new Date(),
+    details,
     previousValues
   });
 };
 
-// Static method to get user's pending withdrawal amount
-withdrawalSchema.statics.getUserPendingAmount = async function(userId) {
-  const result = await this.aggregate([
-    {
-      $match: {
-        userId: new mongoose.Types.ObjectId(userId),
-        status: 'pending'
-      }
-    },
+// Static method to get withdrawal statistics
+withdrawalSchema.statics.getStatistics = async function(userId = null) {
+  const matchStage = userId ? { userId: new mongoose.Types.ObjectId(userId) } : {};
+  
+  const stats = await this.aggregate([
+    { $match: matchStage },
     {
       $group: {
-        _id: null,
-        totalPending: { $sum: '$amount' }
+        _id: "$status",
+        count: { $sum: 1 },
+        totalAmount: { $sum: "$amount" }
       }
     }
   ]);
   
-  return result.length > 0 ? result[0].totalPending : 0;
+  const result = {
+    pending: { count: 0, totalAmount: 0 },
+    approved: { count: 0, totalAmount: 0 },
+    rejected: { count: 0, totalAmount: 0 }
+  };
+  
+  stats.forEach(stat => {
+    if (result[stat._id]) {
+      result[stat._id].count = stat.count;
+      result[stat._id].totalAmount = stat.totalAmount;
+    }
+  });
+  
+  return result;
 };
 
 export default mongoose.model("Withdrawal", withdrawalSchema);

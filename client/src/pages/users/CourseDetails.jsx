@@ -8,6 +8,7 @@ import Footer from '../../components/users/Footer'
 import Youtube from 'react-youtube'
 import { toast } from 'react-toastify'
 import { calculateDiscountedPrice } from '../../utils/priceUtils'
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa'
 
 const PackageDetails = () => {
   const { id } = useParams()
@@ -166,13 +167,11 @@ const PackageDetails = () => {
                     onClick={() => toggleSection(index)}
                   >
                     <div className="flex items-center gap-2">
-                      <img
-                        className={`transform transition-transform ${
-                          openSections[index] ? 'rotate-180' : ''
-                        }`}
-                        src={assets.down_arrow_icon}
-                        alt="arrow icon"
-                      />
+                      {openSections[index] ? (
+                        <FaChevronUp className="w-4 h-4 text-gray-600 transition-transform duration-200" />
+                      ) : (
+                        <FaChevronDown className="w-4 h-4 text-gray-600 transition-transform duration-200" />
+                      )}
                       <p className="font-medium md:text-base text-sm">{chapter.chapterTitle}</p>
                     </div>
                     <p className="text-sm md:text-default">

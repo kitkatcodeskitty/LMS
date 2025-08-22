@@ -354,6 +354,8 @@ export const getEarningsData = async (req, res) => {
       totalWithdrawn: earningsData.balance.totalWithdrawn,
       pendingWithdrawals: earningsData.balance.pendingWithdrawals,
       availableBalance: earningsData.balance.availableBalance,
+      // Add currentBalance for backward compatibility
+      currentBalance: earningsData.balance.availableBalance,
       // Additional detailed data
       withdrawableEarnings: {
         lifetime: earningsData.lifetime.withdrawable,
