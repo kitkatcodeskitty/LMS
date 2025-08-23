@@ -5,7 +5,8 @@ const PerformanceMonitor = ({ enabled = false }) => {
     apiCalls: 0,
     avgResponseTime: 0,
     slowRequests: 0,
-    cacheHits: 0
+    cacheHits: 0,
+    memoryUsage: 0
   });
 
   useEffect(() => {

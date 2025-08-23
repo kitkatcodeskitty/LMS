@@ -33,6 +33,18 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Create indexes after schema definition
+// Note: email and affiliateCode indexes are automatically created by unique: true in schema
+userSchema.index({ isAdmin: 1 });
+userSchema.index({ isSubAdmin: 1 });
+userSchema.index({ role: 1 });
+userSchema.index({ referredBy: 1 });
+userSchema.index({ kycStatus: 1 });
+userSchema.index({ isAdmin: 1, isSubAdmin: 1 });
+userSchema.index({ kycStatus: 1, createdAt: -1 });
+userSchema.index({ affiliateCode: 1, isAdmin: 1 });
+userSchema.index({ createdAt: -1 });
+
 // Instance method to calculate available withdrawal balance
 userSchema.methods.getAvailableBalance = function() {
   // Ensure all values are numbers and handle edge cases
@@ -62,14 +74,44 @@ userSchema.methods.updateWithdrawableBalance = function(affiliateAmount) {
 
 // Instance method to process withdrawal approval
 userSchema.methods.processWithdrawalApproval = function(withdrawalAmount) {
-  const amount = Number(withdrawalAmount) || 0;
-  if (amount <= 0) {
-    throw new Error('Withdrawal amount must be positive');
+  try {
+    const amount = Number(withdrawalAmount) || 0;
+    if (amount <= 0) {
+      throw new Error('Withdrawal amount must be positive');
+    }
+    
+    // Ensure all values are numbers and handle edge cases
+    const currentWithdrawable = Number(this.withdrawableBalance) || 0;
+    const currentTotalWithdrawn = Number(this.totalWithdrawn) || 0;
+    const currentPending = Number(this.pendingWithdrawals) || 0;
+    
+    // Validate that user has sufficient balance
+    if (amount > currentWithdrawable) {
+      throw new Error(`Insufficient withdrawable balance. Required: ${amount}, Available: ${currentWithdrawable}`);
+    }
+    
+    // Update balances
+    this.withdrawableBalance = Math.max(0, currentWithdrawable - amount);
+    this.totalWithdrawn = currentTotalWithdrawn + amount;
+    this.pendingWithdrawals = Math.max(0, currentPending - amount);
+    
+    // Ensure values are never negative
+    this.withdrawableBalance = Math.max(0, this.withdrawableBalance);
+    this.totalWithdrawn = Math.max(0, this.totalWithdrawn);
+    this.pendingWithdrawals = Math.max(0, this.pendingWithdrawals);
+    
+    console.log('✅ User balance updated successfully:', {
+      userId: this._id,
+      withdrawalAmount: amount,
+      newWithdrawableBalance: this.withdrawableBalance,
+      newTotalWithdrawn: this.totalWithdrawn,
+      newPendingWithdrawals: this.pendingWithdrawals
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in processWithdrawalApproval:', error);
+    throw error;
   }
-  
-  this.withdrawableBalance = Math.max(0, (Number(this.withdrawableBalance) || 0) - amount);
-  this.totalWithdrawn = (Number(this.totalWithdrawn) || 0) + amount;
-  this.pendingWithdrawals = Math.max(0, (Number(this.pendingWithdrawals) || 0) - amount);
 };
 
 // Instance method to process withdrawal rejection

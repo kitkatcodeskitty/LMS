@@ -20,10 +20,7 @@ const MobileBankingForm = ({ availableBalance, onBack, onSuccess, loading, setLo
 
   const providers = [
     { value: 'eSewa', label: 'eSewa' },
-    { value: 'Khalti', label: 'Khalti' },
-    { value: 'IME Pay', label: 'IME Pay' },
-    { value: 'ConnectIPS', label: 'ConnectIPS' },
-    { value: 'Other', label: 'Other' }
+    { value: 'Khalti', label: 'Khalti' }
   ];
 
   // Fetch balance if not provided
@@ -85,11 +82,13 @@ const MobileBankingForm = ({ availableBalance, onBack, onSuccess, loading, setLo
     }
 
     // Amount validation
-    const amount = parseFloat(formData.amount);
+    const amount = parseInt(formData.amount, 10);
     const avail = balance ?? availableBalance;
     if (formData.amount) {
       if (isNaN(amount) || amount <= 0) {
         newErrors.amount = 'Please enter a valid amount';
+      } else if (amount % 1 !== 0) {
+        newErrors.amount = 'Amount must be a whole number (no decimals)';
       } else if (avail != null && amount > avail) {
         newErrors.amount = `Amount cannot exceed available balance of ${currency}${avail}`;
       } else if (amount < 100) {
@@ -123,7 +122,7 @@ const MobileBankingForm = ({ availableBalance, onBack, onSuccess, loading, setLo
       const token = getToken();
       const requestData = {
         method: 'mobile_banking',
-        amount: parseFloat(formData.amount),
+        amount: parseInt(formData.amount, 10),
         mobileBankingDetails: {
           accountHolderName: formData.accountHolderName.trim(),
           mobileNumber: formData.mobileNumber.trim(),
@@ -277,9 +276,9 @@ const MobileBankingForm = ({ availableBalance, onBack, onSuccess, loading, setLo
               name="amount"
               value={formData.amount}
               onChange={handleInputChange}
-              placeholder="0.00"
+              placeholder="100"
               min="100"
-              step="0.01"
+              step="1"
               className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.amount ? 'border-red-300' : 'border-gray-300'
               }`}

@@ -37,7 +37,12 @@ const notificationSchema = new mongoose.Schema(
         "payment_received",
         "kyc_submitted",
         "kyc_verified",
-        "kyc_rejected"
+        "kyc_rejected",
+        "withdrawal_submitted",
+        "withdrawal_approved",
+        "withdrawal_rejected",
+        "withdrawal_edited",
+        "admin_new_withdrawal"
       ],
     },
   },

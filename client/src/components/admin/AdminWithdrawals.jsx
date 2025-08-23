@@ -77,6 +77,8 @@ const AdminWithdrawals = () => {
         return;
       }
 
+      console.log(`🔄 ${action}ing withdrawal:`, { withdrawalId, actionData });
+
       const response = await axios.put(
         `${backendUrl}/api/admin/withdrawals/${withdrawalId}/${action}`,
         actionData,
@@ -114,11 +116,24 @@ const AdminWithdrawals = () => {
       }
     } catch (error) {
       console.error(`Error ${action}ing withdrawal:`, error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
       
       let errorMessage = `Error ${action}ing withdrawal`;
       
       if (error.response?.status === 401 || error.response?.status === 403) {
         errorMessage = 'You are not authorized to perform this action. Please check your permissions.';
+      } else if (error.response?.status === 500) {
+        // Get detailed error information from backend
+        const backendError = error.response?.data?.error;
+        if (backendError) {
+          errorMessage = `Server Error: ${backendError.message}`;
+          if (backendError.details) {
+            errorMessage += ` (${backendError.details})`;
+          }
+        } else {
+          errorMessage = 'Internal server error. Please check the console for details.';
+        }
       } else if (error.response?.data?.error?.message) {
         errorMessage = error.response.data.error.message;
       } else if (error.response?.data?.message) {

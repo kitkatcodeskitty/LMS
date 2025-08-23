@@ -493,7 +493,10 @@ export const approveWithdrawal = async (req, res) => {
     const adminId = req.user.id;
     const { transactionReference } = req.body;
 
+    console.log('🔍 Approving withdrawal:', { id, adminId, transactionReference });
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.log('❌ Invalid withdrawal ID:', id);
       return res.status(400).json({
         success: false,
         error: {
@@ -504,8 +507,11 @@ export const approveWithdrawal = async (req, res) => {
     }
 
     // Find withdrawal and populate user
+    console.log('🔍 Finding withdrawal with ID:', id);
     const withdrawal = await Withdrawal.findById(id).populate('userId');
+    
     if (!withdrawal) {
+      console.log('❌ Withdrawal not found:', id);
       return res.status(404).json({
         success: false,
         error: {
@@ -515,7 +521,15 @@ export const approveWithdrawal = async (req, res) => {
       });
     }
 
+    console.log('✅ Withdrawal found:', {
+      id: withdrawal._id,
+      status: withdrawal.status,
+      amount: withdrawal.amount,
+      userId: withdrawal.userId?._id
+    });
+
     if (withdrawal.status !== 'pending') {
+      console.log('❌ Withdrawal already processed:', withdrawal.status);
       return res.status(400).json({
         success: false,
         error: {
@@ -527,7 +541,28 @@ export const approveWithdrawal = async (req, res) => {
 
     // Check if user has sufficient balance
     const user = withdrawal.userId;
+    if (!user) {
+      console.log('❌ User not found for withdrawal:', id);
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "USER_NOT_FOUND",
+          message: "User not found for this withdrawal"
+        }
+      });
+    }
+
+    console.log('🔍 User balance check:', {
+      userId: user._id,
+      withdrawableBalance: user.withdrawableBalance,
+      withdrawalAmount: withdrawal.amount
+    });
+
     if (withdrawal.amount > user.withdrawableBalance) {
+      console.log('❌ Insufficient user balance:', {
+        required: withdrawal.amount,
+        available: user.withdrawableBalance
+      });
       return res.status(400).json({
         success: false,
         error: {
@@ -537,82 +572,228 @@ export const approveWithdrawal = async (req, res) => {
       });
     }
 
+    // Validate withdrawal amount
+    if (!withdrawal.amount || withdrawal.amount <= 0) {
+      console.log('❌ Invalid withdrawal amount:', withdrawal.amount);
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "INVALID_WITHDRAWAL_AMOUNT",
+          message: "Invalid withdrawal amount"
+        }
+      });
+    }
+
+    // Validate user balance fields
+    if (typeof user.withdrawableBalance !== 'number' || typeof user.pendingWithdrawals !== 'number' || typeof user.totalWithdrawn !== 'number') {
+      console.log('❌ Invalid user balance fields:', {
+        withdrawableBalance: user.withdrawableBalance,
+        pendingWithdrawals: user.pendingWithdrawals,
+        totalWithdrawn: user.totalWithdrawn
+      });
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "INVALID_USER_BALANCE_FIELDS",
+          message: "User balance fields are invalid"
+        }
+      });
+    }
+
     // Start transaction
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    console.log('🔄 Starting database transaction...');
+    let session;
+    try {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    } catch (sessionError) {
+      console.error('❌ Error starting database session:', sessionError);
+      return res.status(500).json({
+        success: false,
+        error: {
+          code: "SESSION_ERROR",
+          message: "Failed to start database transaction",
+          details: sessionError.message
+        }
+      });
+    }
 
     try {
       // Update withdrawal status
+      console.log('📝 Updating withdrawal status to approved...');
       withdrawal.status = 'approved';
       withdrawal.processedBy = adminId;
       withdrawal.processedAt = new Date();
       if (transactionReference) {
         withdrawal.transactionReference = transactionReference;
       }
-      await withdrawal.save({ session });
+      
+      // Ensure auditLog is initialized if it doesn't exist
+      if (!withdrawal.auditLog) {
+        withdrawal.auditLog = [];
+      }
+      
+      // Save withdrawal with session
+      const savedWithdrawal = await withdrawal.save({ session });
+      console.log('✅ Withdrawal saved successfully:', savedWithdrawal._id);
 
       // Update user balance
-      user.processWithdrawalApproval(withdrawal.amount);
-      await user.save({ session });
-
-      await session.commitTransaction();
-
-      // Send approval notifications
+      console.log('💰 Processing user balance update...');
       try {
+        user.processWithdrawalApproval(withdrawal.amount);
+      } catch (balanceError) {
+        console.error('❌ Error in processWithdrawalApproval:', balanceError);
+        throw new Error(`Failed to update user balance: ${balanceError.message}`);
+      }
+      
+      const savedUser = await user.save({ session });
+      console.log('✅ User balance updated successfully:', {
+        newWithdrawableBalance: savedUser.withdrawableBalance,
+        newTotalWithdrawn: savedUser.totalWithdrawn,
+        newPendingWithdrawals: savedUser.pendingWithdrawals
+      });
+
+      console.log('✅ Committing transaction...');
+      await session.commitTransaction();
+      console.log('✅ Transaction committed successfully');
+
+      // Send approval notifications (outside transaction to avoid blocking)
+      try {
+        console.log('📱 Sending in-app notification...');
         await notifyWithdrawalApproved(withdrawal.userId._id, withdrawal.amount, withdrawal.transactionReference);
+        console.log('✅ In-app notification sent successfully');
       } catch (notifError) {
-        console.log('Error sending in-app notification:', notifError.message);
+        console.log('⚠️ Error sending in-app notification:', notifError.message);
+        console.log('⚠️ Notification error details:', {
+          name: notifError.name,
+          code: notifError.code,
+          stack: notifError.stack
+        });
+        // Don't fail the whole operation for notification errors
       }
       
       // Send email notification
       try {
+        console.log('📧 Sending email notification...');
         await sendWithdrawalEmailNotification(withdrawal.userId.email, 'approved', {
           amount: withdrawal.amount,
           transactionReference: withdrawal.transactionReference,
           withdrawalId: withdrawal._id
         });
+        console.log('✅ Email notification sent successfully');
       } catch (emailError) {
-        console.log('Error sending email notification:', emailError.message);
+        console.log('⚠️ Error sending email notification:', emailError.message);
+        console.log('⚠️ Email error details:', {
+          name: emailError.name,
+          code: emailError.code,
+          stack: emailError.stack
+        });
+        // Don't fail the whole operation for email errors
       }
 
       // Populate admin details for response
-      await withdrawal.populate('processedBy', 'firstName lastName');
+      console.log('👤 Populating admin details...');
+      try {
+        await withdrawal.populate('processedBy', 'firstName lastName');
+        console.log('✅ Admin details populated successfully');
+      } catch (populateError) {
+        console.log('⚠️ Error populating admin details:', populateError.message);
+        // Continue without populated admin details
+      }
 
+      console.log('✅ Withdrawal approved successfully!');
+      
+      // Prepare response data with fallbacks
+      const responseData = {
+        withdrawal: {
+          _id: withdrawal._id,
+          status: withdrawal.status,
+          processedAt: withdrawal.processedAt,
+          transactionReference: withdrawal.transactionReference || 'Generated',
+          processedBy: withdrawal.processedBy ? {
+            name: `${withdrawal.processedBy.firstName || 'Admin'} ${withdrawal.processedBy.lastName || 'User'}`
+          } : {
+            name: 'Admin User'
+          }
+        },
+        userBalance: {
+          withdrawableBalance: user.withdrawableBalance || 0,
+          totalWithdrawn: user.totalWithdrawn || 0,
+          pendingWithdrawals: user.pendingWithdrawals || 0
+        }
+      };
+      
+      console.log('📤 Sending response:', responseData);
+      
       res.status(200).json({
         success: true,
         message: "Withdrawal approved successfully",
-        data: {
-          withdrawal: {
-            _id: withdrawal._id,
-            status: withdrawal.status,
-            processedAt: withdrawal.processedAt,
-            transactionReference: withdrawal.transactionReference,
-            processedBy: {
-              name: `${withdrawal.processedBy.firstName} ${withdrawal.processedBy.lastName}`
-            }
-          },
-          userBalance: {
-            withdrawableBalance: user.withdrawableBalance,
-            totalWithdrawn: user.totalWithdrawn,
-            pendingWithdrawals: user.pendingWithdrawals
-          }
-        }
+        data: responseData
       });
 
     } catch (error) {
-      await session.abortTransaction();
+      console.log('❌ Error during transaction:', error);
+      console.log('Error stack:', error.stack);
+      
+      if (session) {
+        try {
+          await session.abortTransaction();
+          console.log('✅ Transaction aborted successfully');
+        } catch (abortError) {
+          console.error('❌ Error aborting transaction:', abortError);
+        }
+      }
+      
       throw error;
     } finally {
-      session.endSession();
+      if (session) {
+        try {
+          session.endSession();
+          console.log('✅ Session ended successfully');
+        } catch (endError) {
+          console.error('❌ Error ending session:', endError);
+        }
+      }
     }
 
   } catch (error) {
-    console.error('Error approving withdrawal:', error);
+    console.error('❌ Error approving withdrawal:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Handle specific database errors
+    let errorMessage = "An error occurred while approving withdrawal";
+    let errorCode = "INTERNAL_SERVER_ERROR";
+    
+    if (error.code === 11000) {
+      // Duplicate key error
+      errorCode = "DUPLICATE_KEY_ERROR";
+      errorMessage = "A duplicate key error occurred. Please try again.";
+      console.error('❌ Duplicate key error:', error.keyPattern);
+    } else if (error.name === 'ValidationError') {
+      // Mongoose validation error
+      errorCode = "VALIDATION_ERROR";
+      errorMessage = "Validation error: " + Object.values(error.errors).map(e => e.message).join(', ');
+      console.error('❌ Validation error:', error.errors);
+    } else if (error.name === 'CastError') {
+      // Mongoose cast error (invalid ObjectId, etc.)
+      errorCode = "CAST_ERROR";
+      errorMessage = "Invalid data format provided";
+      console.error('❌ Cast error:', error.message);
+    } else if (error.name === 'MongoError') {
+      // MongoDB specific errors
+      errorCode = "MONGO_ERROR";
+      errorMessage = "Database error: " + error.message;
+      console.error('❌ MongoDB error:', error);
+    }
+    
+    // Send more detailed error response
     res.status(500).json({
       success: false,
       error: {
-        code: "INTERNAL_SERVER_ERROR",
-        message: "An error occurred while approving withdrawal"
+        code: errorCode,
+        message: errorMessage,
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       }
     });
   }

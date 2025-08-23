@@ -17,6 +17,7 @@ import MobileHeader from '../../components/profile/MobileHeader';
 import Affilated from '../../components/profile/Affilated';
 import WithdrawalRequest from '../../components/profile/WithdrawalRequest';
 import WithdrawalHistory from '../../components/profile/WithdrawalHistory';
+import Withdrawal from '../../components/profile/Withdrawal';
 import Footer from '../../components/users/Footer';
 
 const customStyles = `
@@ -245,8 +246,7 @@ const Profile = () => {
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'earnings', label: 'Earnings', icon: '💰' },
-    { id: 'withdrawal-request', label: 'Request Withdrawal', icon: '💸' },
-    { id: 'withdrawal-history', label: 'Withdrawal History', icon: '📋' },
+    { id: 'withdrawal', label: 'Withdrawal', icon: '💸' },
     { id: 'referrals', label: 'My Referrals', icon: '👥' },
     { id: 'courses', label: 'My Packages', icon: '📚' },
     { id: 'statements', label: 'Payment Statements', icon: '📄' },
@@ -274,42 +274,15 @@ const Profile = () => {
             setActiveTab={setActiveTab}
           />
         );
-      case 'withdrawal-request':
+      case 'withdrawal':
         return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Request Withdrawal</h2>
-                  <p className="text-gray-600 text-sm mt-1">Withdraw your earnings through Mobile Banking or Bank Transfer</p>
-                </div>
-                <div className="text-3xl text-green-600">💸</div>
-              </div>
-              <WithdrawalRequest
-                inline={true}
-                onClose={() => setActiveTab('dashboard')}
-                onSuccess={() => {
-                  fetchProfileData(); // Refresh data after successful withdrawal
-                  setActiveTab('withdrawal-history');
-                }}
-              />
-            </div>
-          </div>
-        );
-      case 'withdrawal-history':
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Withdrawal History</h2>
-                  <p className="text-gray-600 text-sm mt-1">Track all your withdrawal requests and their status</p>
-                </div>
-                <div className="text-3xl text-blue-600">📋</div>
-              </div>
-              <WithdrawalHistory />
-            </div>
-          </div>
+          <Withdrawal
+            userData={userData}
+            earningsData={earningsData}
+            currency={currency}
+            navigate={navigate}
+            setActiveTab={setActiveTab}
+          />
         );
       case 'earnings':
         return (

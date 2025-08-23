@@ -4,6 +4,7 @@ import AnimatedNumber from '../common/AnimatedNumber';
 import { 
   FaTachometerAlt,        // Dashboard
   FaDollarSign,           // Earnings
+  FaMoneyBillWave,        // Withdrawal
   FaUsers,                // Teams (Referrals)
   FaBook,                 // My Courses
   FaFileAlt,              // Referral Earning (Statements)
@@ -56,15 +57,16 @@ const Sidebar = ({
   userData
 }) => {
   const sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
-    { id: 'earnings', label: 'Earnings', icon: <FaDollarSign /> },
-    { id: 'referrals', label: 'Teams', icon: <FaUsers /> },
-    { id: 'courses', label: 'My Packages', icon: <FaBook /> },
-    { id: 'statements', label: 'Referral Earning', icon: <FaFileAlt /> },
-    { id: 'purchase-history', label: 'Purchase History', icon: <FaShoppingCart /> },
-    { id: 'leaderboard', label: 'Leaderboard', icon: <FaTrophy /> },
-    { id: 'affiliated', label: 'Affilated Link', icon: <FaLink /> },
-    { id: 'edit', label: 'Edit Profile', icon: <FaEdit /> },
+    { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, color: 'from-blue-500 to-blue-600' },
+    { id: 'earnings', label: 'Earnings', icon: <FaDollarSign />, color: 'from-green-500 to-green-600' },
+    { id: 'withdrawal', label: 'Withdrawal', icon: <FaMoneyBillWave />, color: 'from-rose-500 to-pink-500' },
+    { id: 'referrals', label: 'Teams', icon: <FaUsers />, color: 'from-purple-500 to-purple-600' },
+    { id: 'courses', label: 'My Packages', icon: <FaBook />, color: 'from-indigo-500 to-indigo-600' },
+    { id: 'statements', label: 'Referral Earning', icon: <FaFileAlt />, color: 'from-orange-500 to-orange-600' },
+    { id: 'purchase-history', label: 'Purchase History', icon: <FaShoppingCart />, color: 'from-teal-500 to-teal-600' },
+    { id: 'leaderboard', label: 'Leaderboard', icon: <FaTrophy />, color: 'from-yellow-500 to-yellow-600' },
+    { id: 'affiliated', label: 'Affilated Link', icon: <FaLink />, color: 'from-cyan-500 to-cyan-600' },
+    { id: 'edit', label: 'Edit Profile', icon: <FaEdit />, color: 'from-gray-500 to-gray-600' },
   ];
 
   const Navigation = ({ isMobile = false }) => (

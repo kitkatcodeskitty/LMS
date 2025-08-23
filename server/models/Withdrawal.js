@@ -137,7 +137,7 @@ const withdrawalSchema = new mongoose.Schema(
     auditLog: [{
       action: {
         type: String,
-        enum: ["created", "updated", "approved", "rejected", "edited"],
+        enum: ["created", "updated", "approved", "rejected", "edited", "pending"],
         required: true
       },
       performedBy: {
@@ -169,42 +169,84 @@ const withdrawalSchema = new mongoose.Schema(
     }
   },
   { 
-    timestamps: true,
-    // Add compound indexes for efficient queries
-    indexes: [
-      { userId: 1, status: 1 },
-      { status: 1, createdAt: -1 },
-      { userId: 1, createdAt: -1 },
-      { method: 1, status: 1 },
-      { processedBy: 1, processedAt: -1 }
-    ]
+    timestamps: true
   }
 );
 
+// Create indexes after schema definition
+withdrawalSchema.index({ userId: 1, status: 1 });
+withdrawalSchema.index({ status: 1, createdAt: -1 });
+withdrawalSchema.index({ userId: 1, createdAt: -1 });
+withdrawalSchema.index({ method: 1, status: 1 });
+withdrawalSchema.index({ processedBy: 1, processedAt: -1 });
+
 // Pre-save middleware to generate transaction reference for approved withdrawals
 withdrawalSchema.pre('save', function(next) {
-  if (this.isModified('status') && this.status === 'approved' && !this.transactionReference) {
-    // Generate unique transaction reference
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substr(2, 5);
-    this.transactionReference = `WD${timestamp}${random}`.toUpperCase();
-  }
-  
-  // Add audit log entry for status changes
-  if (this.isModified('status') && this.auditLog && this.auditLog.length > 0) {
-    const lastAudit = this.auditLog[this.auditLog.length - 1];
-    if (lastAudit.action !== this.status) {
-      this.auditLog.push({
-        action: this.status,
-        performedBy: this.processedBy || this.userId,
-        performedAt: new Date(),
-        details: `Status changed to ${this.status}`,
-        previousValues: { status: this._original?.status }
-      });
+  try {
+    if (this.isModified('status') && this.status === 'approved' && !this.transactionReference) {
+      // Generate unique transaction reference with better uniqueness
+      const timestamp = Date.now().toString(36);
+      const random = Math.random().toString(36).substr(2, 8);
+      const userId = this.userId ? this.userId.toString().substr(-4) : '0000';
+      this.transactionReference = `WD${timestamp}${random}${userId}`.toUpperCase();
     }
+    
+    // Add audit log entry for status changes
+    if (this.isModified('status') && this.auditLog && Array.isArray(this.auditLog)) {
+      const lastAudit = this.auditLog[this.auditLog.length - 1];
+      if (lastAudit && lastAudit.action !== this.status) {
+        // Get the previous status safely
+        let previousStatus = 'unknown';
+        if (this._original && this._original.status) {
+          previousStatus = this._original.status;
+        } else if (this.auditLog.length > 0) {
+          // Try to get from the last audit entry
+          const lastEntry = this.auditLog[this.auditLog.length - 1];
+          if (lastEntry && lastEntry.action !== this.status) {
+            previousStatus = lastEntry.action;
+          }
+        }
+        
+        this.auditLog.push({
+          action: this.status,
+          performedBy: this.processedBy || this.userId,
+          performedAt: new Date(),
+          details: `Status changed to ${this.status}`,
+          previousValues: { status: previousStatus }
+        });
+      }
+    }
+    
+    next();
+  } catch (error) {
+    console.error('Error in withdrawal pre-save middleware:', error);
+    next(error);
   }
-  
-  next();
+});
+
+// Post-save middleware to handle potential duplicate key errors
+withdrawalSchema.post('save', function(error, doc, next) {
+  if (error && error.code === 11000 && error.keyPattern && error.keyPattern.transactionReference) {
+    // Duplicate transaction reference error - generate a new one and retry
+    console.log('⚠️ Duplicate transaction reference detected, regenerating...');
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 10);
+    const userId = doc.userId ? doc.userId.toString().substr(-4) : '0000';
+    doc.transactionReference = `WD${timestamp}${random}${userId}`.toUpperCase();
+    
+    // Retry saving without the middleware to avoid infinite loop
+    doc.save({ validateBeforeSave: false })
+      .then(() => {
+        console.log('✅ Withdrawal saved successfully after retry');
+        next();
+      })
+      .catch((retryError) => {
+        console.error('❌ Error in retry save:', retryError);
+        next(retryError);
+      });
+  } else {
+    next(error);
+  }
 });
 
 // Instance method to check if withdrawal can be edited

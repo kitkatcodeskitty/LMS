@@ -52,9 +52,11 @@ const WithdrawalEditForm = ({
     const newErrors = {};
 
     // Validate amount
-    const amount = parseFloat(formData.amount);
+    const amount = parseInt(formData.amount, 10);
     if (!formData.amount || isNaN(amount) || amount <= 0) {
       newErrors.amount = 'Please enter a valid amount greater than 0';
+    } else if (amount % 1 !== 0) {
+      newErrors.amount = 'Amount must be a whole number (no decimals)';
     }
 
     // Validate payment method specific fields

@@ -1,4 +1,5 @@
 import React from 'react';
+import AnimatedNumber from '../common/AnimatedNumber';
 import {
   FaCrown,
   FaChartLine,
@@ -37,15 +38,15 @@ const Dashboard = ({
   // Get the package type dynamically - check multiple possible properties
   const getPackageType = () => {
     if (!latestPackage) return 'USER';
-    
+
     // Check different possible properties where package type might be stored
-    const packageType = latestPackage.packageType || 
-                       latestPackage.package?.packageType || 
-                       latestPackage.course?.packageType ||
-                       latestPackage.type ||
-                       latestPackage.courseTitle?.split(' ')[0] || // Try to extract from course title if it starts with package name
-                       null;
-    
+    const packageType = latestPackage.packageType ||
+      latestPackage.package?.packageType ||
+      latestPackage.course?.packageType ||
+      latestPackage.type ||
+      latestPackage.courseTitle?.split(' ')[0] || // Try to extract from course title if it starts with package name
+      null;
+
     return packageType ? packageType.toUpperCase() : 'USER';
   };
 
@@ -77,7 +78,7 @@ const Dashboard = ({
                 >
                   <FaUser className="w-8 h-8 text-white" />
                 </div>
-                
+
                 {/* Blue verification tick */}
                 {userData.kycStatus === 'verified' && (
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
@@ -113,11 +114,24 @@ const Dashboard = ({
           <div className="text-right">
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 mb-2">
               <div className="text-xs text-white/80">Earnings</div>
-              <div className="text-lg font-bold text-white">Rs0</div>
+              <div className="text-lg font-bold text-white">
+                <AnimatedNumber 
+                  value={earningsData.lifetime || 0} 
+                  currency="Rs" 
+                  duration={2000} 
+                  delay={100} 
+                />
+              </div>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
               <div className="text-xs text-white/80">Network</div>
-              <div className="text-lg font-bold text-white">{referralData.length}</div>
+              <div className="text-lg font-bold text-white">
+                <AnimatedNumber 
+                  value={referralData.length} 
+                  duration={1800} 
+                  delay={200} 
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -135,7 +149,14 @@ const Dashboard = ({
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-1">Today's Earnings</h3>
-            <div className="text-2xl font-bold mb-1">Rs{earningsData.today || 0}</div>
+            <div className="text-2xl font-bold mb-1">
+              <AnimatedNumber 
+                value={earningsData.today || 0} 
+                currency="Rs" 
+                duration={2200} 
+                delay={300} 
+              />
+            </div>
             <div className="text-xs text-white/80">Daily Performance</div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
@@ -150,7 +171,7 @@ const Dashboard = ({
               <FaWallet className="w-5 h-5" />
             </div>
             <button
-              onClick={() => setActiveTab('withdrawal-request')}
+              onClick={() => setActiveTab('withdrawal')}
               className="text-xs bg-white/20 px-2 py-1 rounded-full hover:bg-white/30 transition-colors"
             >
               Withdraw
@@ -158,7 +179,14 @@ const Dashboard = ({
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-1">Available Balance</h3>
-            <div className="text-2xl font-bold mb-1">Rs{earningsData.availableBalance || 0}</div>
+            <div className="text-2xl font-bold mb-1">
+              <AnimatedNumber 
+                value={earningsData.availableBalance || 0} 
+                currency="Rs" 
+                duration={2400} 
+                delay={400} 
+              />
+            </div>
             <div className="text-xs text-white/80">Ready to Withdraw</div>
           </div>
           <div className="text-xs text-white/80 mt-2">+ Available Now</div>
@@ -176,7 +204,13 @@ const Dashboard = ({
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-1">Total Referrals</h3>
-            <div className="text-2xl font-bold mb-1">{referralData.length}</div>
+            <div className="text-2xl font-bold mb-1">
+              <AnimatedNumber 
+                value={referralData.length} 
+                duration={2000} 
+                delay={500} 
+              />
+            </div>
             <div className="text-xs text-white/80">Active Network</div>
           </div>
           <div className="text-xs text-white/80 mt-2">Growing</div>
@@ -202,7 +236,14 @@ const Dashboard = ({
               <span className="text-xs text-white/80 font-medium">7 Days</span>
             </div>
             <div className="text-sm text-white/80 mb-1">Last Week</div>
-            <div className="text-xl font-bold text-white">Rs{earningsData.lastSevenDays || 0}</div>
+            <div className="text-xl font-bold text-white">
+              <AnimatedNumber 
+                value={earningsData.lastSevenDays || 0} 
+                currency="Rs" 
+                duration={2600} 
+                delay={600} 
+              />
+            </div>
             <div className="text-xs text-white/70">Weekly performance</div>
           </div>
 
@@ -215,7 +256,14 @@ const Dashboard = ({
               <span className="text-xs text-white/80 font-medium">30 Days</span>
             </div>
             <div className="text-sm text-white/80 mb-1">This Month</div>
-            <div className="text-xl font-bold text-white">Rs{earningsData.thisMonth || 0}</div>
+            <div className="text-xl font-bold text-white">
+              <AnimatedNumber 
+                value={earningsData.thisMonth || 0} 
+                currency="Rs" 
+                duration={2800} 
+                delay={700} 
+              />
+            </div>
             <div className="text-xs text-white/70">Monthly growth</div>
           </div>
 
@@ -228,7 +276,14 @@ const Dashboard = ({
               <span className="text-xs text-white/80 font-medium">Lifetime</span>
             </div>
             <div className="text-sm text-white/80 mb-1">All Time</div>
-            <div className="text-xl font-bold text-white">Rs{earningsData.lifetime || 0}</div>
+            <div className="text-xl font-bold text-white">
+              <AnimatedNumber 
+                value={earningsData.lifetime || 0} 
+                currency="Rs" 
+                duration={3000} 
+                delay={800} 
+              />
+            </div>
             <div className="text-xs text-white/70">Total achievement</div>
           </div>
         </div>
@@ -261,15 +316,33 @@ const Dashboard = ({
 
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-lg font-bold text-white">{referralData.length}</div>
+              <div className="text-lg font-bold text-white">
+                <AnimatedNumber 
+                  value={referralData.length} 
+                  duration={1500} 
+                  delay={900} 
+                />
+              </div>
               <div className="text-xs text-white/80">Achieved</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-white">25</div>
+              <div className="text-lg font-bold text-white">
+                <AnimatedNumber 
+                  value={25} 
+                  duration={1200} 
+                  delay={1000} 
+                />
+              </div>
               <div className="text-xs text-white/80">Target</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-white">{25 - referralData.length}</div>
+              <div className="text-lg font-bold text-white">
+                <AnimatedNumber 
+                  value={Math.max(25 - referralData.length, 0)} 
+                  duration={1300} 
+                  delay={1100} 
+                />
+              </div>
               <div className="text-xs text-white/80">Remaining</div>
             </div>
           </div>
@@ -292,7 +365,7 @@ const Dashboard = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('withdrawal-request')}
+              onClick={() => setActiveTab('withdrawal')}
               className="bg-gradient-to-r from-rose-500 to-pink-500 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
             >
               <FaWallet className="w-5 h-5 mb-1" />
@@ -335,7 +408,13 @@ const Dashboard = ({
               <FaArrowRight className="w-4 h-4 text-white" />
             </div>
             <h3 className="font-semibold text-white mb-1">My Packages</h3>
-            <p className="text-sm text-white/80 mb-2">{purchasedCourses.length} enrolled</p>
+            <p className="text-sm text-white/80 mb-2">
+              <AnimatedNumber 
+                value={purchasedCourses.length} 
+                duration={1000} 
+                delay={1200} 
+              /> enrolled
+            </p>
             <p className="text-xs text-white/70">Latest: {purchasedCourses.length > 0 ? 'No courses enrolled' : latestCourseName}</p>
           </div>
 
