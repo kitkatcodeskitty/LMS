@@ -41,6 +41,10 @@ const EnhancedPayment = () => {
     confirmPassword: ''
   });
   const [registering, setRegistering] = useState(false);
+  
+  // Profile image states for registration
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profilePreviewImage, setProfilePreviewImage] = useState(null);
 
   // Login form states
   const [loginData, setLoginData] = useState({
@@ -96,6 +100,28 @@ const EnhancedPayment = () => {
     setLoginData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('File size should be less than 5MB');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+
+      setProfileImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => setProfilePreviewImage(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleRegistration = async (e) => {
     e.preventDefault();
     
@@ -118,6 +144,10 @@ const EnhancedPayment = () => {
       formData.append('email', registrationData.email);
       formData.append('password', registrationData.password);
 
+      if (profileImageFile) {
+        formData.append('image', profileImageFile);
+      }
+
       const { data } = await axios.post(`${backendUrl}/api/user/register`, formData);
 
       if (data.success) {
@@ -125,6 +155,11 @@ const EnhancedPayment = () => {
         localStorage.setItem('token', data.token);
         toast.success('Registration successful! You can now complete your payment.');
         setShowRegistration(false);
+        
+        // Reset profile image states
+        setProfileImageFile(null);
+        setProfilePreviewImage(null);
+        
         // Refresh page to update user context
         window.location.reload();
       } else {
@@ -505,6 +540,47 @@ const EnhancedPayment = () => {
                       minLength="8"
                       required
                     />
+                  </div>
+                </div>
+
+                {/* Profile Image Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Profile Image (Optional)
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfileImageChange}
+                      className="hidden"
+                      id="profile-upload"
+                    />
+                    <label htmlFor="profile-upload" className="cursor-pointer">
+                      {profilePreviewImage ? (
+                        <div className="space-y-2">
+                          <img
+                            src={profilePreviewImage}
+                            alt="Profile preview"
+                            className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-blue-200"
+                          />
+                          <p className="text-sm text-green-600 font-medium">Image uploaded successfully!</p>
+                          <p className="text-xs text-gray-500">Click to change image</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="w-12 h-12 bg-gray-100 rounded-full mx-auto flex items-center justify-center">
+                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Upload profile picture</p>
+                            <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                          </div>
+                        </div>
+                      )}
+                    </label>
                   </div>
                 </div>
 

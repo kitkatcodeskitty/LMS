@@ -208,7 +208,7 @@ const MyEnrollments = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => navigate('/course/' + course._id)}
+                        onClick={() => navigate('/package/' + course._id)}
                         className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                       >
                         Continue Learning
@@ -284,7 +284,7 @@ const MyEnrollments = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
-                              onClick={() => navigate('/course/' + course._id)}
+                              onClick={() => navigate('/package/' + course._id)}
                               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                             >
                               Continue Learning
