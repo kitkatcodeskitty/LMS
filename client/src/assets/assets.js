@@ -32,6 +32,11 @@ import home_icon from './home_icon.svg'
 import add_icon from './add_icon.svg'
 import my_course_icon from './my_course_icon.svg'
 
+// Dashboard Icons
+import patients_icon from './patients_icon.svg'
+import appointments_icon from './appointments_icon.svg'
+import earning_icon from './earning_icon.svg'
+
 // Profile and Social Icons
 import profile_img_1 from './profile_img_1.png'
 import profile_img_2 from './profile_img_2.png'
@@ -74,6 +79,11 @@ export const assets = {
     home_icon,
     add_icon,
     my_course_icon,
+    
+    // Dashboard Icons
+    patients_icon,
+    appointments_icon,
+    earning_icon,
     
     // Profile and Social
     profile_img_1,
