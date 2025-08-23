@@ -17,15 +17,19 @@ const cartSchema = new mongoose.Schema(
           coursePrice: Number,
           courseThumbnail: String,
         },
-        isValidated: { type: Boolean, default: false },
+        isValidated: { type: Boolean, default: false, required: true },
         referralCode: { type: String, default: null },
         transactionId: { type: String, required: true }, 
         paymentScreenshot: { type: String, required: true }, 
-        addedAt: { type: Date, default: Date.now },
+        addedAt: { type: Date, default: Date.now, required: true },
       },
     ],
   },
   { timestamps: true }
 );
+
+// Add index for better performance
+cartSchema.index({ "user._id": 1 });
+cartSchema.index({ "courses.isValidated": 1 });
 
 export default mongoose.model("Cart", cartSchema);

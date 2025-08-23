@@ -1,9 +1,6 @@
 import React from 'react';
-import AnimatedNumber from '../common/AnimatedNumber';
 import {
   FaCrown,
-  FaGraduationCap,
-  FaGem,
   FaChartLine,
   FaChartBar,
   FaCalendarAlt,
@@ -11,37 +8,19 @@ import {
   FaUsers,
   FaTrophy,
   FaBolt,
-  FaDollarSign,
-  FaEdit,
   FaWallet,
   FaPlane,
-  FaCoins,
-  FaPiggyBank,
   FaUser,
-  FaMedal,
-  FaAward,
-  FaStar,
-  FaRocket,
-  FaLightbulb,
-  FaHeart,
-  FaShieldAlt,
-  FaArrowUp,
   FaFire,
-  FaCheckCircle,
   FaArrowRight,
-  FaArrowLeft
+  FaShareAlt
 } from 'react-icons/fa';
 
 const Dashboard = ({
   userData,
   earningsData,
-  currency,
-  affiliateCode,
-  affiliateLink,
-  copyToClipboard,
   purchasedCourses,
   referralData,
-  leaderboard,
   navigate,
   setActiveTab
 }) => {
@@ -49,282 +28,344 @@ const Dashboard = ({
 
   // Get the latest purchased package
   const latestPackage = purchasedCourses.length > 0 ? purchasedCourses[0] : null;
-  
+
   // Get the latest course name for display
-  const latestCourseName = latestPackage ? 
-    (latestPackage.courseTitle || 'Latest Course') : 
+  const latestCourseName = latestPackage ?
+    (latestPackage.courseTitle || 'Latest Course') :
     'No courses enrolled';
 
+  // Get the package type dynamically - check multiple possible properties
+  const getPackageType = () => {
+    if (!latestPackage) return 'USER';
+    
+    // Check different possible properties where package type might be stored
+    const packageType = latestPackage.packageType || 
+                       latestPackage.package?.packageType || 
+                       latestPackage.course?.packageType ||
+                       latestPackage.type ||
+                       latestPackage.courseTitle?.split(' ')[0] || // Try to extract from course title if it starts with package name
+                       null;
+    
+    return packageType ? packageType.toUpperCase() : 'USER';
+  };
+
+  const currentPackageType = getPackageType();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6">
-      {/* Top Section - Profile Card Only */}
-      <div className="mb-8 animate-fade-in">
-        {/* User Profile Card - Full Width */}
-        <div className="bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600 rounded-2xl p-6 shadow-lg border-0 hover:shadow-xl transition-all duration-500 ease-out transform hover:-translate-y-1">
-          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-6">
-            {/* Profile Image with KYC Blue Tick */}
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
+      {/* Profile Header Card */}
+      <div className="bg-gradient-to-r from-rose-500 to-pink-500 rounded-2xl p-6 mb-6 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24">
+              <div className="w-16 h-16">
                 {userData.imageUrl ? (
                   <img
                     src={userData.imageUrl}
                     alt="Profile"
-                    className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
+                    className="w-full h-full rounded-full object-cover border-3 border-white shadow-md"
                     onError={(e) => {
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'flex';
                     }}
                   />
                 ) : null}
-                
-                {/* Fallback Profile Icon */}
-                <div 
-                  className={`w-full h-full rounded-full bg-white/20 backdrop-blur-sm border-4 border-white shadow-md flex items-center justify-center ${
-                    userData.imageUrl ? 'hidden' : 'flex'
-                  }`}
+
+                <div
+                  className={`w-full h-full rounded-full bg-white/20 backdrop-blur-sm border-3 border-white shadow-md flex items-center justify-center ${userData.imageUrl ? 'hidden' : 'flex'
+                    }`}
                 >
-                  <FaUser className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  <FaUser className="w-8 h-8 text-white" />
                 </div>
                 
+                {/* Blue verification tick */}
                 {userData.kycStatus === 'verified' && (
-                  <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-bounce">
-                    <FaCheckCircle className="w-3 h-3 text-white" />
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
                   </div>
                 )}
               </div>
             </div>
-            
-            {/* User Info */}
-            <div className="text-center sm:text-left">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3">{fullName || 'Welcome!'}</h2>
-              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/30">
-                <p className="text-sm font-semibold text-white">
-                  PACKAGE: {latestPackage ? latestPackage.packageType?.toUpperCase() || 'SUPREME' : 'SUPREME'}
-                </p>
+
+            <div>
+              <div className="text-sm text-white/80 mb-1">Welcome Back!</div>
+              <h1 className="text-2xl font-bold text-white mb-2 flex items-center">
+                {fullName || 'Amy Amy'}
+                {userData.kycStatus === 'verified' && (
+                  <div className="ml-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </h1>
+              <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold text-white flex items-center">
+                  <FaCrown className="w-3 h-3 mr-1" />
+                  {currentPackageType} MEMBER
+                </span>
               </div>
+            </div>
+          </div>
+
+          <div className="text-right">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 mb-2">
+              <div className="text-xs text-white/80">Earnings</div>
+              <div className="text-lg font-bold text-white">Rs0</div>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+              <div className="text-xs text-white/80">Network</div>
+              <div className="text-lg font-bold text-white">{referralData.length}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Middle Section - Today Earning and Wallet Balance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Today Earning Card - Left */}
-        <div className="bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600 rounded-2xl p-6 shadow-lg border-0 animate-slide-in-left hover:shadow-xl transition-all duration-500 ease-out transform hover:-translate-y-2">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            {/* Left Side - Simple Illustration */}
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                  <FaUser className="w-8 h-8 text-white" />
-                </div>
-                <div className="flex space-x-2 justify-center">
-                  <FaCoins className="w-4 h-4 text-yellow-200" />
-                  <FaPiggyBank className="w-4 h-4 text-pink-200" />
-                  <FaDollarSign className="w-4 h-4 text-emerald-200" />
-                </div>
-              </div>
+      {/* Main Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Today's Earnings */}
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white relative overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-white/20 rounded-lg p-2">
+              <FaCalendarAlt className="w-5 h-5" />
             </div>
-            
-            {/* Right Side - Text */}
-            <div className="flex-1 text-center lg:text-right">
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Today Earning</h2>
-              <div className="text-2xl sm:text-3xl font-bold text-orange-300 mb-2">
-                ₹ {earningsData.today || 0}/-
-              </div>
-              <p className="text-purple-100 text-sm">Track your daily earnings</p>
-            </div>
+            <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Live</span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-1">Today's Earnings</h3>
+            <div className="text-2xl font-bold mb-1">Rs{earningsData.today || 0}</div>
+            <div className="text-xs text-white/80">Daily Performance</div>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+            <div className="h-full bg-white/40 w-3/4"></div>
           </div>
         </div>
 
-        {/* Wallet Balance Card - Right */}
-        <div className="bg-gradient-to-br from-rose-400 via-pink-500 to-purple-600 rounded-2xl p-6 shadow-lg border-0 animate-slide-in-right hover:shadow-xl transition-all duration-500 ease-out transform hover:-translate-y-2">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="flex-1 flex items-center justify-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <FaWallet className="w-8 h-8 text-white" />
-              </div>
+        {/* Available Balance */}
+        <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-white/20 rounded-lg p-2">
+              <FaWallet className="w-5 h-5" />
             </div>
-            <div className="flex-1 text-center lg:text-right">
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Wallet Balance</h3>
-              <div className="text-2xl sm:text-3xl font-bold text-orange-300 mb-4">
-                ₹ {earningsData.availableBalance || 0}/-
-              </div>
-              <button
-                onClick={() => setActiveTab('withdrawal-request')}
-                disabled={!earningsData.availableBalance || earningsData.availableBalance <= 0}
-                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 disabled:bg-gray-400/50 text-white font-medium py-2 px-4 rounded-xl transition-all duration-300 disabled:cursor-not-allowed shadow-sm hover:shadow-md border border-white/30"
-              >
-                Withdraw
-              </button>
+            <button
+              onClick={() => setActiveTab('withdrawal-request')}
+              className="text-xs bg-white/20 px-2 py-1 rounded-full hover:bg-white/30 transition-colors"
+            >
+              Withdraw
+            </button>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-1">Available Balance</h3>
+            <div className="text-2xl font-bold mb-1">Rs{earningsData.availableBalance || 0}</div>
+            <div className="text-xs text-white/80">Ready to Withdraw</div>
+          </div>
+          <div className="text-xs text-white/80 mt-2">+ Available Now</div>
+        </div>
+
+        {/* Total Referrals */}
+        <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-6 text-white relative overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-white/20 rounded-lg p-2">
+              <FaUsers className="w-5 h-5" />
             </div>
+            <button className="text-xs bg-white/20 px-2 py-1 rounded-full hover:bg-white/30 transition-colors">
+              View All
+            </button>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-1">Total Referrals</h3>
+            <div className="text-2xl font-bold mb-1">{referralData.length}</div>
+            <div className="text-xs text-white/80">Active Network</div>
+          </div>
+          <div className="text-xs text-white/80 mt-2">Growing</div>
+        </div>
+      </div>
+
+      {/* Earnings Overview */}
+      <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+        <div className="flex items-center mb-6">
+          <div className="bg-blue-100 rounded-lg p-2 mr-3">
+            <FaChartBar className="w-5 h-5 text-blue-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-800">Earnings Overview</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Last Week */}
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+            <div className="flex items-center justify-between mb-2">
+              <div className="bg-white/20 rounded-lg p-2">
+                <FaCalendarAlt className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-xs text-white/80 font-medium">7 Days</span>
+            </div>
+            <div className="text-sm text-white/80 mb-1">Last Week</div>
+            <div className="text-xl font-bold text-white">Rs{earningsData.lastSevenDays || 0}</div>
+            <div className="text-xs text-white/70">Weekly performance</div>
+          </div>
+
+          {/* This Month */}
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+            <div className="flex items-center justify-between mb-2">
+              <div className="bg-white/20 rounded-lg p-2">
+                <FaChartLine className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-xs text-white/80 font-medium">30 Days</span>
+            </div>
+            <div className="text-sm text-white/80 mb-1">This Month</div>
+            <div className="text-xl font-bold text-white">Rs{earningsData.thisMonth || 0}</div>
+            <div className="text-xs text-white/70">Monthly growth</div>
+          </div>
+
+          {/* All Time */}
+          <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl p-4 text-white">
+            <div className="flex items-center justify-between mb-2">
+              <div className="bg-white/20 rounded-lg p-2">
+                <FaTrophy className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-xs text-white/80 font-medium">Lifetime</span>
+            </div>
+            <div className="text-sm text-white/80 mb-1">All Time</div>
+            <div className="text-xl font-bold text-white">Rs{earningsData.lifetime || 0}</div>
+            <div className="text-xs text-white/70">Total achievement</div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Section - Other Earnings */}
-      <div className="mb-8 animate-fade-in-up">
-        <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 flex items-center">
-          <FaChartBar className="w-5 h-5 text-blue-500 mr-2" />
-          Other
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          {/* Last 7 Days Earning */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 ease-out transform hover:-translate-y-1 animate-card-1">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Last 7 Days</h4>
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full inline-block text-sm font-semibold shadow-sm">
-                  ₹ {earningsData.lastSevenDays || 0}/-
-                </div>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center shadow-md">
-                <FaDollarSign className="w-5 h-5 text-white" />
-              </div>
+      {/* Free Trip Target & Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Free Trip Target */}
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
+          <div className="flex items-center mb-4">
+            <FaPlane className="w-5 h-5 mr-2" />
+            <h3 className="text-lg font-semibold">Free Trip Target</h3>
+            <span className="ml-auto text-sm bg-white/20 px-2 py-1 rounded-full">
+              {Math.round((referralData.length / 25) * 100)}%
+            </span>
+          </div>
+
+          <div className="mb-4">
+            <div className="flex justify-between text-sm mb-2">
+              <span>Progress</span>
+              <span>{referralData.length}/25</span>
+            </div>
+            <div className="w-full bg-white/20 h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-white h-2 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${Math.min((referralData.length / 25) * 100, 100)}%` }}
+              ></div>
             </div>
           </div>
 
-          {/* Last 30 Days Earning */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 ease-out transform hover:-translate-y-1 animate-card-2">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Last 30 Days</h4>
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full inline-block text-sm font-semibold shadow-sm">
-                  ₹ {earningsData.thisMonth || 0}/-
-                </div>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center shadow-md">
-                <FaDollarSign className="w-5 h-5 text-white" />
-              </div>
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="text-lg font-bold text-white">{referralData.length}</div>
+              <div className="text-xs text-white/80">Achieved</div>
             </div>
-          </div>
-
-          {/* All Time Earning */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 ease-out transform hover:-translate-y-1 animate-card-3">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">All Time</h4>
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full inline-block text-sm font-semibold shadow-sm">
-                  ₹ {earningsData.lifetime || 0}/-
-                </div>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center shadow-md">
-                <FaDollarSign className="w-5 h-5 text-white" />
-              </div>
+            <div>
+              <div className="text-lg font-bold text-white">25</div>
+              <div className="text-xs text-white/80">Target</div>
             </div>
-          </div>
-
-          {/* Wallet Balance */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 ease-out transform hover:-translate-y-1 animate-card-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Wallet</h4>
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full inline-block text-sm font-semibold shadow-sm">
-                  ₹ {earningsData.availableBalance || 0}/-
-                </div>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center shadow-md">
-                <FaDollarSign className="w-5 h-5 text-white" />
-              </div>
+            <div>
+              <div className="text-lg font-bold text-white">{25 - referralData.length}</div>
+              <div className="text-xs text-white/80">Remaining</div>
             </div>
           </div>
         </div>
 
-        {/* Free Trip Target Card - Below the 2x2 Grid */}
-        <div className="bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 rounded-2xl p-5 shadow-lg border-0 hover:shadow-xl transition-all duration-300 ease-out transform hover:-translate-y-1 animate-fade-in-up-delay">
-          <h3 className="text-base font-semibold text-white mb-4 flex items-center">
-            <FaPlane className="w-4 h-4 text-cyan-200 mr-2" />
-            Free Trip Target
-          </h3>
-          <div className="w-full bg-white/20 h-2 rounded-full mb-3 overflow-hidden">
-            <div 
-              className="bg-gradient-to-r from-cyan-200 to-blue-300 h-2 rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${Math.min((referralData.length / 25) * 100, 100)}%` }}
-            ></div>
+        {/* Quick Actions */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center mb-4">
+            <FaBolt className="w-5 h-5 text-purple-600 mr-2" />
+            <h3 className="text-lg font-semibold text-gray-800">Quick Actions</h3>
           </div>
-          <div className="flex justify-between text-sm text-white">
-            <span>Achieved: {referralData.length}</span>
-            <span>Target: 25</span>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setActiveTab('earnings')}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
+            >
+              <FaChartLine className="w-5 h-5 mb-1" />
+              <span className="text-sm font-medium">Earnings</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('withdrawal-request')}
+              className="bg-gradient-to-r from-rose-500 to-pink-500 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
+            >
+              <FaWallet className="w-5 h-5 mb-1" />
+              <span className="text-sm font-medium">Withdraw</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('teams')}
+              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
+            >
+              <FaUsers className="w-5 h-5 mb-1" />
+              <span className="text-sm font-medium">My Team</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('affiliated-link')}
+              className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
+            >
+              <FaShareAlt className="w-5 h-5 mb-1" />
+              <span className="text-sm font-medium">Share Link</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Custom CSS for animations */}
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        @keyframes fade-in-up {
-          from { 
-            opacity: 0; 
-            transform: translateY(20px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-        
-        @keyframes slide-in-left {
-          from { 
-            opacity: 0; 
-            transform: translateX(-30px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateX(0); 
-          }
-        }
-        
-        @keyframes slide-in-right {
-          from { 
-            opacity: 0; 
-            transform: translateX(30px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateX(0); 
-          }
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.8s ease-out;
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out;
-        }
-        
-        .animate-slide-in-left {
-          animation: slide-in-left 0.8s ease-out;
-        }
-        
-        .animate-slide-in-right {
-          animation: slide-in-right 0.8s ease-out;
-        }
-        
-        .animate-card-1 {
-          animation: fade-in-up 0.8s ease-out 0.1s both;
-        }
-        
-        .animate-card-2 {
-          animation: fade-in-up 0.8s ease-out 0.2s both;
-        }
-        
-        .animate-card-3 {
-          animation: fade-in-up 0.8s ease-out 0.3s both;
-        }
-        
-        .animate-card-4 {
-          animation: fade-in-up 0.8s ease-out 0.4s both;
-        }
-        
-        .animate-fade-in-up-delay {
-          animation: fade-in-up 0.8s ease-out 0.5s both;
-        }
-      `}</style>
+      {/* Recent Activity */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm">
+        <div className="flex items-center mb-6">
+          <FaFire className="w-5 h-5 text-orange-500 mr-2" />
+          <h2 className="text-xl font-bold text-gray-800">Recent Activity</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* My Packages */}
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer text-white" onClick={() => setActiveTab('my-packages')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="bg-white/20 rounded-lg p-2">
+                <FaBook className="w-5 h-5 text-white" />
+              </div>
+              <FaArrowRight className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="font-semibold text-white mb-1">My Packages</h3>
+            <p className="text-sm text-white/80 mb-2">{purchasedCourses.length} enrolled</p>
+            <p className="text-xs text-white/70">Latest: {purchasedCourses.length > 0 ? 'No courses enrolled' : latestCourseName}</p>
+          </div>
+
+          {/* Leaderboard */}
+          <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer text-white" onClick={() => setActiveTab('leaderboard')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="bg-white/20 rounded-lg p-2">
+                <FaTrophy className="w-5 h-5 text-white" />
+              </div>
+              <FaArrowRight className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="font-semibold text-white mb-1">Leaderboard</h3>
+            <p className="text-sm text-white/80 mb-2">Your ranking</p>
+            <p className="text-xs text-white/70">Check your position</p>
+          </div>
+
+          {/* Edit Profile */}
+          <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer text-white" onClick={() => navigate('/profile')}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="bg-white/20 rounded-lg p-2">
+                <FaUser className="w-5 h-5 text-white" />
+              </div>
+              <FaArrowRight className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="font-semibold text-white mb-1">Edit Profile</h3>
+            <p className="text-sm text-white/80 mb-2">Update your info</p>
+            <p className="text-xs text-white/70">Keep profile updated</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

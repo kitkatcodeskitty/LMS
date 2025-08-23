@@ -78,7 +78,7 @@ const PerformanceMonitor = ({ enabled = false }) => {
       <div className="mb-2 font-bold">Performance Monitor</div>
       <div>API Calls: {metrics.apiCalls}</div>
       <div>Avg Time: {Math.round(metrics.avgResponseTime)}ms</div>
-      <div>Slow (>2s): {metrics.slowRequests}</div>
+      <div>Slow (2s): {metrics.slowRequests}</div>
       <div>Cache Hits: {metrics.cacheHits}</div>
     </div>
   );
