@@ -37,7 +37,7 @@ userRouter.get('/referrals', verify, getUserReferrals);
 userRouter.get('/leaderboard', verify, getLeaderboard);
 userRouter.get('/payment-statements', verify, getPaymentStatements);
 userRouter.get('/purchase-history', verify, getPurchaseHistory);
-userRouter.put('/update-profile', verify, updateProfile);
+userRouter.put('/update-profile', verify, upload.single('image'), updateProfile);
 
 userRouter.get('/:userId', verify, verifyAdmin, getUserById);
 userRouter.patch('/makeUserAdmin', verify, verifyAdmin, makeUserAdmin);

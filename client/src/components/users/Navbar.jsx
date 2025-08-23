@@ -93,19 +93,42 @@ const LatestPackageDisplay = ({ userData }) => {
 };
 
 const Navbar = () => {
-  const { navigate, userData, clearAuthData } = useContext(AppContext);
+  const { navigate, userData, clearAuthData, backendUrl, getToken } = useContext(AppContext);
 
   const location = useLocation();
 
   const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [latestCourse, setLatestCourse] = useState(null);
 
   const desktopDropdownRef = useRef(null);
   const mobileDropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
   const isPackageListPage = location.pathname.includes('/packages-list');
+
+  // Fetch latest course for regular users
+  useEffect(() => {
+    if (userData && !userData.isAdmin && !userData.isSubAdmin) {
+      fetchLatestCourse();
+    }
+  }, [userData]);
+
+  const fetchLatestCourse = async () => {
+    try {
+      const token = getToken();
+      const { data } = await axios.get(`${backendUrl}/api/user/user-purchase`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success && data.purchasedCourses && data.purchasedCourses.length > 0) {
+        setLatestCourse(data.purchasedCourses[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching latest course:', error);
+    }
+  };
 
   const handleLogout = () => {
     // Clear all authentication data using centralized function
@@ -264,9 +287,13 @@ const Navbar = () => {
                                 </svg>
                               )}
                             </div>
-                            <p className="text-xs text-gray-500">
-                              {userData.isAdmin ? 'Administrator' : userData.isSubAdmin ? 'Sub-Administrator' : 'Student'}
-                            </p>
+                            <div className="text-xs text-gray-500">
+                              {userData.isAdmin ? 'Administrator' : userData.isSubAdmin ? 'Sub-Administrator' : (
+                                latestCourse
+                                  ? `${latestCourse.courseTitle?.substring(0, 25)}${latestCourse.courseTitle?.length > 25 ? '...' : ''}`
+                                  : 'No packages yet'
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

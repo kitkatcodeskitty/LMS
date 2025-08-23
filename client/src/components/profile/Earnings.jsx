@@ -1,17 +1,11 @@
 import React from 'react';
 import AnimatedNumber from '../common/AnimatedNumber';
 import {
-  FaDollarSign,
   FaChartLine,
   FaWallet,
   FaPiggyBank,
   FaCalendarAlt,
-  FaClock,
-  FaCheckCircle,
-  FaArrowUp,
-  FaCoins,
-  FaGift,
-  FaStar
+  FaCheckCircle
 } from 'react-icons/fa';
 
 const Earnings = ({ earningsData, currency, referralData }) => {
@@ -101,9 +95,9 @@ const Earnings = ({ earningsData, currency, referralData }) => {
       </div>
 
       {/* Main Earnings Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 mb-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 mb-8">
         {/* Left Column - Detailed Earnings */}
-        <div className="xl:col-span-2 space-y-6 lg:space-y-8">
+        <div className="space-y-6 lg:space-y-8">
           {/* Today's Performance */}
           <div className="bg-white rounded-3xl p-6 lg:p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-500">
             <div className="flex items-center justify-between mb-6">
@@ -216,104 +210,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
           </div>
         </div>
 
-        {/* Right Column - Quick Stats & Actions */}
-        <div className="space-y-6 lg:space-y-8">
-          {/* Quick Stats */}
-          <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Stats</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-2xl border border-green-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
-                    <FaCheckCircle className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-green-700">Total Withdrawn</div>
-                    <div className="text-sm text-green-600">Successfully processed</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-green-600">
-                    <AnimatedNumber 
-                      value={safeEarningsData.totalWithdrawn || 0} 
-                      currency={safeCurrency}
-                      duration={1500}
-                      delay={700}
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between p-4 bg-orange-50 rounded-2xl border border-orange-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center">
-                    <FaClock className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-orange-700">Pending Withdrawals</div>
-                    <div className="text-sm text-orange-600">Awaiting processing</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-orange-600">
-                    <AnimatedNumber 
-                      value={safeEarningsData.pendingWithdrawals || 0} 
-                      currency={safeCurrency}
-                      duration={1800}
-                      delay={800}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border border-blue-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
-                    <FaGift className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-blue-700">Referral Bonus</div>
-                    <div className="text-sm text-blue-600">From referrals</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-blue-600">
-                    <AnimatedNumber 
-                      value={(safeReferralData.length || 0) * 1000} 
-                      currency={safeCurrency}
-                      duration={2000}
-                      delay={900}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Achievement Badge */}
-          <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-3xl p-6 border border-yellow-200 shadow-xl">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
-                <FaStar className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Earnings Achievement</h3>
-              <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                {(safeEarningsData.lifetime || 0) > 100000 ? 
-                  "Congratulations! You've reached the Gold tier!" :
-                  (safeEarningsData.lifetime || 0) > 50000 ?
-                  "Great progress! You're on your way to Gold tier!" :
-                  "Keep going! Every referral brings you closer to your goals!"
-                }
-              </p>
-              <div className="bg-white/50 rounded-2xl p-3">
-                <div className="text-2xl font-bold text-amber-600">
-                  {(safeEarningsData.lifetime || 0) > 100000 ? '🥇 Gold' : 
-                   (safeEarningsData.lifetime || 0) > 50000 ? '🥈 Silver' : '🥉 Bronze'}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Withdrawal Balance Breakdown */}

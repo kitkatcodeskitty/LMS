@@ -80,8 +80,8 @@ const Profile = () => {
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
-    bio: ''
+    profileImageFile: null,
+    passwordData: null
   });
 
   useEffect(() => {
@@ -90,8 +90,8 @@ const Profile = () => {
         firstName: userData.firstName || '',
         lastName: userData.lastName || '',
         email: userData.email || '',
-        phone: userData.phone || '',
-        bio: userData.bio || ''
+        profileImageFile: null,
+        passwordData: null
       });
       fetchProfileData();
     }
@@ -171,19 +171,47 @@ const Profile = () => {
     e.preventDefault();
     try {
       const token = await getToken();
+      
+      // Create FormData to handle both text fields and file upload
+      const formData = new FormData();
+      formData.append('firstName', editForm.firstName);
+      formData.append('lastName', editForm.lastName);
+      formData.append('email', editForm.email);
+      
+      // Add profile image if selected
+      if (editForm.profileImageFile) {
+        formData.append('image', editForm.profileImageFile);
+      }
+
+      // Add password data if provided
+      if (editForm.passwordData) {
+        formData.append('currentPassword', editForm.passwordData.currentPassword);
+        formData.append('newPassword', editForm.passwordData.newPassword);
+      }
+
       const response = await axios.put(
         `${backendUrl}/api/user/update-profile`,
-        editForm,
-        { headers: { Authorization: `Bearer ${token}` } }
+        formData,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          } 
+        }
       );
 
       if (response.data.success) {
         toast.success('Profile updated successfully!');
         // Refresh user data
         window.location.reload();
+      } else {
+        toast.error(response.data.message || 'Profile update failed');
       }
     } catch (error) {
-      toast.error('Failed to update profile');
+      console.error('Profile update error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     }
   };
 

@@ -65,11 +65,27 @@ const Dashboard = ({
             {/* Profile Image with KYC Blue Tick */}
             <div className="relative">
               <div className="w-20 h-20 sm:w-24 sm:h-24">
-                <img
-                  src={userData.imageUrl || '/default-avatar.png'}
-                  alt="Profile"
-                  className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
-                />
+                {userData.imageUrl ? (
+                  <img
+                    src={userData.imageUrl}
+                    alt="Profile"
+                    className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                
+                {/* Fallback Profile Icon */}
+                <div 
+                  className={`w-full h-full rounded-full bg-white/20 backdrop-blur-sm border-4 border-white shadow-md flex items-center justify-center ${
+                    userData.imageUrl ? 'hidden' : 'flex'
+                  }`}
+                >
+                  <FaUser className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                </div>
+                
                 {userData.kycStatus === 'verified' && (
                   <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-bounce">
                     <FaCheckCircle className="w-3 h-3 text-white" />

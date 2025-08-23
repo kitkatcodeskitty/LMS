@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import User from "../models/User.js";
 
-import cloudinary from "cloudinary"; 
+import { v2 as cloudinary } from "cloudinary"; 
 import Cart from '../models/Cart.js';  
 import { Purchase } from "../models/Purchase.js";
 import { verify, verifyAdmin, createAccessToken, errorHandler } from "../auth.js";
@@ -457,22 +457,61 @@ export const getPaymentStatements = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { firstName, lastName, email, phone, bio } = req.body;
-
-    // Check if email is already used by another user
-    if (email) {
-      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+    
+    // Debug logging
+    console.log('Update Profile Request:', {
+      body: req.body,
+      file: req.file,
+      userId: userId
+    });
+    
+    // Handle both text fields and file uploads
+    const updateData = {};
+    
+    // Handle text fields if they exist and are not empty
+    if (req.body.firstName && req.body.firstName.trim() !== '') updateData.firstName = req.body.firstName.trim();
+    if (req.body.lastName && req.body.lastName.trim() !== '') updateData.lastName = req.body.lastName.trim();
+    if (req.body.email && req.body.email.trim() !== '') {
+      // Check if email is already used by another user
+      const existingUser = await User.findOne({ email: req.body.email.trim(), _id: { $ne: userId } });
       if (existingUser) {
         return res.status(400).json({ success: false, message: "Email already in use by another user" });
       }
+      updateData.email = req.body.email.trim();
     }
-
-    const updateData = {};
-    if (firstName) updateData.firstName = firstName;
-    if (lastName) updateData.lastName = lastName;
-    if (email) updateData.email = email;
-    if (phone) updateData.phone = phone;
-    if (bio) updateData.bio = bio;
+    
+    // Handle password update if provided
+    if (req.body.currentPassword && req.body.newPassword) {
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      
+      // Verify current password
+      const isPasswordValid = bcrypt.compareSync(req.body.currentPassword, user.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({ success: false, message: "Current password is incorrect" });
+      }
+      
+      // Hash new password
+      updateData.password = bcrypt.hashSync(req.body.newPassword, 10);
+    }
+    
+    // Handle profile image upload if provided
+    if (req.file) {
+      try {
+        const uploadedImage = await cloudinary.uploader.upload(req.file.path);
+        updateData.imageUrl = uploadedImage.secure_url;
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError);
+        return res.status(500).json({ success: false, message: "Failed to upload image" });
+      }
+    }
+    
+    // Only update if there are fields to update
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, message: "No fields to update" });
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -484,8 +523,9 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    res.json({ success: true, data: updatedUser });
+    res.json({ success: true, data: updatedUser, message: "Profile updated successfully" });
   } catch (error) {
+    console.error('Profile update error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
