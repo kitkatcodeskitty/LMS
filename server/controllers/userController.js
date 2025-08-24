@@ -5,6 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 import Cart from '../models/Cart.js';  
 import { Purchase } from "../models/Purchase.js";
 import { verify, verifyAdmin, createAccessToken, errorHandler } from "../auth.js";
+import { safeNumber, safeRound, formatBalanceFields, validateBalanceUpdate } from "../utils/numberUtils.js";
 
 
 // registration
@@ -79,11 +80,25 @@ export const login = async (req, res) => {
 export const getUserData = async (req, res) => {
   try {
     const userId = req.user.id;
-    const user = await User.findById(userId).populate("enrolledCourses");
+    const user = await User.findById(userId).populate("enrolledCourses").select('-password');
 
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) return res.status(404).json({ success: false, error: "User not found" });
 
-    res.json(user);
+    // Ensure all balance fields are numbers
+    const userData = {
+      ...user.toObject(),
+      withdrawableBalance: Number(user.withdrawableBalance) || 0,
+      totalWithdrawn: Number(user.totalWithdrawn) || 0,
+      pendingWithdrawals: Number(user.pendingWithdrawals) || 0,
+      affiliateEarnings: Number(user.affiliateEarnings) || 0,
+      lifetimeEarnings: Number(user.lifetimeEarnings) || 0,
+      dailyEarnings: Number(user.dailyEarnings) || 0,
+      weeklyEarnings: Number(user.weeklyEarnings) || 0,
+      monthlyEarnings: Number(user.monthlyEarnings) || 0,
+      currentBalance: Number(user.currentBalance) || 0
+    };
+
+    res.json({ success: true, user: userData });
   } catch (error) {
     errorHandler(error, req, res, null);
   }
@@ -98,11 +113,17 @@ export const updateUser = async (req, res) => {
       lastName, 
       email, 
       password,
+      imageUrl,
       affiliateEarnings, 
       affiliateCode,
       isAdmin,
       isSubAdmin,
       referredBy,
+      kycStatus,
+      phone,
+      bio,
+      hasEditedProfile,
+      profileEditDate,
       // New earnings and balance fields
       withdrawableBalance,
       totalWithdrawn,
@@ -132,27 +153,80 @@ export const updateUser = async (req, res) => {
       }
     }
 
+    // Validate bio length
+    if (bio && bio.length > 500) {
+      return res.status(400).json({ success: false, message: "Bio cannot exceed 500 characters" });
+    }
+
+    // Validate phone number format (basic validation)
+    if (phone && phone.length > 0 && !/^[\d\s\-\+\(\)]+$/.test(phone)) {
+      return res.status(400).json({ success: false, message: "Invalid phone number format" });
+    }
+
+    // Prepare balance data for validation and formatting
+    const balanceData = {
+      affiliateEarnings: safeNumber(affiliateEarnings),
+      withdrawableBalance: safeNumber(withdrawableBalance),
+      totalWithdrawn: safeNumber(totalWithdrawn),
+      pendingWithdrawals: safeNumber(pendingWithdrawals),
+      lifetimeEarnings: safeNumber(lifetimeEarnings),
+      dailyEarnings: safeNumber(dailyEarnings),
+      weeklyEarnings: safeNumber(weeklyEarnings),
+      monthlyEarnings: safeNumber(monthlyEarnings),
+      currentBalance: safeNumber(currentBalance)
+    };
+
+    // Validate balance data
+    const validation = validateBalanceUpdate(balanceData);
+    if (!validation.isValid) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid balance data", 
+        errors: validation.errors 
+      });
+    }
+
+    // Format balance fields to ensure proper number handling
+    const formattedBalanceData = formatBalanceFields(balanceData);
+
     // Prepare update data
     const updateData = {
       firstName,
       lastName,
       email,
-      affiliateEarnings: affiliateEarnings || 0,
       affiliateCode: affiliateCode || null,
       isAdmin: Boolean(isAdmin),
       referredBy: referredBy || null,
-      // Add new earnings and balance fields
-      withdrawableBalance: withdrawableBalance || 0,
-      totalWithdrawn: totalWithdrawn || 0,
-      pendingWithdrawals: pendingWithdrawals || 0,
-      lifetimeEarnings: lifetimeEarnings || 0,
-      dailyEarnings: dailyEarnings || 0,
-      weeklyEarnings: weeklyEarnings || 0,
-      monthlyEarnings: monthlyEarnings || 0,
-      currentBalance: currentBalance || 0,
+      // Add formatted balance fields
+      ...formattedBalanceData,
       // Set admin update timestamp
       lastAdminUpdate: new Date()
     };
+
+    // Add optional fields only if they are provided
+    if (imageUrl !== undefined) {
+      updateData.imageUrl = imageUrl;
+    }
+    
+    if (kycStatus !== undefined && ['unsubmitted', 'pending', 'verified', 'rejected'].includes(kycStatus)) {
+      updateData.kycStatus = kycStatus;
+    }
+    
+    if (phone !== undefined) {
+      updateData.phone = phone || '';
+    }
+    
+    if (bio !== undefined) {
+      updateData.bio = bio || '';
+    }
+    
+    if (hasEditedProfile !== undefined) {
+      updateData.hasEditedProfile = Boolean(hasEditedProfile);
+    }
+    
+    if (profileEditDate !== undefined) {
+      updateData.profileEditDate = profileEditDate ? new Date(profileEditDate) : null;
+    }
 
     // Set role based on admin status
     if (Boolean(isAdmin)) {
@@ -185,7 +259,169 @@ export const updateUser = async (req, res) => {
 
     res.json({ success: true, data: updatedUser });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error('Error updating user:', error);
+    res.status(500).json({ success: false, message: "Server error", details: error.message });
+  }
+};
+
+// Update user profile (for users updating their own profile)
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // From auth middleware
+    const imageFile = req.file;
+    const { 
+      firstName, 
+      lastName, 
+      phone,
+      bio
+    } = req.body;
+
+    if (!firstName || !lastName) {
+      return res.status(400).json({ success: false, message: "First name and last name are required" });
+    }
+
+    // Validate bio length
+    if (bio && bio.length > 500) {
+      return res.status(400).json({ success: false, message: "Bio cannot exceed 500 characters" });
+    }
+
+    // Validate phone number format (basic validation)
+    if (phone && phone.length > 0 && !/^[\d\s\-\+\(\)]+$/.test(phone)) {
+      return res.status(400).json({ success: false, message: "Invalid phone number format" });
+    }
+
+    const updateData = {
+      firstName,
+      lastName,
+      phone: phone || '',
+      bio: bio || '',
+      hasEditedProfile: true,
+      profileEditDate: new Date()
+    };
+
+    // Handle image upload if provided
+    if (imageFile) {
+      try {
+        const uploadedImage = await cloudinary.uploader.upload(imageFile.path, {
+          folder: "user_profiles",
+          quality: "auto",
+          fetch_format: "auto"
+        });
+        updateData.imageUrl = uploadedImage.secure_url;
+      } catch (uploadError) {
+        return res.status(400).json({ success: false, message: "Failed to upload image" });
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, data: updatedUser, message: "Profile updated successfully" });
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    res.status(500).json({ success: false, message: "Server error", details: error.message });
+  }
+};
+
+// Update user password
+export const updateUserPassword = async (req, res) => {
+  try {
+    const userId = req.user.id; // From auth middleware
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Current password and new password are required" });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: "New password must be at least 8 characters long" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ success: false, message: "Current password is incorrect" });
+    }
+
+    // Update password (will be hashed by pre-save middleware)
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ success: false, message: "Server error", details: error.message });
+  }
+};
+
+// Get all users (admin only)
+export const getAllUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const search = req.query.search || '';
+    const role = req.query.role || '';
+    const kycStatus = req.query.kycStatus || '';
+
+    const skip = (page - 1) * limit;
+
+    // Build query
+    const query = {};
+    
+    if (search) {
+      query.$or = [
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { affiliateCode: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (role && ['user', 'subadmin', 'admin'].includes(role)) {
+      query.role = role;
+    }
+    
+    if (kycStatus && ['unsubmitted', 'pending', 'verified', 'rejected'].includes(kycStatus)) {
+      query.kycStatus = kycStatus;
+    }
+
+    const users = await User.find(query)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalUsers = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    res.json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalUsers,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ success: false, message: "Server error", details: error.message });
   }
 };
 
@@ -201,8 +437,23 @@ export const getUserById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    res.json({ success: true, data: user });
+    // Ensure all balance fields are properly formatted numbers
+    const userData = {
+      ...user.toObject(),
+      withdrawableBalance: safeNumber(user.withdrawableBalance),
+      totalWithdrawn: safeNumber(user.totalWithdrawn),
+      pendingWithdrawals: safeNumber(user.pendingWithdrawals),
+      affiliateEarnings: safeNumber(user.affiliateEarnings),
+      lifetimeEarnings: safeNumber(user.lifetimeEarnings),
+      dailyEarnings: safeNumber(user.dailyEarnings),
+      weeklyEarnings: safeNumber(user.weeklyEarnings),
+      monthlyEarnings: safeNumber(user.monthlyEarnings),
+      currentBalance: safeNumber(user.currentBalance)
+    };
+
+    res.json({ success: true, data: userData });
   } catch (error) {
+    console.error('Error fetching user by ID:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

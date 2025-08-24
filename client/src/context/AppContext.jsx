@@ -210,14 +210,42 @@ export const AppContextProvider = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (data.success) {
-        setUserData(data.user);
-        setIsEducator(data.user.isAdmin || false);
-        setIsSubAdmin(data.user.isSubAdmin || data.user.role === 'subadmin' || false);
+      if (data.success && data.user) {
+        // Ensure all balance fields are properly formatted numbers
+        const userData = {
+          ...data.user,
+          withdrawableBalance: Number(data.user.withdrawableBalance) || 0,
+          totalWithdrawn: Number(data.user.totalWithdrawn) || 0,
+          pendingWithdrawals: Number(data.user.pendingWithdrawals) || 0,
+          affiliateEarnings: Number(data.user.affiliateEarnings) || 0,
+          lifetimeEarnings: Number(data.user.lifetimeEarnings) || 0,
+          dailyEarnings: Number(data.user.dailyEarnings) || 0,
+          weeklyEarnings: Number(data.user.weeklyEarnings) || 0,
+          monthlyEarnings: Number(data.user.monthlyEarnings) || 0,
+          currentBalance: Number(data.user.currentBalance) || 0
+        };
+        
+        setUserData(userData);
+        setIsEducator(userData.isAdmin || false);
+        setIsSubAdmin(userData.isSubAdmin || userData.role === 'subadmin' || false);
       } else {
-        setUserData(data);
-        setIsEducator(data.isAdmin || false);
-        setIsSubAdmin(data.isSubAdmin || data.role === 'subadmin' || false);
+        // Fallback for old response format (backward compatibility)
+        const userData = {
+          ...data,
+          withdrawableBalance: Number(data.withdrawableBalance) || 0,
+          totalWithdrawn: Number(data.totalWithdrawn) || 0,
+          pendingWithdrawals: Number(data.pendingWithdrawals) || 0,
+          affiliateEarnings: Number(data.affiliateEarnings) || 0,
+          lifetimeEarnings: Number(data.lifetimeEarnings) || 0,
+          dailyEarnings: Number(data.dailyEarnings) || 0,
+          weeklyEarnings: Number(data.weeklyEarnings) || 0,
+          monthlyEarnings: Number(data.monthlyEarnings) || 0,
+          currentBalance: Number(data.currentBalance) || 0
+        };
+        
+        setUserData(userData);
+        setIsEducator(userData.isAdmin || false);
+        setIsSubAdmin(userData.isSubAdmin || userData.role === 'subadmin' || false);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);

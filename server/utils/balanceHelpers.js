@@ -1,6 +1,7 @@
 import { Purchase } from '../models/Purchase.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
+import { safeNumber, safeRound, ensurePositive } from './numberUtils.js';
 
 /**
  * Calculate total withdrawable balance for a user based on their purchases
@@ -33,12 +34,17 @@ export const syncUserWithdrawableBalance = async (userId) => {
 
         const calculatedBalance = await calculateUserWithdrawableBalance(userId);
 
-        // Update user's balance if it's out of sync
-        if (user.withdrawableBalance !== calculatedBalance.totalWithdrawable ||
-            user.affiliateEarnings !== calculatedBalance.totalAffiliate) {
+        // Update user's balance if it's out of sync (with proper number handling)
+        const currentWithdrawable = safeNumber(user.withdrawableBalance);
+        const currentAffiliate = safeNumber(user.affiliateEarnings);
+        const calculatedWithdrawable = safeNumber(calculatedBalance.totalWithdrawable);
+        const calculatedAffiliate = safeNumber(calculatedBalance.totalAffiliate);
 
-            user.withdrawableBalance = calculatedBalance.totalWithdrawable;
-            user.affiliateEarnings = calculatedBalance.totalAffiliate;
+        if (Math.abs(currentWithdrawable - calculatedWithdrawable) > 0.01 ||
+            Math.abs(currentAffiliate - calculatedAffiliate) > 0.01) {
+
+            user.withdrawableBalance = safeRound(calculatedWithdrawable);
+            user.affiliateEarnings = safeRound(calculatedAffiliate);
             await user.save();
         }
 
@@ -157,7 +163,14 @@ export const updateUserEarningsFields = async (userId, affiliateAmount) => {
         user.weeklyEarnings = weeklyEarnings;
         user.monthlyEarnings = monthlyEarnings;
         user.lifetimeEarnings = user.affiliateEarnings || 0;
-        user.currentBalance = user.withdrawableBalance || 0;
+        
+        // Only update currentBalance if it wasn't recently set by an admin
+        // Check if lastAdminUpdate exists and is recent (within last 10 minutes)
+        const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+        if (!user.lastAdminUpdate || user.lastAdminUpdate < tenMinutesAgo) {
+            user.currentBalance = user.withdrawableBalance || 0;
+        }
+        // If lastAdminUpdate is recent, preserve the admin-set currentBalance value
 
         await user.save();
     } catch (error) {

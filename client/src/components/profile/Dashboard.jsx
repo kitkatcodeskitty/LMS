@@ -62,13 +62,13 @@ const Dashboard = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Profile Header Card */}
-      <div className="bg-gradient-to-r from-rose-500 to-pink-500 rounded-2xl p-6 mb-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-16 h-16">
+      <div className="bg-gradient-to-r from-rose-500 to-pink-500 rounded-2xl p-4 sm:p-6 shadow-lg">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="relative flex-shrink-0">
+              <div className="w-14 h-14 sm:w-16 sm:h-16">
                 {userData.imageUrl ? (
                   <img
                     src={userData.imageUrl}
@@ -85,13 +85,13 @@ const Dashboard = ({
                   className={`w-full h-full rounded-full bg-white/20 backdrop-blur-sm border-3 border-white shadow-md flex items-center justify-center ${userData.imageUrl ? 'hidden' : 'flex'
                     }`}
                 >
-                  <FaUser className="w-8 h-8 text-white" />
+                  <FaUser className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
 
                 {/* Blue verification tick */}
                 {userData.kycStatus === 'verified' && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                    <svg className="w-2 h-2 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -99,19 +99,19 @@ const Dashboard = ({
               </div>
             </div>
 
-            <div>
-              <div className="text-sm text-white/80 mb-1">Welcome Back!</div>
-              <h1 className="text-2xl font-bold text-white mb-2 flex items-center">
-                {fullName || 'Amy Amy'}
+            <div className="min-w-0 flex-1">
+              <div className="text-xs sm:text-sm text-white/80 mb-1">Welcome Back!</div>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2 flex items-center">
+                <span className="truncate">{fullName || 'Amy Amy'}</span>
                 {userData.kycStatus === 'verified' && (
-                  <div className="ml-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg flex-shrink-0">
+                    <svg className="w-2 h-2 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
                 )}
               </h1>
-              <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+              <div className="bg-white/20 backdrop-blur-sm px-2 sm:px-3 py-1 rounded-full inline-block">
                 <span className="text-xs font-semibold text-white flex items-center">
                   <FaCrown className="w-3 h-3 mr-1" />
                   {currentPackageType} MEMBER
@@ -120,31 +120,35 @@ const Dashboard = ({
             </div>
           </div>
 
-          <div className="text-right">
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 mb-2">
-              <div className="text-xs text-white/80">Earnings</div>
-              <div className="text-lg font-bold text-white">
-                <AnimatedNumber 
-                  value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))} 
-                  currency="Rs" 
-                  duration={2000} 
-                  delay={100} 
-                />
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-2 sm:gap-3">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 sm:p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/80">Earnings</span>
+                <span className="text-base sm:text-lg font-bold text-white">
+                  <AnimatedNumber 
+                    value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))} 
+                    currency="Rs" 
+                    duration={2000} 
+                    delay={100} 
+                  />
+                </span>
               </div>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-              <div className="text-xs text-white/80">Network</div>
-              <div className="text-lg font-bold text-white">
-                <AnimatedNumber 
-                  value={referralData.length} 
-                  duration={1800} 
-                  delay={200} 
-                />
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 sm:p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/80">Network</span>
+                <span className="text-base sm:text-lg font-bold text-white">
+                  <AnimatedNumber 
+                    value={referralData.length} 
+                    duration={1800} 
+                    delay={200} 
+                  />
+                </span>
               </div>
             </div>
             <button
               onClick={() => window.location.reload()}
-              className="mt-2 w-full bg-white/20 backdrop-blur-sm rounded-xl p-2 text-white hover:bg-white/30 transition-colors text-xs"
+              className="mt-1 sm:mt-2 w-full bg-white/20 backdrop-blur-sm rounded-xl p-2 text-white hover:bg-white/30 transition-colors text-xs"
               title="Refresh data after admin updates"
             >
               🔄 Refresh
@@ -154,18 +158,18 @@ const Dashboard = ({
       </div>
 
       {/* Main Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Today's Earnings */}
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white relative overflow-hidden">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 sm:p-6 text-white relative overflow-hidden">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <div className="bg-white/20 rounded-lg p-2">
-              <FaCalendarAlt className="w-5 h-5" />
+              <FaCalendarAlt className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Live</span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-1">Today's Earnings</h3>
-            <div className="text-2xl font-bold mb-1">
+            <h3 className="text-sm sm:text-lg font-semibold mb-1">Today's Earnings</h3>
+            <div className="text-xl sm:text-2xl font-bold mb-1">
               <AnimatedNumber 
                 value={getEarningsValue('today', getEarningsValue('dailyEarnings', 0))} 
                 currency="Rs" 
@@ -181,10 +185,10 @@ const Dashboard = ({
         </div>
 
         {/* Available Balance */}
-        <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl p-4 sm:p-6 text-white relative overflow-hidden">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <div className="bg-white/20 rounded-lg p-2">
-              <FaWallet className="w-5 h-5" />
+              <FaWallet className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <button
               onClick={() => setActiveTab('withdrawal')}
@@ -194,8 +198,8 @@ const Dashboard = ({
             </button>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-1">Available Balance</h3>
-            <div className="text-2xl font-bold mb-1">
+            <h3 className="text-sm sm:text-lg font-semibold mb-1">Available Balance</h3>
+            <div className="text-xl sm:text-2xl font-bold mb-1">
               <AnimatedNumber 
                 value={getEarningsValue('availableBalance', getEarningsValue('withdrawableBalance', 0))} 
                 currency="Rs" 
@@ -209,18 +213,18 @@ const Dashboard = ({
         </div>
 
         {/* Total Referrals */}
-        <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-6 text-white relative overflow-hidden">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 sm:p-6 text-white relative overflow-hidden sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <div className="bg-white/20 rounded-lg p-2">
-              <FaUsers className="w-5 h-5" />
+              <FaUsers className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <button className="text-xs bg-white/20 px-2 py-1 rounded-full hover:bg-white/30 transition-colors">
               View All
             </button>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-1">Total Referrals</h3>
-            <div className="text-2xl font-bold mb-1">
+            <h3 className="text-sm sm:text-lg font-semibold mb-1">Total Referrals</h3>
+            <div className="text-xl sm:text-2xl font-bold mb-1">
               <AnimatedNumber 
                 value={referralData.length} 
                 duration={2000} 
@@ -234,17 +238,17 @@ const Dashboard = ({
       </div>
 
       {/* Earnings Overview */}
-      <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
-        <div className="flex items-center mb-6">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+        <div className="flex items-center mb-4 sm:mb-6">
           <div className="bg-blue-100 rounded-lg p-2 mr-3">
-            <FaChartBar className="w-5 h-5 text-blue-600" />
+            <FaChartBar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
           </div>
-          <h2 className="text-xl font-bold text-gray-800">Earnings Overview</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">Earnings Overview</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* Last Week */}
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-3 sm:p-4 text-white">
             <div className="flex items-center justify-between mb-2">
               <div className="bg-white/20 rounded-lg p-2">
                 <FaCalendarAlt className="w-4 h-4 text-white" />
@@ -252,7 +256,7 @@ const Dashboard = ({
               <span className="text-xs text-white/80 font-medium">7 Days</span>
             </div>
             <div className="text-sm text-white/80 mb-1">Last Week</div>
-            <div className="text-xl font-bold text-white">
+            <div className="text-lg sm:text-xl font-bold text-white">
               <AnimatedNumber 
                 value={getEarningsValue('lastSevenDays', getEarningsValue('weeklyEarnings', 0))} 
                 currency="Rs" 
@@ -264,7 +268,7 @@ const Dashboard = ({
           </div>
 
           {/* This Month */}
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-3 sm:p-4 text-white">
             <div className="flex items-center justify-between mb-2">
               <div className="bg-white/20 rounded-lg p-2">
                 <FaChartLine className="w-4 h-4 text-white" />
@@ -272,7 +276,7 @@ const Dashboard = ({
               <span className="text-xs text-white/80 font-medium">30 Days</span>
             </div>
             <div className="text-sm text-white/80 mb-1">This Month</div>
-            <div className="text-xl font-bold text-white">
+            <div className="text-lg sm:text-xl font-bold text-white">
               <AnimatedNumber 
                 value={getEarningsValue('thisMonth', getEarningsValue('monthlyEarnings', 0))} 
                 currency="Rs" 
@@ -284,7 +288,7 @@ const Dashboard = ({
           </div>
 
           {/* All Time */}
-          <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl p-3 sm:p-4 text-white sm:col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between mb-2">
               <div className="bg-white/20 rounded-lg p-2">
                 <FaTrophy className="w-4 h-4 text-white" />
@@ -292,7 +296,7 @@ const Dashboard = ({
               <span className="text-xs text-white/80 font-medium">Lifetime</span>
             </div>
             <div className="text-sm text-white/80 mb-1">All Time</div>
-            <div className="text-xl font-bold text-white">
+            <div className="text-lg sm:text-xl font-bold text-white">
               <AnimatedNumber 
                 value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))} 
                 currency="Rs" 
@@ -306,12 +310,12 @@ const Dashboard = ({
       </div>
 
       {/* Free Trip Target & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Free Trip Target */}
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 sm:p-6 text-white">
           <div className="flex items-center mb-4">
-            <FaPlane className="w-5 h-5 mr-2" />
-            <h3 className="text-lg font-semibold">Free Trip Target</h3>
+            <FaPlane className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+            <h3 className="text-base sm:text-lg font-semibold">Free Trip Target</h3>
             <span className="ml-auto text-sm bg-white/20 px-2 py-1 rounded-full">
               {Math.round((referralData.length / 25) * 100)}%
             </span>
@@ -330,9 +334,9 @@ const Dashboard = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center">
             <div>
-              <div className="text-lg font-bold text-white">
+              <div className="text-base sm:text-lg font-bold text-white">
                 <AnimatedNumber 
                   value={referralData.length} 
                   duration={1500} 
@@ -342,7 +346,7 @@ const Dashboard = ({
               <div className="text-xs text-white/80">Achieved</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-white">
+              <div className="text-base sm:text-lg font-bold text-white">
                 <AnimatedNumber 
                   value={25} 
                   duration={1200} 
@@ -352,7 +356,7 @@ const Dashboard = ({
               <div className="text-xs text-white/80">Target</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-white">
+              <div className="text-base sm:text-lg font-bold text-white">
                 <AnimatedNumber 
                   value={Math.max(25 - referralData.length, 0)} 
                   duration={1300} 
@@ -365,61 +369,61 @@ const Dashboard = ({
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
           <div className="flex items-center mb-4">
-            <FaBolt className="w-5 h-5 text-purple-600 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-800">Quick Actions</h3>
+            <FaBolt className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 mr-2" />
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800">Quick Actions</h3>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
               onClick={() => setActiveTab('earnings')}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-2 sm:p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
             >
-              <FaChartLine className="w-5 h-5 mb-1" />
-              <span className="text-sm font-medium">Earnings</span>
+              <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+              <span className="text-xs sm:text-sm font-medium">Earnings</span>
             </button>
 
             <button
               onClick={() => setActiveTab('withdrawal')}
-              className="bg-gradient-to-r from-rose-500 to-pink-500 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
+              className="bg-gradient-to-r from-rose-500 to-pink-500 text-white p-2 sm:p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
             >
-              <FaWallet className="w-5 h-5 mb-1" />
-              <span className="text-sm font-medium">Withdraw</span>
+              <FaWallet className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+              <span className="text-xs sm:text-sm font-medium">Withdraw</span>
             </button>
 
             <button
               onClick={() => setActiveTab('teams')}
-              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
+              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-2 sm:p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
             >
-              <FaUsers className="w-5 h-5 mb-1" />
-              <span className="text-sm font-medium">My Team</span>
+              <FaUsers className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+              <span className="text-xs sm:text-sm font-medium">My Team</span>
             </button>
 
             <button
               onClick={() => setActiveTab('affiliated-link')}
-              className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
+              className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-2 sm:p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
             >
-              <FaShareAlt className="w-5 h-5 mb-1" />
-              <span className="text-sm font-medium">Share Link</span>
+              <FaShareAlt className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />
+              <span className="text-xs sm:text-sm font-medium">Share Link</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center mb-6">
-          <FaFire className="w-5 h-5 text-orange-500 mr-2" />
-          <h2 className="text-xl font-bold text-gray-800">Recent Activity</h2>
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+        <div className="flex items-center mb-4 sm:mb-6">
+          <FaFire className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 mr-2" />
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">Recent Activity</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* My Packages */}
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer text-white" onClick={() => setActiveTab('my-packages')}>
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-3 sm:p-4 hover:shadow-md transition-shadow cursor-pointer text-white" onClick={() => setActiveTab('my-packages')}>
             <div className="flex items-center justify-between mb-3">
               <div className="bg-white/20 rounded-lg p-2">
-                <FaBook className="w-5 h-5 text-white" />
+                <FaBook className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <FaArrowRight className="w-4 h-4 text-white" />
             </div>
@@ -431,14 +435,14 @@ const Dashboard = ({
                 delay={1200} 
               /> enrolled
             </p>
-            <p className="text-xs text-white/70">Latest: {purchasedCourses.length > 0 ? 'No courses enrolled' : latestCourseName}</p>
+            <p className="text-xs text-white/70">Latest: {purchasedCourses.length > 0 ? latestCourseName : 'No courses enrolled'}</p>
           </div>
 
           {/* Leaderboard */}
-          <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer text-white" onClick={() => setActiveTab('leaderboard')}>
+          <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-3 sm:p-4 hover:shadow-md transition-shadow cursor-pointer text-white" onClick={() => setActiveTab('leaderboard')}>
             <div className="flex items-center justify-between mb-3">
               <div className="bg-white/20 rounded-lg p-2">
-                <FaTrophy className="w-5 h-5 text-white" />
+                <FaTrophy className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <FaArrowRight className="w-4 h-4 text-white" />
             </div>
@@ -448,10 +452,10 @@ const Dashboard = ({
           </div>
 
           {/* Edit Profile */}
-          <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer text-white" onClick={() => navigate('/profile')}>
+          <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl p-3 sm:p-4 hover:shadow-md transition-shadow cursor-pointer text-white sm:col-span-2 lg:col-span-1" onClick={() => navigate('/profile')}>
             <div className="flex items-center justify-between mb-3">
               <div className="bg-white/20 rounded-lg p-2">
-                <FaUser className="w-5 h-5 text-white" />
+                <FaUser className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <FaArrowRight className="w-4 h-4 text-white" />
             </div>

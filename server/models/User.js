@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from 'bcryptjs';
+import { safeNumber, safeRound, ensurePositive } from '../utils/numberUtils.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,7 +18,7 @@ const userSchema = new mongoose.Schema(
     affiliateEarnings: { type: Number, default: 0 },
     withdrawableBalance: { type: Number, default: 0 },
     totalWithdrawn: { type: Number, default: 0 },
-    pendingWithdrawals: { type: Number, default: 0 }, 
+    pendingWithdrawals: { type: Number, default: 0 },
     // New earnings and balance fields
     lifetimeEarnings: { type: Number, default: 0 },
     dailyEarnings: { type: Number, default: 0 },
@@ -50,100 +51,107 @@ userSchema.index({ affiliateCode: 1, isAdmin: 1 });
 userSchema.index({ createdAt: -1 });
 
 // Instance method to calculate available withdrawal balance
-userSchema.methods.getAvailableBalance = function() {
+userSchema.methods.getAvailableBalance = function () {
   // Ensure all values are numbers and handle edge cases
-  const withdrawable = Number(this.withdrawableBalance) || 0;
-  const pending = Number(this.pendingWithdrawals) || 0;
-  return Math.max(0, withdrawable - pending);
+  const withdrawable = safeNumber(this.withdrawableBalance);
+  const pending = safeNumber(this.pendingWithdrawals);
+  return ensurePositive(withdrawable - pending);
 };
 
 // Instance method to update withdrawable balance (100% of affiliate earnings for 50% commission)
-userSchema.methods.updateWithdrawableBalance = function(affiliateAmount) {
+userSchema.methods.updateWithdrawableBalance = function (affiliateAmount) {
   // Ensure affiliateAmount is a valid number
-  const amount = Number(affiliateAmount) || 0;
+  const amount = safeNumber(affiliateAmount);
   if (amount <= 0) {
-    throw new Error('Affiliate amount must be positive');
+    throw new Error('Affiliate amount must be a positive number');
   }
-  
-  const withdrawableAmount = amount; // Full affiliate amount is withdrawable (already the commission)
-  this.withdrawableBalance = (Number(this.withdrawableBalance) || 0) + withdrawableAmount;
-  this.affiliateEarnings = (Number(this.affiliateEarnings) || 0) + amount;
-  
+
+  const withdrawableAmount = safeRound(amount); // Full affiliate amount is withdrawable (already the commission)
+  this.withdrawableBalance = safeRound(safeNumber(this.withdrawableBalance) + withdrawableAmount);
+  this.affiliateEarnings = safeRound(safeNumber(this.affiliateEarnings) + amount);
+
   // Ensure values are never negative
-  this.withdrawableBalance = Math.max(0, this.withdrawableBalance);
-  this.affiliateEarnings = Math.max(0, this.affiliateEarnings);
-  
+  this.withdrawableBalance = ensurePositive(this.withdrawableBalance);
+  this.affiliateEarnings = ensurePositive(this.affiliateEarnings);
+
+  // Update currentBalance to match withdrawableBalance if not recently set by admin
+  const now = new Date();
+  const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+  if (!this.lastAdminUpdate || this.lastAdminUpdate < tenMinutesAgo) {
+    this.currentBalance = this.withdrawableBalance;
+  }
+
   return withdrawableAmount;
 };
 
 // Instance method to process withdrawal approval
-userSchema.methods.processWithdrawalApproval = function(withdrawalAmount) {
+userSchema.methods.processWithdrawalApproval = function (withdrawalAmount) {
   try {
-    const amount = Math.round(Number(withdrawalAmount)) || 0;
+    const amount = safeRound(safeNumber(withdrawalAmount));
     if (amount <= 0) {
-      throw new Error('Withdrawal amount must be positive');
+      throw new Error('Withdrawal amount must be a positive number');
     }
-    
+
     // Ensure all values are numbers and handle edge cases
-    const currentWithdrawable = Number(this.withdrawableBalance) || 0;
-    const currentTotalWithdrawn = Number(this.totalWithdrawn) || 0;
-    const currentPending = Number(this.pendingWithdrawals) || 0;
-    
+    const currentWithdrawable = safeNumber(this.withdrawableBalance);
+    const currentTotalWithdrawn = safeNumber(this.totalWithdrawn);
+    const currentPending = safeNumber(this.pendingWithdrawals);
+
     // Validate that user has sufficient balance
     if (amount > currentWithdrawable) {
       throw new Error(`Insufficient withdrawable balance. Required: ${amount}, Available: ${currentWithdrawable}`);
     }
-    
-    // Update balances
-    this.withdrawableBalance = Math.max(0, currentWithdrawable - amount);
-    this.totalWithdrawn = currentTotalWithdrawn + amount;
-    this.pendingWithdrawals = Math.max(0, currentPending - amount);
-    
-    // Ensure values are never negative
-    this.withdrawableBalance = Math.max(0, this.withdrawableBalance);
-    this.totalWithdrawn = Math.max(0, this.totalWithdrawn);
-    this.pendingWithdrawals = Math.max(0, this.pendingWithdrawals);
-    
 
-    
+    // Update balances with proper rounding
+    this.withdrawableBalance = ensurePositive(safeRound(currentWithdrawable - amount));
+    this.totalWithdrawn = safeRound(currentTotalWithdrawn + amount);
+    this.pendingWithdrawals = ensurePositive(safeRound(currentPending - amount));
+
+    // Update currentBalance to match withdrawableBalance if not recently set by admin
+    const now = new Date();
+    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+    if (!this.lastAdminUpdate || this.lastAdminUpdate < tenMinutesAgo) {
+      this.currentBalance = this.withdrawableBalance;
+    }
+
   } catch (error) {
     throw error;
   }
 };
 
 // Instance method to process withdrawal rejection
-userSchema.methods.processWithdrawalRejection = function(withdrawalAmount) {
+userSchema.methods.processWithdrawalRejection = function (withdrawalAmount) {
   const amount = Math.round(Number(withdrawalAmount)) || 0;
   if (amount <= 0) {
     throw new Error('Withdrawal amount must be positive');
   }
-  
+
   this.pendingWithdrawals = Math.max(0, (Number(this.pendingWithdrawals) || 0) - amount);
 };
 
 // Instance method to add pending withdrawal
-userSchema.methods.addPendingWithdrawal = function(withdrawalAmount) {
+userSchema.methods.addPendingWithdrawal = function (withdrawalAmount) {
   const amount = Math.round(Number(withdrawalAmount)) || 0;
   if (amount <= 0) {
     throw new Error('Withdrawal amount must be positive');
   }
-  
+
   this.pendingWithdrawals = (Number(this.pendingWithdrawals) || 0) + amount;
 };
 
 // Static method to update user balance after purchase
-userSchema.statics.updateBalanceAfterPurchase = async function(userId, affiliateAmount) {
+userSchema.statics.updateBalanceAfterPurchase = async function (userId, affiliateAmount) {
   const user = await this.findById(userId);
   if (!user) throw new Error('User not found');
-  
+
   const withdrawableAmount = user.updateWithdrawableBalance(affiliateAmount);
   await user.save();
-  
+
   return withdrawableAmount;
 };
 
 // Pre-save middleware to hash password
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     try {
       const salt = await bcrypt.genSalt(10);
@@ -156,7 +164,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Method to compare password
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
@@ -165,13 +173,13 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 };
 
 // Pre-save middleware to generate affiliate code
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.affiliateCode) {
     try {
       let affiliateCode;
       let isUnique = false;
       let attempts = 0;
-      
+
       while (!isUnique && attempts < 10) {
         affiliateCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         const existingUser = await this.constructor.findOne({ affiliateCode });
@@ -180,7 +188,7 @@ userSchema.pre('save', async function(next) {
         }
         attempts++;
       }
-      
+
       if (isUnique) {
         this.affiliateCode = affiliateCode;
       }
