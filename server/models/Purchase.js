@@ -14,7 +14,7 @@ const PurchaseSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   affiliateAmount: { type: Number, default: 0 },
   withdrawableAmount: { type: Number, default: 0 },
-  commissionRate: { type: Number, default: 0.5 }, // 50% default commission rate
+  commissionRate: { type: Number, default: 0.6 }, // 60% default commission rate
   referralCode: { type: String, default: null },
   referrerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   transactionId: { type: String },
@@ -38,7 +38,7 @@ PurchaseSchema.pre('save', function(next) {
   }
   
   if (this.commissionRate !== undefined) {
-    this.commissionRate = Number(this.commissionRate) || 0.5;
+    this.commissionRate = Number(this.commissionRate) || 0.6;
   }
   
   // Calculate withdrawable amount when affiliate amount changes

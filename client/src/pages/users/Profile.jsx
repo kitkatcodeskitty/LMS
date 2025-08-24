@@ -85,6 +85,11 @@ const Profile = () => {
     passwordData: null
   });
 
+  const [profileEditStatus, setProfileEditStatus] = useState({
+    hasEditedProfile: false,
+    profileEditDate: null
+  });
+
   useEffect(() => {
     if (userData) {
       setEditForm({
@@ -94,6 +99,13 @@ const Profile = () => {
         profileImageFile: null,
         passwordData: null
       });
+      
+      // Set profile edit status
+      setProfileEditStatus({
+        hasEditedProfile: userData.hasEditedProfile || false,
+        profileEditDate: userData.profileEditDate || null
+      });
+      
       fetchProfileData();
     }
   }, [userData]);
@@ -104,13 +116,13 @@ const Profile = () => {
       const token = await getToken();
 
       // Fetch all profile related data
-      const [earningsRes, referralsRes, coursesRes, leaderboardRes, statementsRes, purchaseHistoryRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/user/earnings`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${backendUrl}/api/user/referrals`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${backendUrl}/api/user/user-purchase`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${backendUrl}/api/user/leaderboard`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${backendUrl}/api/user/payment-statements`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${backendUrl}/api/user/purchase-history`, { headers: { Authorization: `Bearer ${token}` } })
+      const [earningsRes, referralsRes, userPurchaseRes, leaderboardRes, paymentStatementsRes, purchaseHistoryRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/users/earnings`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${backendUrl}/api/users/referrals`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${backendUrl}/api/users/user-purchase`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${backendUrl}/api/users/leaderboard`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${backendUrl}/api/users/payment-statements`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${backendUrl}/api/users/purchase-history`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
 
       if (earningsRes.data.success) {
@@ -128,16 +140,16 @@ const Profile = () => {
         setReferralData(referralsRes.data.referrals);
       }
 
-      if (coursesRes.data.success) {
-        setPurchasedCourses(coursesRes.data.purchasedCourses || []);
+      if (userPurchaseRes.data.success) {
+        setPurchasedCourses(userPurchaseRes.data.purchasedCourses || []);
       }
 
       if (leaderboardRes.data.success) {
         setLeaderboard(leaderboardRes.data.leaderboard);
       }
 
-      if (statementsRes.data.success) {
-        setPaymentStatements(statementsRes.data.statements);
+      if (paymentStatementsRes.data.success) {
+        setPaymentStatements(paymentStatementsRes.data.statements);
       }
 
       if (purchaseHistoryRes.data.success) {
@@ -170,6 +182,13 @@ const Profile = () => {
 
   const handleEditProfile = async (e) => {
     e.preventDefault();
+    
+    // Check if user has already edited profile once
+    if (profileEditStatus.hasEditedProfile) {
+      toast.error('Profile can only be edited once. Please contact an administrator for any further changes.');
+      return;
+    }
+    
     try {
       const token = await getToken();
       
@@ -191,7 +210,7 @@ const Profile = () => {
       }
 
       const response = await axios.put(
-        `${backendUrl}/api/user/update-profile`,
+        `${backendUrl}/api/users/update-profile`,
         formData,
         { 
           headers: { 
@@ -202,7 +221,12 @@ const Profile = () => {
       );
 
       if (response.data.success) {
-        toast.success('Profile updated successfully!');
+        toast.success(response.data.message || 'Profile updated successfully! Note: Profile can only be edited once.');
+        // Update local state to reflect the restriction
+        setProfileEditStatus({
+          hasEditedProfile: true,
+          profileEditDate: new Date()
+        });
         // Refresh user data
         window.location.reload();
       } else {
@@ -210,9 +234,18 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Profile update error:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+      
+      // Handle specific error for profile edit restriction
+      if (error.response?.status === 403 && error.response?.data?.hasEditedProfile) {
+        toast.error('Profile can only be edited once. Please contact an administrator for any further changes.');
+        // Update local state
+        setProfileEditStatus({
+          hasEditedProfile: true,
+          profileEditDate: error.response.data.profileEditDate
+        });
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to update profile');
+      }
     }
   };
 
@@ -349,6 +382,7 @@ const Profile = () => {
             handleEditProfile={handleEditProfile}
             setActiveTab={setActiveTab}
             currency={currency}
+            profileEditStatus={profileEditStatus}
           />
         );
       default:

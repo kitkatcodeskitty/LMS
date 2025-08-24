@@ -42,7 +42,7 @@ const Login = () => {
     setSubmitting(true);
 
     try {
-      const res = await axios.post(`${backendUrl}/api/user/login`, {
+      const res = await axios.post(`${backendUrl}/api/users/login`, {
         email: form.email.trim(),
         password: form.password
       });

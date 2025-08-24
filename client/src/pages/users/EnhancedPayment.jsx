@@ -75,7 +75,7 @@ const EnhancedPayment = () => {
 
   const fetchCourse = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/course/${courseId}`);
+      const { data } = await axios.get(`${backendUrl}/api/courses/${courseId}`);
       if (data.success && data.course) {
         setCourse(data.course);
       } else {
@@ -148,7 +148,7 @@ const EnhancedPayment = () => {
         formData.append('image', profileImageFile);
       }
 
-      const { data } = await axios.post(`${backendUrl}/api/user/register`, formData);
+      const { data } = await axios.post(`${backendUrl}/api/users/register`, formData);
 
       if (data.success) {
         // Store token and update user data
@@ -183,7 +183,7 @@ const EnhancedPayment = () => {
     setLoggingIn(true);
 
     try {
-      const { data } = await axios.post(`${backendUrl}/api/user/login`, {
+      const { data } = await axios.post(`${backendUrl}/api/users/login`, {
         email: loginData.email,
         password: loginData.password
       });

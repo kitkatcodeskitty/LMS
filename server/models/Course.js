@@ -22,7 +22,25 @@ const courseSchema = new mongoose.Schema(
     courseDescription: { type: String, required: true },
     courseThumbnail: { type: String },
     coursePrice: { type: Number, required: true },
-    packageType: { type: String, required: true, enum: ['premium', 'elite', 'supreme'] },
+    packageType: {
+      type: String,
+      required: true,
+      enum: ['elite', 'creator', 'prime', 'master']
+    },
+    courseLimit: {
+      type: Number,
+      required: true,
+      default: function() {
+        // Set default course limit based on package type
+        switch(this.packageType) {
+          case 'elite': return 1;
+          case 'creator': return 3;
+          case 'prime': return 4;
+          case 'master': return 6;
+          default: return 1;
+        }
+      }
+    },
     isPublished: { type: Boolean, required: true },
     discount: { type: Number, required: true, min: 0 },
     discountType: { type: String, required: true, enum: ['percentage', 'amount'], default: 'percentage' },

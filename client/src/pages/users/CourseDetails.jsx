@@ -46,7 +46,7 @@ const PackageDetails = () => {
         }
       }
 
-      const res = await fetch(`${backendUrl}/api/course/${id}`)
+      const res = await fetch(`${backendUrl}/api/courses/${id}`)
       if (!res.ok) throw new Error(`Failed to fetch course. Status: ${res.status}`)
       const data = await res.json()
       

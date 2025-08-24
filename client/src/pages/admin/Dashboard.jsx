@@ -25,6 +25,11 @@ const Dashboard = () => {
   const [subAdminEmail, setSubAdminEmail] = useState('')
   const [makingSubAdmin, setMakingSubAdmin] = useState(false)
 
+  // New state for profile edit restriction management
+  const [showProfileRestrictionModal, setShowProfileRestrictionModal] = useState(false)
+  const [restrictionEmail, setRestrictionEmail] = useState('')
+  const [resettingRestriction, setResettingRestriction] = useState(false)
+
   const fetchDashboardAndPurchases = async () => {
     try {
       const token = await getToken()
@@ -101,33 +106,75 @@ const Dashboard = () => {
       setValidatingIds((prev) => [...prev, courseId])
       const token = await getToken()
 
-      const res = await axios.delete(
+      const res = await axios.put(
         `${backendUrl}/api/cart/reject`,
-        {
-          data: { userId, courseId },
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { userId, courseId },
+        { headers: { Authorization: `Bearer ${token}` } }
       )
 
-
       if (res.data.success) {
-        toast.success('Course rejected and removed from cart.')
+        toast.success('Purchase rejected successfully.')
 
         setCartsData((prevCarts) =>
           prevCarts
-            .map((cart) => ({
-              ...cart,
-              courses: cart.courses.filter((item) => item.course._id !== courseId),
-            }))
+            .map((cart) => {
+              if (cart.user._id === userId) {
+                return {
+                  ...cart,
+                  courses: cart.courses.filter((item) => item.course._id !== courseId),
+                }
+              }
+              return cart
+            })
             .filter((cart) => cart.courses.length > 0)
         )
       } else {
-        toast.error(res.data.message || 'Failed to reject course.')
+        toast.error(res.data.message || 'Failed to reject purchase.')
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error rejecting course.')
+      toast.error(error.response?.data?.message || error.message || 'Error rejecting purchase.')
     } finally {
       setValidatingIds((prev) => prev.filter((id) => id !== courseId))
+    }
+  }
+
+  // Reset profile edit restriction for a user
+  const resetProfileEditRestriction = async (e) => {
+    e.preventDefault()
+    try {
+      setResettingRestriction(true)
+      const token = await getToken()
+
+      // First, find the user by email to get their ID
+      const userRes = await axios.get(`${backendUrl}/api/users/${restrictionEmail}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (!userRes.data._id) {
+        toast.error('User not found with this email address.')
+        return
+      }
+
+      const userId = userRes.data._id
+
+      // Reset the profile edit restriction
+      const res = await axios.post(
+        `${backendUrl}/api/users/reset-profile-edit-restriction`,
+        { userId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      if (res.data.success) {
+        toast.success('Profile edit restriction has been reset for this user.')
+        setShowProfileRestrictionModal(false)
+        setRestrictionEmail('')
+      } else {
+        toast.error(res.data.message || 'Failed to reset profile edit restriction.')
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Error resetting profile edit restriction.')
+    } finally {
+      setResettingRestriction(false)
     }
   }
 
@@ -178,7 +225,7 @@ const Dashboard = () => {
       const token = await getToken()
 
       const res = await axios.post(
-        `${backendUrl}/api/user/make-sub-admin`,
+        `${backendUrl}/api/users/make-sub-admin`,
         { email: subAdminEmail.trim() },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -247,6 +294,15 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <h1 className="text-2xl font-medium text-gray-800">Admin Dashboard</h1>
           <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={() => setShowProfileRestrictionModal(true)}
+              className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Manage Profile Restrictions
+            </button>
             <button
               onClick={() => setShowMakeSubAdminModal(true)}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
@@ -578,6 +634,59 @@ const Dashboard = () => {
                     }`}
                 >
                   {makingSubAdmin ? 'Making Sub-Admin...' : 'Make Sub-Admin'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Managing Profile Edit Restrictions */}
+      {showProfileRestrictionModal && (
+        <div
+          onClick={() => setShowProfileRestrictionModal(false)}
+          className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
+          >
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Manage Profile Edit Restrictions</h2>
+            <p className="text-sm text-gray-600 mb-4">Reset profile edit restrictions for users who need to make additional changes to their profiles.</p>
+
+            <form onSubmit={resetProfileEditRestriction} className="space-y-4">
+              <div>
+                <label htmlFor="restrictionEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                  User Email Address
+                </label>
+                <input
+                  type="email"
+                  id="restrictionEmail"
+                  value={restrictionEmail}
+                  onChange={(e) => setRestrictionEmail(e.target.value)}
+                  placeholder="Enter user's email address"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowProfileRestrictionModal(false)}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={resettingRestriction}
+                  className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${resettingRestriction
+                      ? 'bg-amber-400 cursor-not-allowed'
+                      : 'bg-amber-600 hover:bg-amber-700'
+                    }`}
+                >
+                  {resettingRestriction ? 'Resetting...' : 'Reset Restriction'}
                 </button>
               </div>
             </form>

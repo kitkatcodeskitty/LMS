@@ -30,7 +30,7 @@ const MyEnrollments = () => {
         return;
       }
 
-      const { data } = await axios.get(`${backendUrl}/api/user/user-purchase`, {
+      const { data } = await axios.get(`${backendUrl}/api/users/user-purchase`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       

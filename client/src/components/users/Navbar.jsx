@@ -22,7 +22,7 @@ const LatestPackageDisplay = ({ userData }) => {
   const fetchLatestPackage = async () => {
     try {
       const token = getToken();
-      const { data } = await axios.get(`${backendUrl}/api/user/user-purchase`, {
+      const { data } = await axios.get(`${backendUrl}/api/users/user-purchase`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -118,7 +118,7 @@ const Navbar = () => {
   const fetchLatestCourse = async () => {
     try {
       const token = getToken();
-      const { data } = await axios.get(`${backendUrl}/api/user/user-purchase`, {
+      const { data } = await axios.get(`${backendUrl}/api/users/user-purchase`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

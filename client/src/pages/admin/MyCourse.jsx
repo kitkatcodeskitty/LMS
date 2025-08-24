@@ -12,37 +12,41 @@ const MyPackages = () => {
   const [showUpdatePopup, setShowUpdatePopup] = useState(false)
   const [courseToUpdate, setCourseToUpdate] = useState(null)
 
-  const fetchEducatorCourses = async () => {
+  const fetchCourses = async () => {
     try {
       const token = await getToken()
-      const { data } = await axios.get(`${backendUrl}/api/course/all`, {
+      const { data } = await axios.get(`${backendUrl}/api/courses/all`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
       if (data.success) {
         setCourses(data.courses)
       } else {
-        toast.error('Failed to fetch packages. Server error.')
+        toast.error(data.message || "Failed to fetch courses");
       }
     } catch (error) {
-      toast.error('Failed to fetch packages. Please try again later.')
+      console.error("Error fetching courses:", error);
+      toast.error("Failed to fetch courses");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (isEducator) {
-      fetchEducatorCourses()
+      fetchCourses()
     }
   }, [isEducator])
 
-  const handleDelete = async (courseId) => {
-    if (!window.confirm('Are you sure you want to delete this package?')) return
+  const handleDeleteCourse = async (courseId) => {
+    if (!window.confirm("Are you sure you want to delete this course?")) {
+      return;
+    }
 
     try {
-      setLoading(true)
       const token = await getToken()
       const { data } = await axios.delete(
-        `${backendUrl}/api/course/delete-course/${courseId}`,
+        `${backendUrl}/api/courses/delete-course/${courseId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -117,7 +121,7 @@ const MyPackages = () => {
                   </td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => handleDelete(course._id)}
+                      onClick={() => handleDeleteCourse(course._id)}
                       disabled={loading}
                       className={`text-red-500 hover:underline ${
                         loading ? 'opacity-50 cursor-not-allowed' : ''

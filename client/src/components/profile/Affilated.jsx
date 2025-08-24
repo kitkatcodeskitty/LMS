@@ -20,7 +20,7 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
   const checkUserPurchases = async () => {
     try {
       const token = getToken();
-      const { data } = await axios.get(`${backendUrl}/api/user/user-purchase`, {
+      const { data } = await axios.get(`${backendUrl}/api/users/user-purchase`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -36,7 +36,7 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
 
   const fetchCourses = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/course/all`);
+      const { data } = await axios.get(`${backendUrl}/api/courses/all`);
       if (data.success) {
         setCourses(data.courses);
       }

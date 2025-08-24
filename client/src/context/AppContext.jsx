@@ -161,7 +161,7 @@ export const AppContextProvider = (props) => {
   // Fetch all courses
   const fetchAllCourses = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/course/all`);
+      const { data } = await axios.get(`${backendUrl}/api/courses/all`);
       console.log("Fetched courses:", data);
       
       if (data.success) {
@@ -180,7 +180,7 @@ export const AppContextProvider = (props) => {
     if (!token) return;
 
     try {
-      const { data } = await axios.get(`${backendUrl}/api/user/getUserData`, {
+      const { data } = await axios.get(`${backendUrl}/api/users/getUserData`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       

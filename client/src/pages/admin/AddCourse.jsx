@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { nanoid } from 'nanoid';
 import Quill from 'quill';
 import { assets } from '../../assets/assets';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
+import { getPackageDefaultPrice, getPackageDefaultDescription } from '../../constants/packages';
 
 const AddPackage = () => {
   const { backendUrl, getToken, currency } = useContext(AppContext);
@@ -12,8 +13,8 @@ const AddPackage = () => {
   const editorRef = useRef(null);
 
   const [courseTitle, setCourseTitle] = useState('');
-  const [packageType, setPackageType] = useState('premium');
-  const [coursePrice, setCoursePrice] = useState(0);
+  const [packageType, setPackageType] = useState('elite'); // Changed default to elite
+  const [coursePrice, setCoursePrice] = useState(1000); // Changed default to 1000
   const [discount, setDiscount] = useState(0);
   const [discountType, setDiscountType] = useState('percentage');
   const [image, setImage] = useState(null);
@@ -30,10 +31,23 @@ const AddPackage = () => {
     isPreviewFree: false,
   });
 
+  // Auto-fill price and description when package type changes
+  useEffect(() => {
+    if (packageType) {
+      const defaultPrice = getPackageDefaultPrice(packageType);
+      const defaultDescription = getPackageDefaultDescription(packageType);
+      
+      setCoursePrice(defaultPrice);
+      if (quillRef.current) {
+        quillRef.current.root.innerHTML = defaultDescription;
+      }
+    }
+  }, [packageType]);
+
   // Fetch existing package types
   const fetchExistingPackageTypes = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/course/existing-package-types`);
+      const { data } = await axios.get(`${backendUrl}/api/courses/existing-package-types`);
       if (data.success) {
         setExistingPackageTypes(data.existingPackageTypes);
       }
@@ -44,10 +58,22 @@ const AddPackage = () => {
 
   // Available package type options
   const packageTypeOptions = [
-    { value: 'premium', label: 'Premium Package' },
-    { value: 'elite', label: 'Elite Package' },
-    { value: 'supreme', label: 'Supreme Package' }
+    { value: 'elite', label: 'Elite Package (1 Course)' },
+    { value: 'creator', label: 'Creator Package (3 Courses)' },
+    { value: 'prime', label: 'Prime Package (4 Courses)' },
+    { value: 'master', label: 'Master Package (6 Courses)' }
   ];
+
+  // Get course limit based on package type
+  const getCourseLimitByPackageType = (packageType) => {
+    switch (packageType) {
+      case 'elite': return 1;
+      case 'creator': return 3;
+      case 'prime': return 4;
+      case 'master': return 6;
+      default: return 1;
+    }
+  };
 
   // Chapter handlers (add, remove, toggle)
   const handleChapter = (action, chapterId) => {
@@ -146,6 +172,7 @@ const AddPackage = () => {
         packageType,
         courseDescription: quillRef.current.root.innerHTML,
         coursePrice: parseFloat(coursePrice),
+        courseLimit: getCourseLimitByPackageType(packageType),
         discount: parseInt(discount),
         discountType,
         courseContent: chapters,
@@ -156,7 +183,7 @@ const AddPackage = () => {
       formData.append('image', image);
 
       const token = await getToken();
-      const { data } = await axios.post(`http://localhost:5000/api/admin/add-course`, formData, {
+      const { data } = await axios.post(`${backendUrl}/api/admin/add-course`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data', 
@@ -166,8 +193,8 @@ const AddPackage = () => {
             if (data.success) {
         toast.success('Package added successfully');
         setCourseTitle('');
-        setPackageType('premium');
-        setCoursePrice(0);
+        setPackageType('elite');
+        setCoursePrice(1000);
         setDiscount(0);
         setDiscountType('percentage');
         setImage(null);
@@ -215,6 +242,19 @@ const AddPackage = () => {
         {/* Package Type Selection */}
         <div className='flex flex-col gap-1'>
           <p>Package Type</p>
+          <div className="mb-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-xs text-blue-700 mb-2">
+              💡 Select a package type to automatically fill the price and description. You can still edit these values.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+              {packageTypeOptions.map((option) => (
+                <div key={option.value} className="flex items-center justify-between p-2 bg-white rounded border">
+                  <span className="font-medium">{option.label}</span>
+                  <span className="text-blue-600">Rs. {getPackageDefaultPrice(option.value).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
           <select
             value={packageType}
             onChange={(e) => setPackageType(e.target.value)}
@@ -245,26 +285,80 @@ const AddPackage = () => {
               ).join(', ')}
             </p>
           )}
+          {/* Auto-fill indicator */}
+          {packageType && (
+            <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
+              <p className="text-xs text-green-700">
+                ✅ Auto-filled: {getPackageDefaultDescription(packageType)}
+              </p>
+              <div className="mt-2 text-xs text-green-600">
+                <p>💰 Price: Rs. {getPackageDefaultPrice(packageType).toLocaleString()}</p>
+                <p>📚 Course Limit: {getCourseLimitByPackageType(packageType)} course(s)</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Course Limit (Auto-filled) */}
+        <div className='flex flex-col gap-1'>
+          <p>Course Limit</p>
+          <div className="flex items-center gap-2">
+            <input
+              value={getCourseLimitByPackageType(packageType)}
+              type='number'
+              readOnly
+              className='outline-none md:py-2.5 py-2 w-32 px-3 rounded border border-gray-300 bg-gray-50 cursor-not-allowed'
+            />
+            <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded border">
+              Auto-filled from package type
+            </span>
+          </div>
         </div>
 
                  {/* Package Description (Quill editor) */}
          <div className='flex flex-col gap-1'>
            <p>Package Description</p>
+           {packageType && (
+             <div className="mb-2 p-3 bg-green-50 rounded border border-green-200">
+               <p className="text-xs text-green-700 mb-2">
+                 💡 Auto-filled description from {packageType} package. You can edit this content below.
+               </p>
+               <div className="text-xs text-green-600">
+                 <p><strong>Preview of auto-filled content:</strong></p>
+                 <div className="mt-2 p-2 bg-white rounded border text-left max-h-32 overflow-y-auto">
+                   <div dangerouslySetInnerHTML={{ 
+                     __html: getPackageDefaultDescription(packageType).substring(0, 300) + '...' 
+                   }} />
+                 </div>
+                 <p className="mt-2 text-xs">
+                   💡 <strong>Tip:</strong> The description supports HTML formatting including headings, lists, bold text, and emojis. 
+                   You can customize this content to match your specific course offering.
+                 </p>
+               </div>
+             </div>
+           )}
           <div ref={editorRef}></div>
         </div>
 
                  {/* Package Price and Thumbnail */}
         <div className='flex items-center justify-between flex-wrap'>
           <div className='flex flex-col gap-1'>
-                         <p>Package Price</p>
-            <input
-              onChange={(e) => setCoursePrice(e.target.value)}
-              value={coursePrice}
-              type='number'
-              placeholder='0'
-              className='outline-none md:py-2.5 py-2 w-28 px-3 rounded border border-gray-500'
-              required
-            />
+            <p>Package Price (Rs.)</p>
+            <div className="flex items-center gap-2">
+              <input
+                onChange={(e) => setCoursePrice(e.target.value)}
+                value={coursePrice}
+                type='number'
+                placeholder='0'
+                className='outline-none md:py-2.5 py-2 w-32 px-3 rounded border border-gray-500'
+                required
+              />
+              {packageType && (
+                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded border">
+                  Default: Rs. {getPackageDefaultPrice(packageType).toLocaleString()}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className='flex md:flex-row flex-col items-center gap-3'>

@@ -37,8 +37,6 @@ const Kyc = () => {
     country: '',
     idType: 'national_id',
     idNumber: '',
-    documentIssueDate: '',
-    documentExpiryDate: '',
     documentIssuingAuthority: '',
   });
   const [files, setFiles] = useState({ idFront: null, idBack: null, selfie: null });
@@ -71,8 +69,6 @@ const Kyc = () => {
             country: data.kyc.country || '',
             idType: data.kyc.idType || 'national_id',
             idNumber: data.kyc.idNumber || '',
-            documentIssueDate: data.kyc.documentIssueDate || '',
-            documentExpiryDate: data.kyc.documentExpiryDate || '',
             documentIssuingAuthority: data.kyc.documentIssuingAuthority || '',
           });
         }
@@ -297,7 +293,7 @@ const Kyc = () => {
                       name="fullName"
                       value={form.fullName}
                       onChange={onChange}
-                      placeholder="Enter your full legal name"
+                      placeholder="e.g., Ram Bahadur Thapa"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
                         errors.fullName ? 'border-red-500' : 'border-gray-300'
                       }`}
@@ -348,7 +344,7 @@ const Kyc = () => {
                       name="nationality"
                       value={form.nationality}
                       onChange={onChange}
-                      placeholder="Enter your nationality"
+                      placeholder="e.g., Nepali"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
                     />
                   </div>
@@ -361,7 +357,7 @@ const Kyc = () => {
                       name="occupation"
                       value={form.occupation}
                       onChange={onChange}
-                      placeholder="Enter your occupation"
+                      placeholder="e.g., Student, Teacher, Business"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
                     />
                   </div>
@@ -392,12 +388,13 @@ const Kyc = () => {
                       name="phoneNumber"
                       value={form.phoneNumber}
                       onChange={onChange}
-                      placeholder="+1 234 567 8900"
+                      placeholder="e.g., 9841234567 or +977-984-123-4567"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
                         errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
                       }`}
                       required
                     />
+                    <p className="text-xs text-gray-500 mt-1">Format: 10-digit number (e.g., 9841234567) or international format (+977-984-123-4567)</p>
                     {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
                   </div>
 
@@ -409,9 +406,10 @@ const Kyc = () => {
                       name="alternatePhone"
                       value={form.alternatePhone}
                       onChange={onChange}
-                      placeholder="+1 234 567 8900 (optional)"
+                      placeholder="e.g., 9851234567 (optional)"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Optional: Secondary contact number</p>
                   </div>
 
                   <div>
@@ -422,7 +420,7 @@ const Kyc = () => {
                       name="addressLine1"
                       value={form.addressLine1}
                       onChange={onChange}
-                      placeholder="Street address, P.O. box, company name"
+                      placeholder="e.g., Ward No. 5, Thamel, Kathmandu"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
                         errors.addressLine1 ? 'border-red-500' : 'border-gray-300'
                       }`}
@@ -439,7 +437,7 @@ const Kyc = () => {
                       name="city"
                       value={form.city}
                       onChange={onChange}
-                      placeholder="Enter your city"
+                      placeholder="e.g., Kathmandu, Pokhara, Biratnagar"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
                         errors.city ? 'border-red-500' : 'border-gray-300'
                       }`}
@@ -456,7 +454,7 @@ const Kyc = () => {
                       name="state"
                       value={form.state}
                       onChange={onChange}
-                      placeholder="Enter your state or province"
+                      placeholder="e.g., Bagmati, Gandaki, Koshi"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
                         errors.state ? 'border-red-500' : 'border-gray-300'
                       }`}
@@ -473,7 +471,7 @@ const Kyc = () => {
                       name="postalCode"
                       value={form.postalCode}
                       onChange={onChange}
-                      placeholder="Enter postal/ZIP code"
+                      placeholder="e.g., 44600"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
                         errors.postalCode ? 'border-red-500' : 'border-gray-300'
                       }`}
@@ -490,7 +488,7 @@ const Kyc = () => {
                       name="country"
                       value={form.country}
                       onChange={onChange}
-                      placeholder="Enter your country"
+                      placeholder="e.g., Nepal"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
                         errors.country ? 'border-red-500' : 'border-gray-300'
                       }`}
@@ -533,39 +531,13 @@ const Kyc = () => {
                         name="idNumber"
                         value={form.idNumber}
                         onChange={onChange}
-                        placeholder="Enter your ID number"
+                        placeholder="e.g., 1234567890 or 01-01-123456-01"
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
                           errors.idNumber ? 'border-red-500' : 'border-gray-300'
                         }`}
                         required
                       />
                       {errors.idNumber && <p className="text-red-500 text-sm mt-1">{errors.idNumber}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Document Issue Date
-                      </label>
-                      <input
-                        name="documentIssueDate"
-                        type="date"
-                        value={form.documentIssueDate}
-                        onChange={onChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Document Expiry Date
-                      </label>
-                      <input
-                        name="documentExpiryDate"
-                        type="date"
-                        value={form.documentExpiryDate}
-                        onChange={onChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
-                      />
                     </div>
 
                     <div className="md:col-span-2">
@@ -576,7 +548,7 @@ const Kyc = () => {
                         name="documentIssuingAuthority"
                         value={form.documentIssuingAuthority}
                         onChange={onChange}
-                        placeholder="Enter the authority that issued your document"
+                        placeholder="e.g., Department of Passports, Election Commission, Department of Transport Management"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
                       />
                     </div>

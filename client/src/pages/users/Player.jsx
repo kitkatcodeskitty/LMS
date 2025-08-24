@@ -47,37 +47,42 @@ const Player = () => {
   }, [enrolledCourses])
 
 
-  const markLectureComplete = async (lectureId) => {
-  try {
-    const token = await getToken();
-    const {data} = await axios.post(`${backendUrl}/api/user/update-course-progress`, {courseId, lectureId}, { headers: { Authorization: `Bearer ${token}` } });
-
-    if(data.success){
-      toast.success(data.message);
-      getCourseProgress();
-    }else{
-      toast.error(data.message);
-    }
-
-  } catch (error) {
-    toast.error(error.message);
-  }
-  }
-
-  const getCourseProgress = async () => {
+  // Update course progress - TODO: This endpoint doesn't exist in backend
+  const updateCourseProgress = async (courseId, lectureId) => {
     try {
-      const token = await getToken();
-      const {data} = await axios.post(`${backendUrl}/api/user/get-course-progress`, {courseId}, {
-        headers: { Authorization: `Bearer ${token}` } });
-      if(data.success) {
-        setProgressArray(data.progressData);
-      } else {
-        toast.error(data.message);
-      }
+      // const token = await getToken();
+      // const {data} = await axios.post(`${backendUrl}/api/user/update-course-progress`, {courseId, lectureId}, { headers: { Authorization: `Bearer ${token}` } });
+      console.log('Update course progress - endpoint not implemented in backend');
     } catch (error) {
-      toast.error(error.message); 
+      console.error('Error updating course progress:', error);
     }
-  }
+  };
+
+  // Get course progress - TODO: This endpoint doesn't exist in backend
+  const getCourseProgress = async (courseId) => {
+    try {
+      // const token = await getToken();
+      // const {data} = await axios.post(`${backendUrl}/api/user/get-course-progress`, {courseId}, {
+      //   headers: { Authorization: `Bearer ${token}` }
+      // });
+      console.log('Get course progress - endpoint not implemented in backend');
+    } catch (error) {
+      console.error('Error getting course progress:', error);
+    }
+  };
+
+  // Add rating - TODO: This endpoint doesn't exist in backend
+  const addRating = async (courseId, rating) => {
+    try {
+      // const token = await getToken();
+      // const {data} = await axios.post(`${backendUrl}/api/user/add-rating`, {courseId, rating}, {
+      //   headers: { Authorization: `Bearer ${token}` }
+      // });
+      console.log('Add rating - endpoint not implemented in backend');
+    } catch (error) {
+      console.error('Error adding rating:', error);
+    }
+  };
 
   const handleRate = async (rating) => {
     try {
@@ -207,7 +212,7 @@ const Player = () => {
               <p>
                 {playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}
               </p>
-              <button onClick={()=> markLectureComplete(playerData.lectureId)} className='text-blue-600'>
+              <button onClick={()=> updateCourseProgress(playerData.lectureId)} className='text-blue-600'>
                 {progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? 'Completed' : 'Mark complete'}
               </button>
             </div>

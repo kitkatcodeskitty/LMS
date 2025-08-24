@@ -9,7 +9,7 @@ const AffiliateEarningsCard = () => {
   useEffect(() => {
     const fetchEarnings = async () => {
       try {
-        const res = await fetch(`${backendUrl}/api/user/affiliate/earnings`, {
+        const res = await fetch(`${backendUrl}/api/users/affiliate/earnings`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         });
         const data = await res.json();

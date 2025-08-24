@@ -14,7 +14,8 @@ import {
   getLeaderboard,
   getPaymentStatements,
   updateProfile,
-  getPurchaseHistory
+  getPurchaseHistory,
+  resetProfileEditRestriction
 } from "../controllers/userController.js";
 import upload from '../configs/multer.js';
 
@@ -42,5 +43,6 @@ userRouter.put('/update-profile', verify, upload.single('image'), updateProfile)
 userRouter.get('/:userId', verify, verifyAdmin, getUserById);
 userRouter.patch('/makeUserAdmin', verify, verifyAdmin, makeUserAdmin);
 userRouter.post('/make-sub-admin', verify, verifyAdmin, makeUserSubAdmin);
+userRouter.post('/reset-profile-edit-restriction', verify, verifyAdmin, resetProfileEditRestriction);
 
 export default userRouter;

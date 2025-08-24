@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema(
   {
@@ -29,6 +30,9 @@ const userSchema = new mongoose.Schema(
     kycStatus: { type: String, enum: ["unsubmitted", "pending", "verified", "rejected"], default: "unsubmitted" },
     phone: { type: String, default: "" },
     bio: { type: String, default: "", maxlength: 500 },
+    // Profile edit restriction
+    hasEditedProfile: { type: Boolean, default: false },
+    profileEditDate: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -100,16 +104,9 @@ userSchema.methods.processWithdrawalApproval = function(withdrawalAmount) {
     this.totalWithdrawn = Math.max(0, this.totalWithdrawn);
     this.pendingWithdrawals = Math.max(0, this.pendingWithdrawals);
     
-    console.log('✅ User balance updated successfully:', {
-      userId: this._id,
-      withdrawalAmount: amount,
-      newWithdrawableBalance: this.withdrawableBalance,
-      newTotalWithdrawn: this.totalWithdrawn,
-      newPendingWithdrawals: this.pendingWithdrawals
-    });
+
     
   } catch (error) {
-    console.error('❌ Error in processWithdrawalApproval:', error);
     throw error;
   }
 };
@@ -144,5 +141,54 @@ userSchema.statics.updateBalanceAfterPurchase = async function(userId, affiliate
   
   return withdrawableAmount;
 };
+
+// Pre-save middleware to hash password
+userSchema.pre('save', async function(next) {
+  if (this.isModified('password')) {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
+});
+
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    return false;
+  }
+};
+
+// Pre-save middleware to generate affiliate code
+userSchema.pre('save', async function(next) {
+  if (!this.affiliateCode) {
+    try {
+      let affiliateCode;
+      let isUnique = false;
+      let attempts = 0;
+      
+      while (!isUnique && attempts < 10) {
+        affiliateCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const existingUser = await this.constructor.findOne({ affiliateCode });
+        if (!existingUser) {
+          isUnique = true;
+        }
+        attempts++;
+      }
+      
+      if (isUnique) {
+        this.affiliateCode = affiliateCode;
+      }
+    } catch (error) {
+      // Continue without affiliate code if generation fails
+    }
+  }
+  next();
+});
 
 export default mongoose.model("User", userSchema);

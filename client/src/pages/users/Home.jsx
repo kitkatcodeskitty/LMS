@@ -1,10 +1,19 @@
 import React, { useContext, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext'
 import Hero from '../../components/users/Hero'
 import TestimonialsSection from '../../components/users/TestimonialsSection'
 import CallToAction from '../../components/users/CallToAction'
 import Footer from '../../components/users/Footer'
+import { 
+  getPackageStyling, 
+  getPackageBadge, 
+  getPackageBadgeColor, 
+  getPackageTitle, 
+  getPackageCourseCount, 
+  getPackageFeatures, 
+  getPackageEarningRange 
+} from '../../constants/packages'
 
 // Custom CSS for floating animations
 const floatingStyles = `
@@ -31,17 +40,39 @@ const floatingStyles = `
 `;
 
 const Home = () => {
-  const { allCourses } = useContext(AppContext);
+  const { allCourses, currency } = useContext(AppContext);
+  const navigate = useNavigate();
 
   const randomCourses = useMemo(() => {
     const shuffled = [...allCourses];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      [shuffled[i], shuffled[j]] = [shuffled[i], shuffled[j]];
     }
-    return shuffled.slice(0, 3);
+    // Filter out Prime package and only show 3 packages
+    return shuffled
+      .filter(course => course.packageType !== 'prime')
+      .slice(0, 3);
   }, [allCourses]);
-  
+
+  const sortedPackages = useMemo(() => {
+    // Sort courses to ensure Master is in the middle (position 2)
+    const sorted = [...randomCourses].sort((a, b) => {
+      // Define order: Elite (1st), Master (2nd - middle), Creator (3rd)
+      const getOrder = (packageType) => {
+        switch (packageType) {
+          case 'elite': return 1;
+          case 'master': return 2; // Master in the middle like Supreme used to be
+          case 'creator': return 3;
+          default: return 4;
+        }
+      };
+      
+      return getOrder(a.packageType) - getOrder(b.packageType);
+    });
+    return sorted;
+  }, [randomCourses]);
+
   return (
     <div className='relative flex flex-col items-center text-center overflow-hidden'>
       {/* Inject custom CSS for floating animations */}
@@ -101,217 +132,116 @@ const Home = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
-            {(() => {
-              // Sort courses to ensure Supreme is in the middle
-              const sortedCourses = [...randomCourses].sort((a, b) => {
-                // Define order: Premium (1st), Supreme (2nd/middle), Elite (3rd)
-                const getOrder = (packageType) => {
-                  switch (packageType) {
-                    case 'premium': return 1;
-                    case 'supreme': return 2;
-                    case 'elite': return 3;
-                    default: return 4;
-                  }
-                };
-                
-                return getOrder(a.packageType) - getOrder(b.packageType);
-              });
+          {/* Packages Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            {sortedPackages.map((course, index) => {
+              const isMaster = course.packageType === 'master';
+              return (
+                <div
+                  key={course._id}
+                  className={`relative overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+                    isMaster 
+                      ? 'lg:scale-110 z-20 ring-2 ring-yellow-400/50 shadow-2xl bg-gradient-to-br from-yellow-50 to-orange-50' 
+                      : 'bg-white hover:shadow-xl'
+                  } ${getPackageStyling(course.packageType)}`}
+                >
+                  {/* Package Badge */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      isMaster 
+                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg' 
+                        : getPackageBadgeColor(course.packageType)
+                    }`}>
+                      {isMaster ? '⭐ PREMIUM' : getPackageBadge(course.packageType)}
+                    </span>
+                  </div>
 
-              return sortedCourses.map((course, index) => {
-                // Get package styling based on package type
-                const getPackageStyling = () => {
-                  switch (course.packageType) {
-                    case 'supreme':
-                      return {
-                        cardClass: "bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 rounded-3xl p-8 text-white hover:transform hover:scale-105 transition-all duration-500 relative transform scale-105 shadow-2xl shadow-purple-500/40 border border-purple-400/20 backdrop-blur-sm h-full flex flex-col",
-                        iconClass: "w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg",
-                        iconSize: "w-10 h-10",
-                        titleClass: "text-3xl font-bold mb-4",
-                        featureClass: "space-y-4 flex-grow",
-                        checkmarkClass: "w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-sm flex-shrink-0",
-                        checkmarkSize: "w-3 h-3",
-                        textClass: "text-white/90 text-sm leading-relaxed",
-                        buttonClass: "w-full mt-8 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 py-4 px-8 rounded-2xl font-bold text-base transition-all duration-300 flex items-center justify-center space-x-2 group shadow-lg transform hover:scale-105",
-                        badge: "MOST POPULAR",
-                        badgeClass: "absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-6 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse"
-                      };
-                    case 'elite':
-                      return {
-                        cardClass: "bg-gradient-to-br from-white to-gray-50 rounded-3xl p-8 hover:transform hover:scale-105 transition-all duration-500 border-2 border-rose-200 shadow-xl shadow-rose-500/15 hover:shadow-2xl hover:shadow-rose-500/25 h-full flex flex-col",
-                        iconClass: "w-20 h-20 bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm",
-                        iconSize: "w-10 h-10",
-                        titleClass: "text-3xl font-bold text-gray-900 mb-4",
-                        featureClass: "space-y-4 flex-grow",
-                        checkmarkClass: "w-5 h-5 bg-gradient-to-r from-rose-500 to-pink-600 rounded-full flex items-center justify-center shadow-sm flex-shrink-0",
-                        checkmarkSize: "w-3 h-3",
-                        textClass: "text-gray-700 text-sm leading-relaxed",
-                        buttonClass: "w-full mt-8 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white py-4 px-8 rounded-2xl font-bold text-base transition-all duration-300 flex items-center justify-center space-x-2 group shadow-lg transform hover:scale-105",
-                        badge: null,
-                        badgeClass: null
-                      };
-                    case 'premium':
-                    default:
-                      return {
-                        cardClass: "bg-gradient-to-br from-white to-gray-50 rounded-3xl p-8 hover:transform hover:scale-105 transition-all duration-500 border border-gray-200 shadow-xl shadow-gray-500/15 hover:shadow-2xl hover:shadow-gray-500/25 h-full flex flex-col",
-                        iconClass: "w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm",
-                        iconSize: "w-10 h-10",
-                        titleClass: "text-3xl font-bold text-gray-900 mb-4",
-                        featureClass: "space-y-4 flex-grow",
-                        checkmarkClass: "w-5 h-5 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-sm flex-shrink-0",
-                        checkmarkSize: "w-3 h-3",
-                        textClass: "text-gray-700 text-sm leading-relaxed",
-                        buttonClass: "w-full mt-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-8 rounded-2xl font-bold text-base transition-all duration-300 flex items-center justify-center space-x-2 group shadow-lg transform hover:scale-105",
-                        badge: null,
-                        badgeClass: null
-                      };
-                  }
-                };
+                  {/* Premium Glow Effect for Master */}
+                  {isMaster && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-orange-500/10 to-red-500/10 rounded-2xl"></div>
+                  )}
 
-                const packageStyle = getPackageStyling();
-
-                return (
-                  <div key={course._id || index} className={packageStyle.cardClass}>
-                    {/* Package Badge */}
-                    {packageStyle.badge && (
-                      <div className={packageStyle.badgeClass}>
-                        {packageStyle.badge}
+                  {/* Package Image */}
+                  <div className={`relative overflow-hidden ${isMaster ? 'h-56' : 'h-48'}`}>
+                    {course.courseThumbnail ? (
+                      <img
+                        src={course.courseThumbnail}
+                        alt={course.courseTitle}
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                      />
+                    ) : (
+                      <div className={`w-full h-full bg-gradient-to-br ${
+                        isMaster 
+                          ? 'from-yellow-400 via-orange-500 to-red-500' 
+                          : 'from-blue-400 to-purple-600'
+                      } flex items-center justify-center`}>
+                        <span className="text-white text-4xl font-bold">
+                          {isMaster ? '👑' : '📚'}
+                        </span>
                       </div>
                     )}
                     
-                    <div className="text-center mb-6">
-                      <div className={packageStyle.iconClass}>
-                        {course.packageType === 'supreme' ? (
-                          // Crown with diamonds for Supreme
-                          <svg className={`${packageStyle.iconSize} text-white`} fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M5 16L3 10L5.5 12L12 4L18.5 12L21 10L19 16H5Z" />
-                            <circle cx="12" cy="8" r="1.5" />
-                            <circle cx="8" cy="10" r="1" />
-                            <circle cx="16" cy="10" r="1" />
-                            <path d="M5 16H19V18H5V16Z" />
-                          </svg>
-                        ) : course.packageType === 'elite' ? (
-                          // Trophy for Elite
-                          <svg className={`${packageStyle.iconSize} text-gray-600`} fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20C20.55 4 21 4.45 21 5S20.55 6 20 6H19V10C19 13.31 16.31 16 13 16H11C7.69 16 5 13.31 5 10V6H4C3.45 6 3 5.55 3 5S3.45 4 4 4H7ZM9 3V4H15V3H9ZM17 6H7V10C7 12.21 8.79 14 11 14H13C15.21 14 17 12.21 17 10V6Z" />
-                            <path d="M10 18H14V20H16V22H8V20H10V18Z" />
-                            <circle cx="12" cy="9" r="2" />
-                          </svg>
-                        ) : (
-                          // Medal for Premium
-                          <svg className={`${packageStyle.iconSize} text-gray-600`} fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
-                            <path d="M7 18L9 22L12 20L15 22L17 18L12 16L7 18Z" />
-                            <circle cx="12" cy="9" r="3" stroke="currentColor" strokeWidth="1" fill="none" />
-                            <path d="M12 7L12.5 8.5L14 9L12.5 9.5L12 11L11.5 9.5L10 9L11.5 8.5L12 7Z" />
-                          </svg>
-                        )}
-                      </div>
-                      <h3 className={packageStyle.titleClass}>
-                        {course.packageType === 'supreme' ? 'Supreme Package' : 
-                         course.packageType === 'elite' ? 'Elite Package' : 'Premium Package'}
+                    {/* Package Type Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-4 left-4 text-white">
+                      <h3 className={`font-bold mb-1 ${
+                        isMaster ? 'text-xl' : 'text-lg'
+                      }`}>
+                        {getPackageTitle(course.packageType)}
                       </h3>
-                      <div className="mb-6">
-                        {course.packageType === 'supreme' ? (
-                          <div className="text-center">
-                            <div className="text-3xl font-bold text-yellow-400 mb-1">₹{course.coursePrice}</div>
-                            <div className="text-white/70 text-sm">Best Value for Money</div>
-                          </div>
-                        ) : course.packageType === 'elite' ? (
-                          <div className="text-center">
-                            <div className="text-3xl font-bold text-rose-600 mb-1">₹{course.coursePrice}</div>
-                            <div className="text-gray-500 text-sm">Perfect for Professionals</div>
-                          </div>
-                        ) : (
-                          <div className="text-center">
-                            <div className="text-3xl font-bold text-green-600 mb-1">₹{course.coursePrice}</div>
-                            <div className="text-gray-500 text-sm">Great for Beginners</div>
-                          </div>
-                        )}
-                      </div>
+                      <p className="text-sm opacity-90">{getPackageCourseCount(course.packageType)}</p>
                     </div>
-                    
-                    <div className={packageStyle.featureClass}>
-                      <div className="flex items-start space-x-3">
-                        <div className={packageStyle.checkmarkClass}>
-                          <svg className={`${packageStyle.checkmarkSize} text-white`} fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className={packageStyle.textClass}>
-                          {course.packageType === 'supreme' ? '15+ Premium Courses & Masterclasses' :
-                           course.packageType === 'elite' ? '4 Expert-Led Specialized Courses' : '8 Essential Foundation Courses'}
-                        </span>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <div className={packageStyle.checkmarkClass}>
-                          <svg className={`${packageStyle.checkmarkSize} text-white`} fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className={packageStyle.textClass}>Industry-Recognized Certificates</span>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <div className={packageStyle.checkmarkClass}>
-                          <svg className={`${packageStyle.checkmarkSize} text-white`} fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className={packageStyle.textClass}>Lifetime Access to Learning Platform</span>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <div className={packageStyle.checkmarkClass}>
-                          <svg className={`${packageStyle.checkmarkSize} text-white`} fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className={packageStyle.textClass}>
-                          {course.packageType === 'supreme' ? 'Earn ₹50L to ₹1Cr+ Annually' :
-                           course.packageType === 'elite' ? 'Earn ₹10L to ₹15L+ Annually' : 'Earn ₹20L to ₹25L+ Annually'}
-                        </span>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <div className={packageStyle.checkmarkClass}>
-                          <svg className={`${packageStyle.checkmarkSize} text-white`} fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className={packageStyle.textClass}>24/7 Premium Support & Mentorship</span>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <div className={packageStyle.checkmarkClass}>
-                          <svg className={`${packageStyle.checkmarkSize} text-white`} fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className={packageStyle.textClass}>Expert Coaching & Personal Guidance</span>
-                      </div>
-                      {course.packageType === 'premium' && (
-                        <div className="flex items-start space-x-3">
-                          <div className={packageStyle.checkmarkClass}>
-                            <svg className={`${packageStyle.checkmarkSize} text-white`} fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <span className={packageStyle.textClass}>2 Exclusive Bonus Resources</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <Link
-                      to={`/package/${course._id}`}
-                      onClick={() => window.scrollTo(0, 0)}
-                      className={packageStyle.buttonClass}
-                    >
-                      <span>Enroll</span>
-                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
                   </div>
-                );
-              });
-            })()}
+
+                  {/* Package Content */}
+                  <div className={`p-6 bg-white ${isMaster ? 'min-h-[320px]' : 'min-h-[280px]'} flex flex-col justify-between`}>
+                    {/* Price */}
+                    <div className="text-center mb-4">
+                      <div className={`font-bold text-gray-900 mb-1 ${
+                        isMaster ? 'text-4xl text-yellow-600' : 'text-3xl'
+                      }`}>
+                        {currency}{Math.round(course.coursePrice)}
+                      </div>
+                      <p className="text-sm text-gray-600">One-time payment</p>
+                    </div>
+
+                    {/* Features */}
+                    <ul className="space-y-3 mb-6 flex-grow">
+                      {getPackageFeatures(course.packageType).map((feature, idx) => (
+                        <li key={idx} className="flex items-start space-x-3">
+                          <span className={`mt-0.5 ${
+                            isMaster ? 'text-yellow-500' : 'text-green-500'
+                          }`}>
+                            {isMaster ? '👑' : '✓'}
+                          </span>
+                          <span className="text-sm text-gray-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* CTA Button */}
+                    <button
+                      onClick={() => navigate(`/package/${course._id}`)}
+                      className={`w-full text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
+                        isMaster
+                          ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 shadow-lg hover:shadow-xl'
+                          : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                      }`}
+                    >
+                      {isMaster ? 'Get Premium Access' : 'Get Started'}
+                    </button>
+                  </div>
+
+                  {/* Special Premium Effects for Master */}
+                  {isMaster && (
+                    <>
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-pulse shadow-lg"></div>
+                      <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-full animate-pulse delay-1000 shadow-lg"></div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

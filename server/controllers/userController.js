@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import User from "../models/User.js";
 
@@ -33,30 +32,15 @@ export const register = async (req, res) => {
       imageUrl = uploadedImage.secure_url;
     }
 
-    const hashedPassword = bcrypt.hashSync(password, 10);
-
     const newUser = new User({
       firstName,
       lastName,
       email,
-      password: hashedPassword,
+      password, // Will be hashed by pre-save middleware
       imageUrl,
     });
 
-    // Generate a unique affiliate code upon registration
-    const generateAffiliateCode = async () => {
-      const length = 8;
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      const make = () => Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-      for (let i = 0; i < 5; i++) {
-        const candidate = make();
-        const exists = await User.findOne({ affiliateCode: candidate });
-        if (!exists) return candidate;
-      }
-      return make();
-    };
 
-    newUser.affiliateCode = await generateAffiliateCode();
 
     await newUser.save();
 
@@ -79,7 +63,7 @@ export const login = async (req, res) => {
 
     if (!user) return res.status(401).json({ success: false, message: "Invalid credentials" });
 
-    const passwordMatch = bcrypt.compareSync(password, user.password);
+    const passwordMatch = await user.comparePassword(password);
     if (!passwordMatch) return res.status(401).json({ success: false, message: "Invalid credentials" });
 
     const token = createAccessToken(user);
@@ -184,10 +168,9 @@ export const updateUser = async (req, res) => {
       updateData.isSubAdmin = false;
     }
 
-    // Hash password if provided
+    // Password will be hashed by pre-save middleware if provided
     if (password && password.trim()) {
-      const salt = await bcrypt.genSalt(10);
-      updateData.password = await bcrypt.hash(password.trim(), salt);
+      updateData.password = password.trim();
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -202,7 +185,6 @@ export const updateUser = async (req, res) => {
 
     res.json({ success: true, data: updatedUser });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -234,7 +216,7 @@ export const resetPassword = async (req, res) => {
 
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    user.password = bcrypt.hashSync(newPassword, 10);
+    user.password = newPassword; // Will be hashed by pre-save middleware
     await user.save();
 
     res.json({ message: "Password reset successful" });
@@ -295,7 +277,6 @@ export const getUserPurchasedCourses = async (req, res) => {
       purchasedCourses: purchasedCourses,
     });
   } catch (error) {
-    console.error("Error fetching purchased courses:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Server error while fetching purchased courses",
@@ -458,12 +439,21 @@ export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     
-    // Debug logging
-    console.log('Update Profile Request:', {
-      body: req.body,
-      file: req.file,
-      userId: userId
-    });
+    // Check if user has already edited their profile once
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // If user has already edited profile once, prevent further edits
+    if (user.hasEditedProfile) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Profile can only be edited once. Please contact an administrator for any further changes.",
+        hasEditedProfile: true,
+        profileEditDate: user.profileEditDate
+      });
+    }
     
     // Handle both text fields and file uploads
     const updateData = {};
@@ -482,19 +472,14 @@ export const updateProfile = async (req, res) => {
     
     // Handle password update if provided
     if (req.body.currentPassword && req.body.newPassword) {
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ success: false, message: "User not found" });
-      }
-      
       // Verify current password
-      const isPasswordValid = bcrypt.compareSync(req.body.currentPassword, user.password);
+      const isPasswordValid = await user.comparePassword(req.body.currentPassword);
       if (!isPasswordValid) {
         return res.status(400).json({ success: false, message: "Current password is incorrect" });
       }
       
-      // Hash new password
-      updateData.password = bcrypt.hashSync(req.body.newPassword, 10);
+      // New password will be hashed by pre-save middleware
+      updateData.password = req.body.newPassword;
     }
     
     // Handle profile image upload if provided
@@ -503,7 +488,6 @@ export const updateProfile = async (req, res) => {
         const uploadedImage = await cloudinary.uploader.upload(req.file.path);
         updateData.imageUrl = uploadedImage.secure_url;
       } catch (uploadError) {
-        console.error('Image upload error:', uploadError);
         return res.status(500).json({ success: false, message: "Failed to upload image" });
       }
     }
@@ -512,6 +496,10 @@ export const updateProfile = async (req, res) => {
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ success: false, message: "No fields to update" });
     }
+
+    // Mark that profile has been edited and set the edit date
+    updateData.hasEditedProfile = true;
+    updateData.profileEditDate = new Date();
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -523,9 +511,44 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    res.json({ success: true, data: updatedUser, message: "Profile updated successfully" });
+    res.json({ 
+      success: true, 
+      data: updatedUser, 
+      message: "Profile updated successfully. Note: Profile can only be edited once. Contact an administrator for any further changes." 
+    });
   } catch (error) {
-    console.error('Profile update error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Reset profile edit restriction (Admin only)
+export const resetProfileEditRestriction = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Reset the profile edit restriction
+    user.hasEditedProfile = false;
+    user.profileEditDate = null;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: "Profile edit restriction has been reset for this user",
+      data: {
+        hasEditedProfile: user.hasEditedProfile,
+        profileEditDate: user.profileEditDate
+      }
+    });
+  } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -243,7 +243,7 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
 
       const token = await getToken()
       const { data } = await axios.put(
-        `${backendUrl}/api/course/update-course/${course._id}`,
+        `${backendUrl}/api/courses/update-course/${course._id}`,
         formData,
         {
           headers: {

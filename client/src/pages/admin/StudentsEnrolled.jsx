@@ -261,7 +261,7 @@ const StudentEnrollment = () => {
       }
       
       const { data } = await axios.put(
-        `${backendUrl}/api/user/update/${editingUserId}`,
+        `${backendUrl}/api/users/update/${editingUserId}`,
         updateData,
         {
           headers: { Authorization: `Bearer ${token}` },
