@@ -501,19 +501,19 @@ export const updateProfile = async (req, res) => {
     updateData.hasEditedProfile = true;
     updateData.profileEditDate = new Date();
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      updateData,
-      { new: true, runValidators: true }
-    ).select('-password');
+    // Apply updates to user object
+    Object.assign(user, updateData);
+    
+    // Save the user to trigger pre-save middleware (including password hashing)
+    const updatedUser = await user.save();
 
-    if (!updatedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+    // Remove password from response
+    const userResponse = updatedUser.toObject();
+    delete userResponse.password;
 
     res.json({ 
       success: true, 
-      data: updatedUser, 
+      data: userResponse, 
       message: "Profile updated successfully. Note: Profile can only be edited once. Contact an administrator for any further changes." 
     });
   } catch (error) {

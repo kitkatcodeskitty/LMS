@@ -98,7 +98,7 @@ const WithdrawalEditForm = ({
     setIsSubmitting(true);
     try {
       const submitData = {
-        amount: parseFloat(formData.amount)
+        amount: parseInt(formData.amount, 10)
       };
 
       // Add payment method specific details
@@ -188,7 +188,7 @@ const WithdrawalEditForm = ({
             onChange={(e) => handleInputChange('amount', e.target.value)}
             error={errors.amount}
             min="1"
-            step="0.01"
+            step="1"
             required
             placeholder="Enter withdrawal amount"
           />

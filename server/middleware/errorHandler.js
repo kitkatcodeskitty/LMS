@@ -215,7 +215,7 @@ export const requestLogger = (req, res, next) => {
       
       // Only log withdrawal-related requests
       if (req.url.includes('/withdrawal') || req.url.includes('/admin/withdrawal')) {
-        console.log('📝 Withdrawal Request:', logData);
+        // Log withdrawal request data for debugging
       }
     });
   }

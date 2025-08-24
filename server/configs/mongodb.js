@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 // connect to mgdb 
 const connectDB = async () => {
     mongoose.connection.on('connected', () => {
-        console.log("database is connected")
+        console.log("Connected to MongoDB")
     })
 
     await mongoose.connect(`${process.env.MONGODB_URI}`);

@@ -64,9 +64,27 @@ export const adminDashboardData = async (req, res) => {
     const courses = await Course.find({ admin: adminId });
     const totalCourses = courses.length;
 
-    const enrolledStudentsData = [];
-    let totalEarnings = 0;
+    // If no courses found, return empty dashboard
+    if (totalCourses === 0) {
+      return res.json({
+        success: true,
+        dashboardData: {
+          totalCourses: 0,
+          totalRevenue: '0',
+          totalProfit: '0',
+          totalAffiliateOutflow: '0',
+          profitPercentage: '0%',
+          affiliatePercentage: '0%',
+          enrolledStudentsData: []
+        }
+      });
+    }
 
+    const enrolledStudentsData = [];
+    let totalRevenue = 0;
+    let totalAffiliateOutflow = 0;
+
+    // First, check validated courses in Cart
     for (const course of courses) {
       const cartsWithCourse = await Cart.find({
         "courses.course._id": course._id,
@@ -79,23 +97,82 @@ export const adminDashboardData = async (req, res) => {
         );
 
         if (validatedCourse) {
+          const courseRevenue = validatedCourse.course.coursePrice;
+          totalRevenue += courseRevenue;
+          
+          // Calculate affiliate outflow if referral code was used
+          if (validatedCourse.referralCode) {
+            const affiliateAmount = courseRevenue * 0.6; // 60% commission
+            totalAffiliateOutflow += affiliateAmount;
+          }
+
           enrolledStudentsData.push({
             courseTitle: course.courseTitle,
             student: cart.user,
             referralCode: validatedCourse.referralCode || null,
             transactionId: validatedCourse.transactionId,
-            paymentScreenshot: validatedCourse.paymentScreenshot
+            paymentScreenshot: validatedCourse.paymentScreenshot,
+            revenue: courseRevenue,
+            affiliateOutflow: validatedCourse.referralCode ? courseRevenue * 0.6 : 0
           });
-          totalEarnings += validatedCourse.course.coursePrice;
         }
       });
     }
+
+    // Also check completed purchases in Purchase collection
+    const completedPurchases = await Purchase.find({
+      courseId: { $in: courses.map(c => c._id) }
+      // Note: Purchase model doesn't have status field, so we'll get all purchases
+    });
+
+    completedPurchases.forEach(purchase => {
+      const course = courses.find(c => c._id.toString() === purchase.courseId.toString());
+      
+      if (course) {
+        const courseRevenue = purchase.amount || course.coursePrice;
+        totalRevenue += courseRevenue;
+        
+        // Calculate affiliate outflow if referral code was used
+        if (purchase.referralCode || purchase.referrerId) {
+          const affiliateAmount = courseRevenue * 0.6; // 60% commission
+          totalAffiliateOutflow += affiliateAmount;
+        }
+
+        // Add to enrolled students if not already added
+        const existingStudent = enrolledStudentsData.find(
+          student => student.student._id.toString() === purchase.userId.toString()
+        );
+        
+        if (!existingStudent) {
+          enrolledStudentsData.push({
+            courseTitle: course.courseTitle,
+            student: { _id: purchase.userId },
+            referralCode: purchase.referralCode || null,
+            transactionId: purchase.transactionId,
+            paymentScreenshot: purchase.paymentScreenshot,
+            revenue: courseRevenue,
+            affiliateOutflow: (purchase.referralCode || purchase.referrerId) ? courseRevenue * 0.6 : 0
+          });
+        }
+      }
+    });
+
+    // Calculate profit (revenue - affiliate outflow)
+    const totalProfit = totalRevenue - totalAffiliateOutflow;
+    
+    // Calculate percentages
+    const profitPercentage = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(2) : 0;
+    const affiliatePercentage = totalRevenue > 0 ? ((totalAffiliateOutflow / totalRevenue) * 100).toFixed(2) : 0;
 
     res.json({
       success: true,
       dashboardData: {
         totalCourses,
-        totalEarnings,
+        totalRevenue: Math.round(totalRevenue).toString(),
+        totalProfit: Math.round(totalProfit).toString(),
+        totalAffiliateOutflow: Math.round(totalAffiliateOutflow).toString(),
+        profitPercentage: `${profitPercentage}%`,
+        affiliatePercentage: `${affiliatePercentage}%`,
         enrolledStudentsData
       }
     });
@@ -133,7 +210,7 @@ export const getAllEnrolledStudents = async (req, res) => {
   try {
     // Get all purchases with user and course details
     const purchases = await Purchase.find()
-      .populate('userId', 'firstName lastName email affiliateCode affiliateEarnings isAdmin imageUrl referredBy')
+      .populate('userId', 'firstName lastName email affiliateCode affiliateEarnings isAdmin imageUrl referredBy dailyEarnings weeklyEarnings monthlyEarnings lifetimeEarnings withdrawableBalance totalWithdrawn pendingWithdrawals currentBalance')
       .populate('courseId', 'courseTitle coursePrice')
       .populate('referrerId', 'firstName lastName email affiliateCode');
 
@@ -236,6 +313,7 @@ export const makeUserAdmin = async (req, res) => {
 
     // Update user to admin
     user.isAdmin = true;
+    user.role = 'admin';
     await user.save();
 
     res.json({
@@ -274,7 +352,7 @@ export const setAffiliateAmount = async (req, res) => {
     try {
       // Calculate the difference in withdrawable amounts
       const oldWithdrawableAmount = currentPurchase.withdrawableAmount || 0;
-      const newCommissionRate = commissionRate !== undefined ? Number(commissionRate) : (currentPurchase.commissionRate || 0.5);
+      const newCommissionRate = commissionRate !== undefined ? Number(commissionRate) : (currentPurchase.commissionRate || 0.6);
       const newWithdrawableAmount = amountNum; // Full affiliate amount is withdrawable
       const withdrawableAmountDifference = newWithdrawableAmount - oldWithdrawableAmount;
 
@@ -304,6 +382,14 @@ export const setAffiliateAmount = async (req, res) => {
           referrer.affiliateEarnings += affiliateAmountDifference;
           referrer.withdrawableBalance += withdrawableAmountDifference;
           await referrer.save({ session });
+
+          // Update earnings fields for the referrer
+          try {
+            const { updateUserEarningsFields } = await import('../utils/balanceHelpers.js');
+            await updateUserEarningsFields(referrer._id, 0); // 0 means just recalculate existing data
+          } catch (error) {
+            console.error('Error updating earnings fields:', error);
+          }
         }
       }
 
@@ -493,10 +579,7 @@ export const approveWithdrawal = async (req, res) => {
     const adminId = req.user.id;
     const { transactionReference } = req.body;
 
-    console.log('🔍 Approving withdrawal:', { id, adminId, transactionReference });
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.log('❌ Invalid withdrawal ID:', id);
       return res.status(400).json({
         success: false,
         error: {
@@ -507,11 +590,9 @@ export const approveWithdrawal = async (req, res) => {
     }
 
     // Find withdrawal and populate user
-    console.log('🔍 Finding withdrawal with ID:', id);
     const withdrawal = await Withdrawal.findById(id).populate('userId');
     
     if (!withdrawal) {
-      console.log('❌ Withdrawal not found:', id);
       return res.status(404).json({
         success: false,
         error: {
@@ -521,15 +602,7 @@ export const approveWithdrawal = async (req, res) => {
       });
     }
 
-    console.log('✅ Withdrawal found:', {
-      id: withdrawal._id,
-      status: withdrawal.status,
-      amount: withdrawal.amount,
-      userId: withdrawal.userId?._id
-    });
-
     if (withdrawal.status !== 'pending') {
-      console.log('❌ Withdrawal already processed:', withdrawal.status);
       return res.status(400).json({
         success: false,
         error: {
@@ -542,7 +615,6 @@ export const approveWithdrawal = async (req, res) => {
     // Check if user has sufficient balance
     const user = withdrawal.userId;
     if (!user) {
-      console.log('❌ User not found for withdrawal:', id);
       return res.status(400).json({
         success: false,
         error: {
@@ -552,17 +624,7 @@ export const approveWithdrawal = async (req, res) => {
       });
     }
 
-    console.log('🔍 User balance check:', {
-      userId: user._id,
-      withdrawableBalance: user.withdrawableBalance,
-      withdrawalAmount: withdrawal.amount
-    });
-
     if (withdrawal.amount > user.withdrawableBalance) {
-      console.log('❌ Insufficient user balance:', {
-        required: withdrawal.amount,
-        available: user.withdrawableBalance
-      });
       return res.status(400).json({
         success: false,
         error: {
@@ -574,7 +636,6 @@ export const approveWithdrawal = async (req, res) => {
 
     // Validate withdrawal amount
     if (!withdrawal.amount || withdrawal.amount <= 0) {
-      console.log('❌ Invalid withdrawal amount:', withdrawal.amount);
       return res.status(400).json({
         success: false,
         error: {
@@ -586,11 +647,6 @@ export const approveWithdrawal = async (req, res) => {
 
     // Validate user balance fields
     if (typeof user.withdrawableBalance !== 'number' || typeof user.pendingWithdrawals !== 'number' || typeof user.totalWithdrawn !== 'number') {
-      console.log('❌ Invalid user balance fields:', {
-        withdrawableBalance: user.withdrawableBalance,
-        pendingWithdrawals: user.pendingWithdrawals,
-        totalWithdrawn: user.totalWithdrawn
-      });
       return res.status(400).json({
         success: false,
         error: {
@@ -601,13 +657,11 @@ export const approveWithdrawal = async (req, res) => {
     }
 
     // Start transaction
-    console.log('🔄 Starting database transaction...');
     let session;
     try {
       session = await mongoose.startSession();
       session.startTransaction();
     } catch (sessionError) {
-      console.error('❌ Error starting database session:', sessionError);
       return res.status(500).json({
         success: false,
         error: {
@@ -620,7 +674,6 @@ export const approveWithdrawal = async (req, res) => {
 
     try {
       // Update withdrawal status
-      console.log('📝 Updating withdrawal status to approved...');
       withdrawal.status = 'approved';
       withdrawal.processedBy = adminId;
       withdrawal.processedAt = new Date();
@@ -635,73 +688,42 @@ export const approveWithdrawal = async (req, res) => {
       
       // Save withdrawal with session
       const savedWithdrawal = await withdrawal.save({ session });
-      console.log('✅ Withdrawal saved successfully:', savedWithdrawal._id);
 
       // Update user balance
-      console.log('💰 Processing user balance update...');
       try {
         user.processWithdrawalApproval(withdrawal.amount);
       } catch (balanceError) {
-        console.error('❌ Error in processWithdrawalApproval:', balanceError);
         throw new Error(`Failed to update user balance: ${balanceError.message}`);
       }
       
       const savedUser = await user.save({ session });
-      console.log('✅ User balance updated successfully:', {
-        newWithdrawableBalance: savedUser.withdrawableBalance,
-        newTotalWithdrawn: savedUser.totalWithdrawn,
-        newPendingWithdrawals: savedUser.pendingWithdrawals
-      });
 
-      console.log('✅ Committing transaction...');
       await session.commitTransaction();
-      console.log('✅ Transaction committed successfully');
 
       // Send approval notifications (outside transaction to avoid blocking)
       try {
-        console.log('📱 Sending in-app notification...');
         await notifyWithdrawalApproved(withdrawal.userId._id, withdrawal.amount, withdrawal.transactionReference);
-        console.log('✅ In-app notification sent successfully');
       } catch (notifError) {
-        console.log('⚠️ Error sending in-app notification:', notifError.message);
-        console.log('⚠️ Notification error details:', {
-          name: notifError.name,
-          code: notifError.code,
-          stack: notifError.stack
-        });
         // Don't fail the whole operation for notification errors
       }
       
       // Send email notification
       try {
-        console.log('📧 Sending email notification...');
         await sendWithdrawalEmailNotification(withdrawal.userId.email, 'approved', {
           amount: withdrawal.amount,
           transactionReference: withdrawal.transactionReference,
           withdrawalId: withdrawal._id
         });
-        console.log('✅ Email notification sent successfully');
       } catch (emailError) {
-        console.log('⚠️ Error sending email notification:', emailError.message);
-        console.log('⚠️ Email error details:', {
-          name: emailError.name,
-          code: emailError.code,
-          stack: emailError.stack
-        });
         // Don't fail the whole operation for email errors
       }
 
       // Populate admin details for response
-      console.log('👤 Populating admin details...');
       try {
         await withdrawal.populate('processedBy', 'firstName lastName');
-        console.log('✅ Admin details populated successfully');
       } catch (populateError) {
-        console.log('⚠️ Error populating admin details:', populateError.message);
         // Continue without populated admin details
       }
-
-      console.log('✅ Withdrawal approved successfully!');
       
       // Prepare response data with fallbacks
       const responseData = {
@@ -723,8 +745,6 @@ export const approveWithdrawal = async (req, res) => {
         }
       };
       
-      console.log('📤 Sending response:', responseData);
-      
       res.status(200).json({
         success: true,
         message: "Withdrawal approved successfully",
@@ -732,15 +752,11 @@ export const approveWithdrawal = async (req, res) => {
       });
 
     } catch (error) {
-      console.log('❌ Error during transaction:', error);
-      console.log('Error stack:', error.stack);
-      
       if (session) {
         try {
           await session.abortTransaction();
-          console.log('✅ Transaction aborted successfully');
         } catch (abortError) {
-          console.error('❌ Error aborting transaction:', abortError);
+          // Ignore abort errors
         }
       }
       
@@ -749,17 +765,13 @@ export const approveWithdrawal = async (req, res) => {
       if (session) {
         try {
           session.endSession();
-          console.log('✅ Session ended successfully');
         } catch (endError) {
-          console.error('❌ Error ending session:', endError);
+          // Ignore end session errors
         }
       }
     }
 
   } catch (error) {
-    console.error('❌ Error approving withdrawal:', error);
-    console.error('Error stack:', error.stack);
-    
     // Handle specific database errors
     let errorMessage = "An error occurred while approving withdrawal";
     let errorCode = "INTERNAL_SERVER_ERROR";
@@ -768,22 +780,18 @@ export const approveWithdrawal = async (req, res) => {
       // Duplicate key error
       errorCode = "DUPLICATE_KEY_ERROR";
       errorMessage = "A duplicate key error occurred. Please try again.";
-      console.error('❌ Duplicate key error:', error.keyPattern);
     } else if (error.name === 'ValidationError') {
       // Mongoose validation error
       errorCode = "VALIDATION_ERROR";
       errorMessage = "Validation error: " + Object.values(error.errors).map(e => e.message).join(', ');
-      console.error('❌ Validation error:', error.errors);
     } else if (error.name === 'CastError') {
       // Mongoose cast error (invalid ObjectId, etc.)
       errorCode = "CAST_ERROR";
       errorMessage = "Invalid data format provided";
-      console.error('❌ Cast error:', error.message);
     } else if (error.name === 'MongoError') {
       // MongoDB specific errors
       errorCode = "MONGO_ERROR";
       errorMessage = "Database error: " + error.message;
-      console.error('❌ MongoDB error:', error);
     }
     
     // Send more detailed error response
@@ -969,7 +977,8 @@ export const editWithdrawal = async (req, res) => {
 
       // Handle amount change
       if (amount !== undefined && amount !== withdrawal.amount) {
-        if (typeof amount !== 'number' || amount <= 0) {
+        const roundedAmount = Math.round(Number(amount));
+        if (typeof roundedAmount !== 'number' || roundedAmount <= 0) {
           return res.status(400).json({
             success: false,
             error: {
@@ -980,7 +989,7 @@ export const editWithdrawal = async (req, res) => {
         }
 
         // Calculate balance impact
-        const balanceChange = amount - withdrawal.amount;
+        const balanceChange = roundedAmount - withdrawal.amount;
         const newAvailableBalance = user.getAvailableBalance() - balanceChange;
 
         if (newAvailableBalance < 0) {
@@ -990,7 +999,7 @@ export const editWithdrawal = async (req, res) => {
               code: "INSUFFICIENT_BALANCE",
               message: "Edited amount would exceed user's available balance",
               details: {
-                requestedAmount: amount,
+                requestedAmount: roundedAmount,
                 currentAmount: withdrawal.amount,
                 availableBalance: user.getAvailableBalance()
               }
@@ -1000,8 +1009,8 @@ export const editWithdrawal = async (req, res) => {
 
         // Update user's pending withdrawals
         user.pendingWithdrawals += balanceChange;
-        changes.amount = amount;
-        withdrawal.amount = amount;
+        changes.amount = roundedAmount;
+        withdrawal.amount = roundedAmount;
       }
 
       // Handle payment details changes
@@ -1115,6 +1124,39 @@ export const editWithdrawal = async (req, res) => {
         code: "INTERNAL_SERVER_ERROR",
         message: "An error occurred while editing withdrawal"
       }
+    });
+  }
+};
+
+// Sync all users' earnings fields
+export const syncAllUsersEarnings = async (req, res) => {
+  try {
+    const adminId = req.user.id;
+    
+    // Verify admin permissions
+    const admin = await User.findById(adminId);
+    if (!admin || !admin.isAdmin) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Access denied. Admin privileges required.' 
+      });
+    }
+
+    // Import the helper function
+    const { syncAllUsersEarningsFields } = await import('../utils/balanceHelpers.js');
+    
+    const results = await syncAllUsersEarningsFields();
+
+    res.json({ 
+      success: true, 
+      message: 'Earnings sync completed successfully',
+      results 
+    });
+  } catch (error) {
+    console.error('Error syncing user earnings:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
     });
   }
 };

@@ -69,22 +69,14 @@ const KycReview = () => {
     setEditForm({
       fullName: kyc.fullName || '',
       dob: kyc.dob || '',
-      gender: kyc.gender || '',
-      nationality: kyc.nationality || '',
-      occupation: kyc.occupation || '',
-      maritalStatus: kyc.maritalStatus || '',
-      phoneNumber: kyc.phoneNumber || '',
-      alternatePhone: kyc.alternatePhone || '',
-      email: kyc.email || '',
       addressLine1: kyc.addressLine1 || '',
+      phoneNumber: kyc.phoneNumber || '',
       city: kyc.city || '',
       state: kyc.state || '',
       postalCode: kyc.postalCode || '',
       country: kyc.country || '',
       idType: kyc.idType || '',
       idNumber: kyc.idNumber || '',
-      documentIssueDate: kyc.documentIssueDate || '',
-      documentExpiryDate: kyc.documentExpiryDate || '',
       documentIssuingAuthority: kyc.documentIssuingAuthority || '',
       status: kyc.status || 'pending',
       remarks: kyc.remarks || ''
@@ -93,6 +85,13 @@ const KycReview = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate that editingKyc exists and has an _id
+    if (!editingKyc || !editingKyc._id) {
+      toast.error('KYC data is invalid. Please try editing again.');
+      return;
+    }
+    
     setUploading(true);
 
     try {
@@ -115,6 +114,8 @@ const KycReview = () => {
       if (idBackFile) formData.append('idBack', idBackFile);
       if (selfieFile) formData.append('selfie', selfieFile);
 
+
+
       const { data } = await axios.put(
         `${backendUrl}/api/kyc/${editingKyc._id}/update`,
         formData,
@@ -134,7 +135,14 @@ const KycReview = () => {
         toast.error(data.message || 'Failed to update KYC');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error updating KYC');
+      console.error('KYC Update Error:', error);
+      if (error.response?.status === 404) {
+        toast.error('KYC not found. Please refresh the page and try again.');
+      } else if (error.response?.status === 500) {
+        toast.error('Server error occurred. Please try again later.');
+      } else {
+        toast.error(error.response?.data?.message || error.message || 'Error updating KYC');
+      }
     } finally {
       setUploading(false);
     }
@@ -373,55 +381,7 @@ const KycReview = () => {
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                      <select
-                        name="gender"
-                        value={editForm.gender}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
-                      <input
-                        type="text"
-                        name="nationality"
-                        value={editForm.nationality}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
-                      <input
-                        type="text"
-                        name="occupation"
-                        value={editForm.occupation}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
-                      <select
-                        name="maritalStatus"
-                        value={editForm.maritalStatus}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select Status</option>
-                        <option value="single">Single</option>
-                        <option value="married">Married</option>
-                        <option value="divorced">Divorced</option>
-                        <option value="widowed">Widowed</option>
-                      </select>
-                    </div>
+
                   </div>
                 </div>
 
@@ -439,26 +399,7 @@ const KycReview = () => {
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Alternate Phone</label>
-                      <input
-                        type="tel"
-                        name="alternatePhone"
-                        value={editForm.alternatePhone}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={editForm.email}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+
                   </div>
                 </div>
 
@@ -548,26 +489,7 @@ const KycReview = () => {
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
-                      <input
-                        type="date"
-                        name="documentIssueDate"
-                        value={editForm.documentIssueDate}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                      <input
-                        type="date"
-                        name="documentExpiryDate"
-                        value={editForm.documentExpiryDate}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Authority</label>
                       <input

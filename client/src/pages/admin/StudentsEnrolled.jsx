@@ -17,6 +17,7 @@ const StudentEnrollment = () => {
 
   // Popup control state
   const [editingUserId, setEditingUserId] = useState(null)
+  const [currentEditingUser, setCurrentEditingUser] = useState(null)
   const [editForm, setEditForm] = useState({
     firstName: '',
     lastName: '',
@@ -27,7 +28,6 @@ const StudentEnrollment = () => {
     isAdmin: false,
     isSubAdmin: false,
     referredBy: '',
-    // New fields for comprehensive earnings management
     withdrawableBalance: 0,
     totalWithdrawn: 0,
     pendingWithdrawals: 0,
@@ -149,11 +149,14 @@ const StudentEnrollment = () => {
       monthlyEarnings: user.monthlyEarnings || 0,
       currentBalance: user.currentBalance || user.withdrawableBalance || 0
     })
+    // Store the user object for placeholders
+    setCurrentEditingUser(user)
   }
 
   // Close popup
   const cancelEditing = () => {
     setEditingUserId(null)
+    setCurrentEditingUser(null)
   }
 
   // Handle input changes inside popup
@@ -260,29 +263,82 @@ const StudentEnrollment = () => {
         delete updateData.password
       }
       
-      const { data } = await axios.put(
+      // Ensure all earnings fields are numbers
+      const earningsFields = [
+        'affiliateEarnings', 'withdrawableBalance', 'totalWithdrawn', 
+        'pendingWithdrawals', 'lifetimeEarnings', 'dailyEarnings', 
+        'weeklyEarnings', 'monthlyEarnings', 'currentBalance'
+      ]
+      
+      earningsFields.forEach(field => {
+        if (updateData[field] !== undefined && updateData[field] !== null) {
+          updateData[field] = Number(updateData[field]) || 0
+        }
+      })
+      
+             const { data } = await axios.put(
         `${backendUrl}/api/users/update/${editingUserId}`,
         updateData,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       )
-      if (data.success) {
+      
+             if (data.success) {
         toast.success('User updated successfully')
+        
+        // Update the local state with the new data
         setPurchases((prev) =>
           prev.map((purchase) =>
             purchase.userDetails?._id === editingUserId
-              ? { ...purchase, userDetails: data.data }
+              ? { 
+                  ...purchase, 
+                  userDetails: { 
+                    ...purchase.userDetails, 
+                    ...data.data 
+                  } 
+                }
               : purchase
           )
         )
+        
         setEditingUserId(null)
+        setCurrentEditingUser(null)
         setShowPassword(false)
       } else {
         toast.error(data.message || 'Failed to update user')
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error updating user')
+         } catch (error) {
+       toast.error(error.response?.data?.message || error.message || 'Error updating user')
+    }
+  }
+
+
+
+  // Sync all users' earnings data
+  const syncAllEarnings = async () => {
+    try {
+      const token = await getToken()
+      
+      toast.info('Syncing earnings data... This may take a moment.')
+      
+      const { data } = await axios.post(
+        `${backendUrl}/api/admin/sync-earnings`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      
+      if (data.success) {
+        toast.success(`Earnings sync completed! Updated ${data.results.updatedUsers} users.`)
+        
+
+      } else {
+        toast.error(data.message || 'Failed to sync earnings')
+      }
+         } catch (error) {
+       toast.error(error.response?.data?.message || error.message || 'Error syncing earnings')
     }
   }
 
@@ -313,6 +369,17 @@ const StudentEnrollment = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
+
+
+
+            {/* Sync Earnings Button */}
+            <button
+              onClick={syncAllEarnings}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm font-medium flex items-center gap-2"
+              title="Sync all users' earnings data"
+            >
+              🔄 Sync Earnings
+            </button>
 
             {/* Sort */}
             <select
@@ -1257,7 +1324,7 @@ const StudentEnrollment = () => {
                         min="0"
                         step="1"
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
+                        placeholder={`Current: ${currency}${currentEditingUser?.lifetimeEarnings || currentEditingUser?.affiliateEarnings || 0}`}
                       />
                     </div>
 
@@ -1273,7 +1340,7 @@ const StudentEnrollment = () => {
                         min="0"
                         step="1"
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
+                        placeholder={`Current: ${currency}${currentEditingUser?.dailyEarnings || 0}`}
                       />
                     </div>
 
@@ -1289,7 +1356,7 @@ const StudentEnrollment = () => {
                         min="0"
                         step="1"
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
+                        placeholder={`Current: ${currency}${currentEditingUser?.weeklyEarnings || 0}`}
                       />
                     </div>
 
@@ -1305,7 +1372,7 @@ const StudentEnrollment = () => {
                         min="0"
                         step="1"
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
+                        placeholder={`Current: ${currency}${currentEditingUser?.monthlyEarnings || 0}`}
                       />
                     </div>
 
@@ -1322,7 +1389,7 @@ const StudentEnrollment = () => {
                         min="0"
                         step="1"
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
+                        placeholder={`Current: ${currency}${currentEditingUser?.currentBalance || currentEditingUser?.withdrawableBalance || 0}`}
                       />
                     </div>
 
@@ -1338,7 +1405,7 @@ const StudentEnrollment = () => {
                         min="0"
                         step="1"
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
+                        placeholder={`Current: ${currency}${currentEditingUser?.withdrawableBalance || 0}`}
                       />
                     </div>
 
@@ -1354,7 +1421,7 @@ const StudentEnrollment = () => {
                         min="0"
                         step="1"
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
+                        placeholder={`Current: ${currency}${currentEditingUser?.totalWithdrawn || 0}`}
                       />
                     </div>
 
@@ -1370,7 +1437,7 @@ const StudentEnrollment = () => {
                         min="0"
                         step="1"
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
+                        placeholder={`Current: ${currency}${currentEditingUser?.pendingWithdrawals || 0}`}
                       />
                     </div>
                   </div>

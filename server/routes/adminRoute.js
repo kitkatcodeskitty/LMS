@@ -11,7 +11,8 @@ import {
   getAllWithdrawals,
   approveWithdrawal,
   rejectWithdrawal,
-  editWithdrawal
+  editWithdrawal,
+  syncAllUsersEarnings
 } from '../controllers/adminController.js';
 
 import { verify, verifyAdmin, verifyAdminOrSubAdmin } from "../auth.js";
@@ -21,7 +22,7 @@ const adminRouter = express.Router();
 
 
 adminRouter.post('/add-course', verify, verifyAdmin, upload.single('image'), addCourse);
-adminRouter.get('/dashboard', verify, verifyAdmin, adminDashboardData);
+adminRouter.get('/dashboard', verify, verifyAdminOrSubAdmin, adminDashboardData);
 adminRouter.get('/purchased-users', verify, verifyAdminOrSubAdmin, getAllPurchasesWithUserAndCourse);
 adminRouter.get('/enrolled-students', verify, verifyAdminOrSubAdmin, getAllEnrolledStudents);
 adminRouter.post('/make-user-admin', verify, verifyAdmin, makeUserAdmin);
@@ -33,5 +34,8 @@ adminRouter.get('/withdrawals/all', verify, verifyAdminOrSubAdmin, getAllWithdra
 adminRouter.put('/withdrawals/:id/approve', verify, verifyAdminOrSubAdmin, approveWithdrawal);
 adminRouter.put('/withdrawals/:id/reject', verify, verifyAdminOrSubAdmin, rejectWithdrawal);
 adminRouter.put('/withdrawals/:id/edit', verify, verifyAdminOrSubAdmin, editWithdrawal);
+
+// Earnings management endpoints
+adminRouter.post('/sync-earnings', verify, verifyAdmin, syncAllUsersEarnings);
 
 export default adminRouter;

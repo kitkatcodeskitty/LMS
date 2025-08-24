@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Footer from "../../components/users/Footer";
 
 const Login = () => {
-  const { backendUrl, navigate, fetchUserData, fetchUserEnrolledCourses } = useContext(AppContext);
+  const { backendUrl, navigate, storeAuthData, fetchUserEnrolledCourses } = useContext(AppContext);
 
   const [form, setForm] = useState({
     email: "",
@@ -48,26 +48,20 @@ const Login = () => {
       });
 
       if (res.data.success) {
-        // Store token based on remember me preference
-        if (rememberMe) {
-          localStorage.setItem("token", res.data.token);
-        } else {
-          sessionStorage.setItem("token", res.data.token);
-          localStorage.removeItem("token"); // Clear any existing localStorage token
+        // Store token and user data using context function
+        storeAuthData(res.data.token, res.data.user);
+        
+        try {
+          await fetchUserEnrolledCourses();
+          toast.success("Welcome back! Login successful");
+          navigate("/");
+        } catch (fetchErr) {
+          console.error("Data fetch error after login:", fetchErr);
+          toast.warning("Logged in, but failed to load some data");
+          navigate("/");
         }
       } else {
         throw new Error(res.data.message || 'Login failed');
-      }
-
-      try {
-        await fetchUserData();
-        await fetchUserEnrolledCourses();
-        toast.success("Welcome back! Login successful");
-        navigate("/");
-      } catch (fetchErr) {
-        console.error("Data fetch error after login:", fetchErr);
-        toast.warning("Logged in, but failed to load some data");
-        navigate("/");
       }
     } catch (err) {
       toast.error(err?.response?.data?.error || err?.response?.data?.message || "Login failed");

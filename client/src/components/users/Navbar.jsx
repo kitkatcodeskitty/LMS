@@ -333,7 +333,7 @@ const Navbar = () => {
                             type="button"
                             onClick={() => {
                               setDesktopDropdownOpen(false);
-                              navigate('/educator/student-enrolled');
+                              navigate('/educator/student-Enrolled');
                             }}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
@@ -537,7 +537,7 @@ const Navbar = () => {
                             type="button"
                             onClick={() => {
                               setMobileDropdownOpen(false);
-                              navigate('/educator/student-enrolled');
+                              navigate('/educator/student-Enrolled');
                             }}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                           >

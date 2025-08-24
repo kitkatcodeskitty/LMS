@@ -99,16 +99,37 @@ const Profile = () => {
         profileImageFile: null,
         passwordData: null
       });
-      
-      // Set profile edit status
-      setProfileEditStatus({
-        hasEditedProfile: userData.hasEditedProfile || false,
-        profileEditDate: userData.profileEditDate || null
-      });
-      
+
+      // Check if user has edited profile before
+      if (userData.lastProfileEdit) {
+        setProfileEditStatus({
+          hasEditedProfile: true,
+          profileEditDate: userData.lastProfileEdit
+        });
+      }
+
+      // Fetch additional data
       fetchProfileData();
     }
   }, [userData]);
+
+  // Function to refresh user data
+  const refreshUserData = async () => {
+    try {
+      const token = await getToken();
+      const response = await axios.get(`${backendUrl}/api/users/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        // Update the context with new user data
+        // This will trigger a re-render with updated data
+        window.location.reload(); // Simple refresh for now
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  };
 
   const fetchProfileData = async () => {
     setLoading(true);
@@ -323,6 +344,7 @@ const Profile = () => {
             earningsData={earningsData}
             currency={currency}
             referralData={referralData}
+            userData={userData}
           />
         );
       case 'referrals':

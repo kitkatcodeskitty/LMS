@@ -8,18 +8,30 @@ import {
   FaCheckCircle
 } from 'react-icons/fa';
 
-const Earnings = ({ earningsData, currency, referralData }) => {
+const Earnings = ({ earningsData, currency, referralData, userData }) => {
   // Add safety checks and default values to prevent crashes
   const safeEarningsData = earningsData || {};
   const safeReferralData = referralData || [];
   const safeCurrency = currency || 'Rs ';
+  const safeUserData = userData || {};
+
+  // Helper function to get earnings value with fallbacks
+  const getEarningsValue = (field, fallback = 0) => {
+    if (safeEarningsData[field] !== undefined) {
+      return safeEarningsData[field]
+    }
+    // Fallback to userData fields
+    return safeUserData[field] || fallback
+  }
 
   // Calculate percentage changes for trend indicators with safety checks
-  const todayPercentage = safeEarningsData.today > 0 ? ((safeEarningsData.today / 20000) * 100) : 0;
-  const weeklyPercentage = safeEarningsData.lastSevenDays > 0 ? ((safeEarningsData.lastSevenDays / 140000) * 100) : 0;
+  const todayPercentage = getEarningsValue('today', getEarningsValue('dailyEarnings', 0)) > 0 ? 
+    ((getEarningsValue('today', getEarningsValue('dailyEarnings', 0)) / 20000) * 100) : 0;
+  const weeklyPercentage = getEarningsValue('lastSevenDays', getEarningsValue('weeklyEarnings', 0)) > 0 ? 
+    ((getEarningsValue('lastSevenDays', getEarningsValue('weeklyEarnings', 0)) / 140000) * 100) : 0;
 
   // Early return if no data is available
-  if (!earningsData && !referralData) {
+  if (!earningsData && !referralData && !userData) {
     return (
       <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
         <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
@@ -49,7 +61,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
               <div className="text-center">
                 <div className="text-xl font-bold text-white">
                   <AnimatedNumber
-                    value={safeEarningsData.lifetime || 0}
+                    value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))}
                     currency={safeCurrency}
                     duration={2500}
                     delay={200}
@@ -62,7 +74,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
               <div className="text-center">
                 <div className="text-xl font-bold text-white">
                   <AnimatedNumber
-                    value={safeEarningsData.availableBalance || 0}
+                    value={getEarningsValue('availableBalance', getEarningsValue('withdrawableBalance', 0))}
                     currency={safeCurrency}
                     duration={2300}
                     delay={400}
@@ -91,7 +103,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
           <div className="flex justify-between items-center">
             <span className="text-2xl font-bold">
               <AnimatedNumber
-                value={safeEarningsData.today || 0}
+                value={getEarningsValue('today', getEarningsValue('dailyEarnings', 0))}
                 currency={safeCurrency}
                 duration={2000}
                 delay={300}
@@ -120,11 +132,11 @@ const Earnings = ({ earningsData, currency, referralData }) => {
               <div className="text-xs text-white/80">Goal Progress</div>
             </div>
             <div className="text-center p-3 bg-white/10 rounded-xl">
-              <div className="text-lg font-bold">{safeEarningsData.today > 0 ? 'On Track' : 'Start'}</div>
+              <div className="text-lg font-bold">{getEarningsValue('today', getEarningsValue('dailyEarnings', 0)) > 0 ? 'On Track' : 'Start'}</div>
               <div className="text-xs text-white/80">Status</div>
             </div>
             <div className="text-center p-3 bg-white/10 rounded-xl">
-              <div className="text-lg font-bold">{safeEarningsData.today > 0 ? 'Active' : 'Pending'}</div>
+              <div className="text-lg font-bold">{getEarningsValue('today', getEarningsValue('dailyEarnings', 0)) > 0 ? 'Active' : 'Pending'}</div>
               <div className="text-xs text-white/80">Activity</div>
             </div>
           </div>
@@ -145,7 +157,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
           <div className="text-sm text-white/80 mb-1">Last Week</div>
           <div className="text-xl font-bold text-white mb-2">
             <AnimatedNumber
-              value={safeEarningsData.lastSevenDays || 0}
+              value={getEarningsValue('lastSevenDays', getEarningsValue('weeklyEarnings', 0))}
               currency={safeCurrency}
               duration={2200}
               delay={500}
@@ -171,7 +183,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
           <div className="text-sm text-white/80 mb-1">This Month</div>
           <div className="text-xl font-bold text-white mb-2">
             <AnimatedNumber
-              value={safeEarningsData.thisMonth || 0}
+              value={getEarningsValue('thisMonth', getEarningsValue('monthlyEarnings', 0))}
               currency={safeCurrency}
               duration={2400}
               delay={600}
@@ -197,7 +209,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
           <div className="text-sm text-white/80 mb-1">All Time</div>
           <div className="text-xl font-bold text-white mb-2">
             <AnimatedNumber
-              value={safeEarningsData.lifetime || 0}
+              value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))}
               currency={safeCurrency}
               duration={2600}
               delay={700}
@@ -214,7 +226,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
       </div>
 
       {/* Withdrawal Balance Breakdown */}
-      {(safeEarningsData.withdrawableBalance || safeEarningsData.totalWithdrawn || safeEarningsData.pendingWithdrawals) && (
+      {(getEarningsValue('withdrawableBalance') || getEarningsValue('totalWithdrawn') || getEarningsValue('pendingWithdrawals')) && (
         <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex items-center mb-6">
             <div className="bg-rose-100 rounded-lg p-2 mr-3">
@@ -233,7 +245,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
               <div className="text-sm text-white/80 mb-1">Total Withdrawable</div>
               <div className="text-xl font-bold text-white mb-2">
                 <AnimatedNumber
-                  value={safeEarningsData.withdrawableBalance || 0}
+                  value={getEarningsValue('withdrawableBalance')}
                   currency={safeCurrency}
                   duration={2000}
                   delay={1000}
@@ -251,7 +263,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
               <div className="text-sm text-white/80 mb-1">Already Withdrawn</div>
               <div className="text-xl font-bold text-white mb-2">
                 <AnimatedNumber
-                  value={safeEarningsData.totalWithdrawn || 0}
+                  value={getEarningsValue('totalWithdrawn')}
                   currency={safeCurrency}
                   duration={2000}
                   delay={1200}
@@ -269,7 +281,7 @@ const Earnings = ({ earningsData, currency, referralData }) => {
               <div className="text-sm text-white/80 mb-1">Available Now</div>
               <div className="text-xl font-bold text-white mb-2">
                 <AnimatedNumber
-                  value={safeEarningsData.availableBalance || 0}
+                  value={getEarningsValue('availableBalance', getEarningsValue('withdrawableBalance', 0))}
                   currency={safeCurrency}
                   duration={2000}
                   delay={1400}

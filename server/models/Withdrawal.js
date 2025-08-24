@@ -19,9 +19,13 @@ const withdrawalSchema = new mongoose.Schema(
       min: [1, "Withdrawal amount must be greater than 0"],
       validate: {
         validator: function(value) {
-          return value > 0 && Number.isFinite(value);
+          return value > 0 && Number.isFinite(value) && Number.isInteger(value);
         },
-        message: "Invalid withdrawal amount"
+        message: "Invalid withdrawal amount - must be a whole number"
+      },
+      set: function(value) {
+        const roundedValue = Math.round(Number(value)); // Ensure amount is always a whole number
+        return roundedValue;
       }
     },
     status: {
@@ -158,6 +162,30 @@ const withdrawalSchema = new mongoose.Schema(
       }
     }],
     
+    // Edit history for admin modifications
+    editHistory: [{
+      editedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+      },
+      editedAt: {
+        type: Date,
+        default: Date.now
+      },
+      changes: {
+        type: mongoose.Schema.Types.Mixed,
+        required: true
+      },
+      previousValues: {
+        type: mongoose.Schema.Types.Mixed
+      },
+      details: {
+        type: String,
+        maxlength: [500, "Edit details too long"]
+      }
+    }],
+    
     // Rate limiting and security
     clientIP: {
       type: String,
@@ -228,7 +256,7 @@ withdrawalSchema.pre('save', function(next) {
 withdrawalSchema.post('save', function(error, doc, next) {
   if (error && error.code === 11000 && error.keyPattern && error.keyPattern.transactionReference) {
     // Duplicate transaction reference error - generate a new one and retry
-    console.log('⚠️ Duplicate transaction reference detected, regenerating...');
+    
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substr(2, 10);
     const userId = doc.userId ? doc.userId.toString().substr(-4) : '0000';
@@ -237,7 +265,6 @@ withdrawalSchema.post('save', function(error, doc, next) {
     // Retry saving without the middleware to avoid infinite loop
     doc.save({ validateBeforeSave: false })
       .then(() => {
-        console.log('✅ Withdrawal saved successfully after retry');
         next();
       })
       .catch((retryError) => {
@@ -262,6 +289,22 @@ withdrawalSchema.methods.addAuditLog = function(action, performedBy, details, pr
     performedAt: new Date(),
     details,
     previousValues
+  });
+};
+
+// Instance method to add edit history
+withdrawalSchema.methods.addEditHistory = function(adminId, changes, previousValues) {
+  // Initialize editHistory array if it doesn't exist
+  if (!this.editHistory) {
+    this.editHistory = [];
+  }
+  
+  this.editHistory.push({
+    editedBy: adminId,
+    editedAt: new Date(),
+    changes: changes,
+    previousValues: previousValues,
+    details: `Edited by admin: ${Object.keys(changes).join(', ')}`
   });
 };
 

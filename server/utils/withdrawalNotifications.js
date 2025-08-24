@@ -98,7 +98,7 @@ export const notifyAdminNewWithdrawal = async (adminUsers, userInfo, amount, met
 export const sendWithdrawalEmailNotification = async (userEmail, type, data) => {
   // This would integrate with your email service
   // For now, we'll just log it
-  console.log(`Email notification would be sent to ${userEmail} for ${type}:`, data);
+  
   
   // Example implementation:
   // const emailTemplates = {

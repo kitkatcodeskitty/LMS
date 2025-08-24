@@ -9,7 +9,6 @@ import { calculateDiscountedPrice } from '../utils/priceHelpers.js';
 
 export const addToCart = async (req, res) => {
   try {
-    console.log('🛒 addToCart called with:', { courseId: req.body.courseId, userId: req.user.id });
     
     const userId = req.user.id;
     const { courseId, referralCode, transactionId } = req.body;
@@ -33,13 +32,11 @@ export const addToCart = async (req, res) => {
     fs.unlinkSync(req.file.path);
 
     const paymentScreenshot = result.secure_url; // Cloudinary URL
-    console.log('📸 Payment screenshot uploaded:', paymentScreenshot);
 
     const user = await User.findById(userId).select("firstName lastName email affiliateCode");
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-    console.log('👤 User found:', user.firstName, user.lastName);
 
     // Prevent users from using their own referral code
     if (referralCode && referralCode.trim() === user.affiliateCode) {
@@ -55,13 +52,10 @@ export const addToCart = async (req, res) => {
     if (!course) {
       return res.status(404).json({ success: false, message: "Course not found" });
     }
-    console.log('📚 Course found:', course.courseTitle);
 
     const discountedPrice = calculateDiscountedPrice(course);
-    console.log('💰 Price:', course.coursePrice, 'Discounted:', discountedPrice);
 
     let userCart = await Cart.findOne({ "user._id": userId });
-    console.log('🛒 Existing cart found:', !!userCart);
 
     const newCourseData = {
       course: {
@@ -78,8 +72,6 @@ export const addToCart = async (req, res) => {
       addedAt: new Date(), // Explicitly set the date
     };
 
-    console.log('📝 New course data:', JSON.stringify(newCourseData, null, 2));
-
     if (!userCart) {
       userCart = new Cart({
         user: {
@@ -90,7 +82,6 @@ export const addToCart = async (req, res) => {
         },
         courses: [newCourseData],
       });
-      console.log('🆕 Created new cart');
     } else {
       const alreadyInCart = userCart.courses.some(
         (item) => item.course._id.toString() === courseId
@@ -101,14 +92,11 @@ export const addToCart = async (req, res) => {
       }
 
       userCart.courses.push(newCourseData);
-      console.log('➕ Added course to existing cart');
     }
 
     await userCart.save();
-    console.log('💾 Cart saved successfully');
     res.status(200).json({ success: true, message: "Course added to cart", userCart });
   } catch (error) {
-    console.error('❌ Error in addToCart:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -169,7 +157,7 @@ export const validatePurchase = async (req, res) => {
       const referrer = await User.findOne({ affiliateCode: courseItem.referralCode });
 
       if (referrer && referrer._id.toString() !== userId) {
-        const affiliateAmount = courseItem.course.coursePrice / 2;
+        const affiliateAmount = courseItem.course.coursePrice * 0.6; // 60% commission
         
         // Update both affiliate earnings and withdrawable balance
         referrer.updateWithdrawableBalance(affiliateAmount);
@@ -179,6 +167,14 @@ export const validatePurchase = async (req, res) => {
         }
 
         await referrer.save();
+
+        // Update earnings fields for the referrer
+        try {
+          const { updateUserEarningsFields } = await import('../utils/balanceHelpers.js');
+          await updateUserEarningsFields(referrer._id, affiliateAmount);
+        } catch (error) {
+          console.error('Error updating earnings fields:', error);
+        }
       }
     }
 
@@ -197,13 +193,22 @@ export const validatePurchase = async (req, res) => {
       const referrer = await User.findOne({ affiliateCode: courseItem.referralCode });
       if (referrer) {
         purchaseDoc.referrerId = referrer._id;
-        // Default split (can be overridden by admin later)
-        purchaseDoc.affiliateAmount = courseItem.course.coursePrice / 2;
-        // Withdrawable amount will be calculated by pre-save middleware (50% of affiliate amount)
-        purchaseDoc.commissionRate = 0.5;
+        // 60% commission rate
+        purchaseDoc.affiliateAmount = courseItem.course.coursePrice * 0.6;
+        purchaseDoc.commissionRate = 0.6; // 60% commission
       }
     }
     await purchaseDoc.save();
+
+    // Update earnings fields for the referrer if this was a referral purchase
+    if (purchaseDoc.referrerId) {
+      try {
+        const { updateUserEarningsFields } = await import('../utils/balanceHelpers.js');
+        await updateUserEarningsFields(purchaseDoc.referrerId, purchaseDoc.affiliateAmount);
+      } catch (error) {
+        console.error('Error updating earnings fields after purchase creation:', error);
+      }
+    }
 
     // Send success notification to user
     await createNotification(
@@ -416,22 +421,16 @@ export const updateCartItem = async (req, res) => {
 // Get pending orders for admin dashboard
 export const getPendingOrders = async (req, res) => {
   try {
-    console.log('🔍 getPendingOrders called by user:', req.user.id);
     
     // Find carts with unvalidated courses
     const carts = await Cart.find({
       'courses.isValidated': false
     });
 
-    console.log('📦 Found carts:', carts.length);
-    console.log('📋 Carts data:', JSON.stringify(carts, null, 2));
-
     const pendingOrders = [];
 
     carts.forEach(cart => {
-      console.log('🛒 Processing cart for user:', cart.user._id);
       cart.courses.forEach(courseItem => {
-        console.log('📚 Course item:', courseItem.course.courseTitle, 'isValidated:', courseItem.isValidated);
         if (!courseItem.isValidated) {
           pendingOrders.push({
             _id: `${cart.user._id}_${courseItem.course._id}`,
@@ -447,8 +446,6 @@ export const getPendingOrders = async (req, res) => {
       });
     });
 
-    console.log('⏳ Total pending orders:', pendingOrders.length);
-
     // Sort by most recent first
     pendingOrders.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
 
@@ -458,7 +455,6 @@ export const getPendingOrders = async (req, res) => {
       totalPending: pendingOrders.length
     });
   } catch (error) {
-    console.error('❌ Error in getPendingOrders:', error);
     res.status(500).json({
       success: false,
       message: error.message

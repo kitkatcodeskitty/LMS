@@ -77,7 +77,7 @@ const AdminWithdrawals = () => {
         return;
       }
 
-      console.log(`🔄 ${action}ing withdrawal:`, { withdrawalId, actionData });
+
 
       const response = await axios.put(
         `${backendUrl}/api/admin/withdrawals/${withdrawalId}/${action}`,

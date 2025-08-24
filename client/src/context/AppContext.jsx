@@ -22,139 +22,166 @@ export const AppContextProvider = (props) => {
 
   // Get token from localStorage or sessionStorage
   const getToken = () => {
-    return localStorage.getItem("token") || sessionStorage.getItem("token");
+    return localStorage.getItem('token') || sessionStorage.getItem('token');
+  };
+
+  // Store token and user data after login
+  const storeAuthData = (token, user) => {
+    localStorage.setItem('token', token);
+    setUserData(user);
+    setIsEducator(user.isAdmin || false);
+    setIsSubAdmin(user.isSubAdmin || user.role === 'subadmin' || false);
   };
 
   // Clear all authentication data
   const clearAuthData = () => {
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("token");
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     setUserData(null);
     setIsEducator(false);
     setIsSubAdmin(false);
-    setEnrolledCourses([]);
     setNotifications([]);
     setUnreadNotificationCount(0);
     setPendingOrdersCount(0);
+    setEnrolledCourses([]);
   };
   
 
   // Fetch notifications
   const fetchNotifications = async () => {
-    const token = getToken();
-    if (!token) return;
-
     try {
+      const token = getToken();
+      if (!token) return;
+
       const { data } = await axios.get(`${backendUrl}/api/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       if (data.success) {
-        setNotifications(data.notifications);
+        setNotifications(data.notifications || []);
+      } else {
+        setNotifications([]);
       }
     } catch (error) {
-      console.error("Failed to fetch notifications:", error);
+      console.error('Error fetching notifications:', error);
+      setNotifications([]);
     }
   };
 
   // Fetch unread notification count
   const fetchUnreadNotificationCount = async () => {
-    const token = getToken();
-    if (!token) return;
-
     try {
+      const token = getToken();
+      if (!token) return;
+
       const { data } = await axios.get(`${backendUrl}/api/notifications/unread-count`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       if (data.success) {
-        setUnreadNotificationCount(data.count);
+        setUnreadNotificationCount(data.count || 0);
+      } else {
+        setUnreadNotificationCount(0);
       }
     } catch (error) {
-      console.error("Failed to fetch unread count:", error);
+      console.error('Error fetching unread notification count:', error);
+      setUnreadNotificationCount(0);
     }
   };
 
   // Mark notification as read
   const markNotificationAsRead = async (notificationId) => {
-    const token = getToken();
-    if (!token) return;
-
     try {
+      const token = getToken();
+      if (!token) return;
+
       const { data } = await axios.put(
         `${backendUrl}/api/notifications/${notificationId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (data.success) {
         setNotifications(prev => 
-          prev.map(notif => 
-            notif._id === notificationId 
-              ? { ...notif, isRead: true }
-              : notif
+          prev.map(notification => 
+            notification._id === notificationId 
+              ? { ...notification, isRead: true }
+              : notification
           )
         );
         setUnreadNotificationCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
-      console.error("Failed to mark notification as read:", error);
+      console.error('Error marking notification as read:', error);
     }
   };
 
   // Mark all notifications as read
   const markAllNotificationsAsRead = async () => {
-    const token = getToken();
-    if (!token) return;
-
     try {
+      const token = getToken();
+      if (!token) return;
+
       const { data } = await axios.put(
         `${backendUrl}/api/notifications/mark-all-read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (data.success) {
-        setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+        setNotifications(prev => 
+          prev.map(notification => ({ ...notification, isRead: true }))
+        );
         setUnreadNotificationCount(0);
       }
     } catch (error) {
-      console.error("Failed to mark all notifications as read:", error);
+      console.error('Error marking all notifications as read:', error);
     }
   };
 
   // Delete notification
   const deleteNotification = async (notificationId) => {
-    const token = getToken();
-    if (!token) return;
-
     try {
+      const token = getToken();
+      if (!token) return;
+
       const { data } = await axios.delete(
         `${backendUrl}/api/notifications/${notificationId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (data.success) {
-        setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
-        const deletedNotif = notifications.find(n => n._id === notificationId);
-        if (deletedNotif && !deletedNotif.isRead) {
+        setNotifications(prev => 
+          prev.filter(notification => notification._id !== notificationId)
+        );
+        const deletedNotification = notifications.find(n => n._id === notificationId);
+        if (deletedNotification && !deletedNotification.isRead) {
           setUnreadNotificationCount(prev => Math.max(0, prev - 1));
         }
       }
     } catch (error) {
-      console.error("Failed to delete notification:", error);
+      console.error('Error deleting notification:', error);
     }
   };
 
   // Fetch pending orders count
   const fetchPendingOrdersCount = async () => {
-    const token = getToken();
-    if (!token || !userData?.isAdmin) return;
-
     try {
+      const token = getToken();
+      if (!token) return;
+
       const { data } = await axios.get(`${backendUrl}/api/cart/pending`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       if (data.success) {
         setPendingOrdersCount(data.totalPending || 0);
+      } else {
+        setPendingOrdersCount(0);
       }
     } catch (error) {
-      console.error("Failed to fetch pending orders count:", error);
+      console.error('Error fetching pending orders count:', error);
+      setPendingOrdersCount(0);
     }
   };
 
@@ -162,78 +189,78 @@ export const AppContextProvider = (props) => {
   const fetchAllCourses = async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/courses/all`);
-      console.log("Fetched courses:", data);
-      
       if (data.success) {
-        setAllCourses(data.courses);
+        setAllCourses(data.courses || []);
       } else {
-        console.error("Failed to fetch courses:", data.message);
+        setAllCourses([]);
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error('Error fetching courses:', error);
+      setAllCourses([]);
     }
   };
 
   // Fetch user data
   const fetchUserData = async () => {
-    const token = getToken();
-    if (!token) return;
-
     try {
+      const token = getToken();
+      if (!token) return;
+
       const { data } = await axios.get(`${backendUrl}/api/users/getUserData`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
 
-      setUserData(data);
-      setIsEducator(data.isAdmin || false);
-      setIsSubAdmin(data.isSubAdmin || data.role === 'subadmin' || false);
+      if (data.success) {
+        setUserData(data.user);
+        setIsEducator(data.user.isAdmin || false);
+        setIsSubAdmin(data.user.isSubAdmin || data.user.role === 'subadmin' || false);
+      } else {
+        setUserData(data);
+        setIsEducator(data.isAdmin || false);
+        setIsSubAdmin(data.isSubAdmin || data.role === 'subadmin' || false);
+      }
     } catch (error) {
-      toast.error(error.response?.data?.error || error.message || "Failed to fetch user data");
+      console.error('Error fetching user data:', error);
+      // Clear invalid token
+      clearAuthData();
     }
   };
 
 
   // Fetch enrolled courses - only for admins
-const fetchUserEnrolledCourses = async () => {
-  if (!userData?.isAdmin) {
-    
-    return;
-  }
+  const fetchUserEnrolledCourses = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
 
-  const token = getToken();
-  if (!token) return;
+      const { data } = await axios.get(`${backendUrl}/api/admin/purchased-users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-  try {
-    const { data } = await axios.get(`${backendUrl}/api/admin/purchased-users`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    
-
-    if (data.success) {
-      setEnrolledCourses(Array.isArray(data.purchases) ? data.purchases.reverse() : []);
-    } else {
-      console.error("Failed to fetch enrolled courses:", data.message);
+      if (data.success) {
+        setEnrolledCourses(Array.isArray(data.purchases) ? data.purchases.reverse() : []);
+      } else {
+        setEnrolledCourses([]);
+      }
+    } catch (error) {
+      console.error('Error fetching enrolled courses:', error);
+      setEnrolledCourses([]);
     }
-  } catch (error) {
-    console.error(
-      "Error fetching enrolled courses:",
-      error.response?.data?.message || error.message
-    );
-  }
-};
+  };
 
-// Load enrolled courses when userData changes and user is admin
-useEffect(() => {
-  if (userData?.isAdmin) {
-    
-    fetchUserEnrolledCourses();
-  } else {
-    
-    setEnrolledCourses([]);
-  }
-}, [userData]);
+  // Load enrolled courses when userData changes and user is admin or sub-admin
+  useEffect(() => {
+    if (userData?.isAdmin || userData?.isSubAdmin || userData?.role === 'subadmin') {
+      fetchUserEnrolledCourses();
+    } else {
+      setEnrolledCourses([]);
+    }
+  }, [userData]);
 
+  // Refresh user data (useful after role changes)
+  const refreshUserData = async () => {
+    await fetchUserData();
+  };
 
   // Function to calculate total time for a chapter
   const calculateChapterTime = (chapter) => {
@@ -280,7 +307,7 @@ useEffect(() => {
     if (userData) {
       fetchNotifications();
       fetchUnreadNotificationCount();
-      if (userData.isAdmin) {
+      if (userData.isAdmin || userData.isSubAdmin || userData.role === 'subadmin') {
         fetchPendingOrdersCount();
       }
     }
@@ -292,7 +319,7 @@ useEffect(() => {
 
     const interval = setInterval(() => {
       fetchUnreadNotificationCount();
-      if (userData.isAdmin) {
+      if (userData.isAdmin || userData.isSubAdmin || userData.role === 'subadmin') {
         fetchPendingOrdersCount();
       }
     }, 30000);
@@ -300,14 +327,11 @@ useEffect(() => {
     return () => clearInterval(interval);
   }, [userData]);
 
-
+  // Set isEducator and isSubAdmin when userData changes
   useEffect(() => {
-    if (userData?.isAdmin) {
-        
-      fetchUserEnrolledCourses();
-    } else {
-        
-      setEnrolledCourses([]); 
+    if (userData) {
+      setIsEducator(userData.isAdmin || false);
+      setIsSubAdmin(userData.isSubAdmin || userData.role === 'subadmin' || false);
     }
   }, [userData]);
 
@@ -322,6 +346,8 @@ useEffect(() => {
     enrolledCourses,
     fetchUserEnrolledCourses,
     fetchUserData,
+    refreshUserData,
+    storeAuthData,
     backendUrl,
     userData,
     setUserData,

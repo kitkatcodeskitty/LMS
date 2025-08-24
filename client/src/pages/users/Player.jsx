@@ -52,7 +52,7 @@ const Player = () => {
     try {
       // const token = await getToken();
       // const {data} = await axios.post(`${backendUrl}/api/user/update-course-progress`, {courseId, lectureId}, { headers: { Authorization: `Bearer ${token}` } });
-      console.log('Update course progress - endpoint not implemented in backend');
+
     } catch (error) {
       console.error('Error updating course progress:', error);
     }
@@ -65,7 +65,7 @@ const Player = () => {
       // const {data} = await axios.post(`${backendUrl}/api/user/get-course-progress`, {courseId}, {
       //   headers: { Authorization: `Bearer ${token}` }
       // });
-      console.log('Get course progress - endpoint not implemented in backend');
+
     } catch (error) {
       console.error('Error getting course progress:', error);
     }
@@ -78,7 +78,7 @@ const Player = () => {
       // const {data} = await axios.post(`${backendUrl}/api/user/add-rating`, {courseId, rating}, {
       //   headers: { Authorization: `Bearer ${token}` }
       // });
-      console.log('Add rating - endpoint not implemented in backend');
+
     } catch (error) {
       console.error('Error adding rating:', error);
     }

@@ -82,7 +82,7 @@ const App = () => {
         <Route
           path="/educator"
           element={
-            userData?.isAdmin ? <Educator /> : <Navigate to="/" replace />
+            (userData?.isAdmin || userData?.isSubAdmin || userData?.role === 'subadmin') ? <Educator /> : <Navigate to="/" replace />
           }
         >
           <Route index element={<Dashboard />} />

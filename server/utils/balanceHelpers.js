@@ -114,13 +114,65 @@ export const validateWithdrawalAmount = async (userId, amount) => {
 };
 
 /**
- * Process affiliate earnings for a new purchase
- * @param {string} referrerId - Referrer user ID
+ * Update user's earnings fields with time-based calculations
+ * @param {string} userId - User ID
+ * @param {number} affiliateAmount - New affiliate amount earned
+ * @returns {Promise<void>}
+ */
+export const updateUserEarningsFields = async (userId, affiliateAmount) => {
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        // Get current date info
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        // Calculate time-based earnings from Purchase collection
+        const sumAffiliate = async (fromDate, toDate = null) => {
+            const query = {
+                referrerId: new mongoose.Types.ObjectId(userId),
+                status: 'completed',
+                createdAt: { $gte: fromDate }
+            };
+            if (toDate) query.createdAt.$lt = toDate;
+
+            const docs = await Purchase.find(query).select('affiliateAmount createdAt');
+            return docs.reduce((acc, p) => acc + (Number(p.affiliateAmount) || 0), 0);
+        };
+
+        // Calculate and update earnings fields
+        const [todayEarnings, weeklyEarnings, monthlyEarnings] = await Promise.all([
+            sumAffiliate(startOfToday),
+            sumAffiliate(last7Days),
+            sumAffiliate(startOfMonth)
+        ]);
+
+        // Update user fields
+        user.dailyEarnings = todayEarnings;
+        user.weeklyEarnings = weeklyEarnings;
+        user.monthlyEarnings = monthlyEarnings;
+        user.lifetimeEarnings = user.affiliateEarnings || 0;
+        user.currentBalance = user.withdrawableBalance || 0;
+
+        await user.save();
+    } catch (error) {
+        console.error('Error updating user earnings fields:', error);
+    }
+};
+
+/**
+ * Process affiliate earnings for a referrer
+ * @param {string} referrerId - Referrer's user ID
  * @param {number} coursePrice - Course price
- * @param {number} commissionRate - Commission rate (default 0.5)
+ * @param {number} commissionRate - Commission rate (default 0.6 for 60%)
  * @returns {Promise<Object>} Processing result
  */
-export const processAffiliateEarnings = async (referrerId, coursePrice, commissionRate = 0.5) => {
+export const processAffiliateEarnings = async (referrerId, coursePrice, commissionRate = 0.6) => {
     try {
         const referrer = await User.findById(referrerId);
         if (!referrer) {
@@ -133,6 +185,9 @@ export const processAffiliateEarnings = async (referrerId, coursePrice, commissi
         // Update referrer's balance
         referrer.updateWithdrawableBalance(affiliateAmount);
         await referrer.save();
+
+        // Update earnings fields
+        await updateUserEarningsFields(referrerId, affiliateAmount);
 
         return {
             affiliateAmount,
@@ -228,5 +283,35 @@ export const getUserEarningsData = async (userId) => {
 
     } catch (error) {
         throw new Error(`Error getting user earnings data: ${error.message}`);
+    }
+};
+
+/**
+ * Sync all users' earnings fields with current purchase data
+ * This function should be called periodically or when needed
+ * @returns {Promise<Object>} Sync results
+ */
+export const syncAllUsersEarningsFields = async () => {
+    try {
+        const users = await User.find({ affiliateEarnings: { $gt: 0 } });
+        const results = {
+            totalUsers: users.length,
+            updatedUsers: 0,
+            errors: 0
+        };
+
+        for (const user of users) {
+            try {
+                await updateUserEarningsFields(user._id, 0); // 0 means just recalculate existing data
+                results.updatedUsers++;
+            } catch (error) {
+                console.error(`Error updating earnings for user ${user._id}:`, error);
+                results.errors++;
+            }
+        }
+
+        return results;
+    } catch (error) {
+        throw new Error(`Error syncing all users earnings: ${error.message}`);
     }
 };

@@ -273,7 +273,7 @@ export const clearSuspiciousActivity = (userId) => {
   const userKey = `user:${userId}`;
   rateLimitStore.delete(userKey);
   
-  console.log(`✅ Cleared suspicious activity for user: ${userId}`);
+  
 };
 
 /**

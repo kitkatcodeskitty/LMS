@@ -44,13 +44,22 @@ const Dashboard = ({
       latestPackage.package?.packageType ||
       latestPackage.course?.packageType ||
       latestPackage.type ||
-      latestPackage.courseTitle?.split(' ')[0] || // Try to extract from course title if it starts with package name
+      latestPackage.courseTitle?.split(' ')[0] || // Try to extract from package name if it starts with package name
       null;
 
     return packageType ? packageType.toUpperCase() : 'USER';
   };
 
   const currentPackageType = getPackageType();
+
+  // Use userData earnings fields as fallback if earningsData is not available
+  const getEarningsValue = (field, fallback = 0) => {
+    if (earningsData && earningsData[field] !== undefined) {
+      return earningsData[field]
+    }
+    // Fallback to userData fields
+    return userData[field] || fallback
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
@@ -116,7 +125,7 @@ const Dashboard = ({
               <div className="text-xs text-white/80">Earnings</div>
               <div className="text-lg font-bold text-white">
                 <AnimatedNumber 
-                  value={earningsData.lifetime || 0} 
+                  value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))} 
                   currency="Rs" 
                   duration={2000} 
                   delay={100} 
@@ -133,6 +142,13 @@ const Dashboard = ({
                 />
               </div>
             </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 w-full bg-white/20 backdrop-blur-sm rounded-xl p-2 text-white hover:bg-white/30 transition-colors text-xs"
+              title="Refresh data after admin updates"
+            >
+              🔄 Refresh
+            </button>
           </div>
         </div>
       </div>
@@ -151,7 +167,7 @@ const Dashboard = ({
             <h3 className="text-lg font-semibold mb-1">Today's Earnings</h3>
             <div className="text-2xl font-bold mb-1">
               <AnimatedNumber 
-                value={earningsData.today || 0} 
+                value={getEarningsValue('today', getEarningsValue('dailyEarnings', 0))} 
                 currency="Rs" 
                 duration={2200} 
                 delay={300} 
@@ -181,7 +197,7 @@ const Dashboard = ({
             <h3 className="text-lg font-semibold mb-1">Available Balance</h3>
             <div className="text-2xl font-bold mb-1">
               <AnimatedNumber 
-                value={earningsData.availableBalance || 0} 
+                value={getEarningsValue('availableBalance', getEarningsValue('withdrawableBalance', 0))} 
                 currency="Rs" 
                 duration={2400} 
                 delay={400} 
@@ -238,7 +254,7 @@ const Dashboard = ({
             <div className="text-sm text-white/80 mb-1">Last Week</div>
             <div className="text-xl font-bold text-white">
               <AnimatedNumber 
-                value={earningsData.lastSevenDays || 0} 
+                value={getEarningsValue('lastSevenDays', getEarningsValue('weeklyEarnings', 0))} 
                 currency="Rs" 
                 duration={2600} 
                 delay={600} 
@@ -258,7 +274,7 @@ const Dashboard = ({
             <div className="text-sm text-white/80 mb-1">This Month</div>
             <div className="text-xl font-bold text-white">
               <AnimatedNumber 
-                value={earningsData.thisMonth || 0} 
+                value={getEarningsValue('thisMonth', getEarningsValue('monthlyEarnings', 0))} 
                 currency="Rs" 
                 duration={2800} 
                 delay={700} 
@@ -278,7 +294,7 @@ const Dashboard = ({
             <div className="text-sm text-white/80 mb-1">All Time</div>
             <div className="text-xl font-bold text-white">
               <AnimatedNumber 
-                value={earningsData.lifetime || 0} 
+                value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))} 
                 currency="Rs" 
                 duration={3000} 
                 delay={800} 

@@ -1,6 +1,6 @@
 import Kyc from "../models/Kyc.js";
 import User from "../models/User.js";
-import cloudinary from "cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 import { createNotification } from "./notificationController.js";
 
 export const submitKyc = async (req, res) => {
@@ -95,6 +95,7 @@ export const listKyc = async (req, res) => {
     const kycs = await Kyc.find(filter)
       .populate("user", "firstName lastName email imageUrl")
       .sort({ createdAt: -1 });
+    
     res.status(200).json({ success: true, kycs });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -176,25 +177,18 @@ export const getKycByUserId = async (req, res) => {
 export const updateKyc = async (req, res) => {
   try {
     const { id } = req.params;
+
     const {
       fullName,
       dob,
-      gender,
-      nationality,
-      occupation,
-      maritalStatus,
-      phoneNumber,
-      alternatePhone,
-      email,
       addressLine1,
+      phoneNumber,
       city,
       state,
       postalCode,
       country,
       idType,
       idNumber,
-      documentIssueDate,
-      documentExpiryDate,
       documentIssuingAuthority,
       status,
       remarks
@@ -218,22 +212,14 @@ export const updateKyc = async (req, res) => {
     const updateData = {
       fullName,
       dob,
-      gender,
-      nationality,
-      occupation,
-      maritalStatus,
-      phoneNumber,
-      alternatePhone,
-      email,
       addressLine1,
+      phoneNumber,
       city,
       state,
       postalCode,
       country,
       idType,
       idNumber,
-      documentIssueDate,
-      documentExpiryDate,
       documentIssuingAuthority,
       status,
       remarks,
@@ -258,40 +244,49 @@ export const updateKyc = async (req, res) => {
     }
 
     // Update user's KYC status
-    await User.findByIdAndUpdate(kyc.user._id, { kycStatus: status });
+    if (status) {
+      await User.findByIdAndUpdate(kyc.user._id, { kycStatus: status });
+    }
 
     // Send notification based on status change
-    if (status === 'verified') {
-      await createNotification(
-        kyc.user._id,
-        "KYC Updated & Verified",
-        "Your KYC information has been updated and verified by admin.",
-        "success",
-        null,
-        "kyc_updated_verified"
-      );
-    } else if (status === 'rejected') {
-      await createNotification(
-        kyc.user._id,
-        "KYC Updated & Rejected",
-        remarks || "Your KYC information has been updated but rejected. Please review remarks.",
-        "error",
-        null,
-        "kyc_updated_rejected"
-      );
-    } else {
-      await createNotification(
-        kyc.user._id,
-        "KYC Information Updated",
-        "Your KYC information has been updated by admin.",
-        "info",
-        null,
-        "kyc_updated"
-      );
+    try {
+      if (status === 'verified') {
+        await createNotification(
+          kyc.user._id,
+          "KYC Updated & Verified",
+          "Your KYC information has been updated and verified by admin.",
+          "success",
+          null,
+          "kyc_updated_verified"
+        );
+      } else if (status === 'rejected') {
+        await createNotification(
+          kyc.user._id,
+          "KYC Updated & Rejected",
+          remarks || "Your KYC information has been updated but rejected. Please review remarks.",
+          "error",
+          null,
+          "kyc_updated_rejected"
+        );
+      } else {
+        await createNotification(
+          kyc.user._id,
+          "KYC Information Updated",
+          "Your KYC information has been updated by admin.",
+          "info",
+          null,
+          "kyc_updated"
+        );
+      }
+    } catch (notificationError) {
+      console.error('Notification creation failed:', notificationError);
+      // Don't fail the entire update if notification fails
     }
 
     res.status(200).json({ success: true, kyc });
   } catch (error) {
+    console.error('KYC Update Error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ success: false, message: error.message });
   }
 };

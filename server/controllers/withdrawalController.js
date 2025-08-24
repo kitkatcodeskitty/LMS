@@ -96,7 +96,7 @@ export const createWithdrawalRequest = async (req, res) => {
       const withdrawalData = {
         userId,
         method,
-        amount,
+        amount: Math.round(Number(amount)), // Ensure amount is a whole number
         status: 'pending',
         clientIP,
         userAgent: req.get('User-Agent') || 'Unknown'

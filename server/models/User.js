@@ -79,7 +79,7 @@ userSchema.methods.updateWithdrawableBalance = function(affiliateAmount) {
 // Instance method to process withdrawal approval
 userSchema.methods.processWithdrawalApproval = function(withdrawalAmount) {
   try {
-    const amount = Number(withdrawalAmount) || 0;
+    const amount = Math.round(Number(withdrawalAmount)) || 0;
     if (amount <= 0) {
       throw new Error('Withdrawal amount must be positive');
     }
@@ -113,7 +113,7 @@ userSchema.methods.processWithdrawalApproval = function(withdrawalAmount) {
 
 // Instance method to process withdrawal rejection
 userSchema.methods.processWithdrawalRejection = function(withdrawalAmount) {
-  const amount = Number(withdrawalAmount) || 0;
+  const amount = Math.round(Number(withdrawalAmount)) || 0;
   if (amount <= 0) {
     throw new Error('Withdrawal amount must be positive');
   }
@@ -123,7 +123,7 @@ userSchema.methods.processWithdrawalRejection = function(withdrawalAmount) {
 
 // Instance method to add pending withdrawal
 userSchema.methods.addPendingWithdrawal = function(withdrawalAmount) {
-  const amount = Number(withdrawalAmount) || 0;
+  const amount = Math.round(Number(withdrawalAmount)) || 0;
   if (amount <= 0) {
     throw new Error('Withdrawal amount must be positive');
   }

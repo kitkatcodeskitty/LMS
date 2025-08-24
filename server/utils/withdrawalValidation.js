@@ -178,6 +178,17 @@ export const validateWithdrawalAmount = (amount, availableBalance = null, method
     };
   }
 
+  // Ensure amount is a whole number
+  if (amount % 1 !== 0) {
+    return {
+      valid: false,
+      error: {
+        code: VALIDATION_ERRORS.INVALID_AMOUNT,
+        message: 'Amount must be a whole number (no decimals)'
+      }
+    };
+  }
+
   // Check minimum amount based on method
   let minAmount = VALIDATION_CONSTANTS.MIN_WITHDRAWAL_AMOUNT;
   let methodName = 'withdrawal';
@@ -199,7 +210,6 @@ export const validateWithdrawalAmount = (amount, availableBalance = null, method
       }
     };
   }
-
   
   // Check against available balance if provided
   if (availableBalance !== null && amount > availableBalance) {
@@ -892,9 +902,8 @@ export const sanitizeWithdrawalRequest = (requestData) => {
   // Sanitize amount (ensure it's a proper number)
   if (requestData.amount !== undefined) {
     const numAmount = parseFloat(requestData.amount);
-    // Use a more precise rounding method for financial calculations
-    sanitized.amount = isNaN(numAmount) ? 0 : Math.round((numAmount + Number.EPSILON) * 100) / 100;
-    // Or consider using a library like decimal.js for precise decimal arithmetic
+    // Ensure amount is a whole number only - no decimals
+    sanitized.amount = isNaN(numAmount) ? 0 : Math.round(numAmount);
   }
   // Sanitize mobile banking details
   if (requestData.mobileBankingDetails) {

@@ -7,7 +7,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const Dashboard = () => {
-  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext)
+  const { currency, backendUrl, isEducator, getToken, userData } = useContext(AppContext)
   const [dashboardData, setDashboardData] = useState(null)
   const [purchasesData, setPurchasesData] = useState(null)
   const [cartsData, setCartsData] = useState([])
@@ -40,11 +40,17 @@ const Dashboard = () => {
         axios.get(`${backendUrl}/api/cart/all`, { headers: { Authorization: `Bearer ${token}` } }),
       ])
 
-      if (dashRes.data.success) setDashboardData(dashRes.data.dashboardData)
-      else toast.error(dashRes.data.message || 'Failed to fetch dashboard data.')
+      if (dashRes.data.success) {
+        setDashboardData(dashRes.data.dashboardData);
+      } else {
+        toast.error(dashRes.data.message || 'Failed to fetch dashboard data.');
+      }
 
-      if (purchasesRes.data.success) setPurchasesData(purchasesRes.data)
-      else toast.error(purchasesRes.data.message || 'Failed to fetch purchases data.')
+      if (purchasesRes.data.success) {
+        setPurchasesData(purchasesRes.data);
+      } else {
+        toast.error(purchasesRes.data.message || 'Failed to fetch purchases data.');
+      }
 
       if (cartsRes.data.success) setCartsData(cartsRes.data.carts)
       else toast.error(cartsRes.data.message || 'Failed to fetch cart data.')
@@ -56,12 +62,12 @@ const Dashboard = () => {
   }
 
   useEffect(() => {
-    if (isEducator) {
+    if (isEducator || userData?.isSubAdmin || userData?.role === 'subadmin') {
       fetchDashboardAndPurchases()
     } else {
       setLoading(false)
     }
-  }, [isEducator])
+  }, [isEducator, userData])
 
   const validatePurchase = async (userId, courseId) => {
     try {
@@ -120,8 +126,8 @@ const Dashboard = () => {
             .map((cart) => {
               if (cart.user._id === userId) {
                 return {
-                  ...cart,
-                  courses: cart.courses.filter((item) => item.course._id !== courseId),
+              ...cart,
+              courses: cart.courses.filter((item) => item.course._id !== courseId),
                 }
               }
               return cart
@@ -246,7 +252,7 @@ const Dashboard = () => {
 
   if (loading) return <Loading />
 
-  if (!isEducator) {
+  if (!isEducator && !userData?.isSubAdmin && userData?.role !== 'subadmin') {
     return (
       <div className="p-8 text-center text-gray-600">
         You must be an admin to view the dashboard.
@@ -263,46 +269,27 @@ const Dashboard = () => {
   }
 
   const totalEnrollments = purchasesData.totalStudents || 0
-  const totalEarnings =
-    purchasesData.purchases?.reduce((sum, studentData) => sum + (studentData.totalSpent || 0), 0) || 0
-
-  // Calculate total profit based on referral status
-  const totalProfit = purchasesData.purchases?.reduce((sum, studentData) => {
-    const studentProfit = studentData.purchases?.reduce((studentSum, purchase) => {
-      // Get course price from the purchase amount or courseId price
-      const coursePrice = purchase.amount || purchase.courseId?.price || purchase.courseId?.coursePrice || 0
-      
-      // Check if user used a referral code when purchasing
-      // Based on your Purchase.js model, check referralCode and referrerId
-      const hasReferral = (purchase.referralCode && purchase.referralCode !== null && purchase.referralCode !== '') || 
-                         (purchase.referrerId && purchase.referrerId !== null)
-      
-      // Profit calculation:
-      // - If user used a referral when buying: profit = half of course price (50%)
-      // - If user did NOT use a referral: profit = full course price (100%)
-      const profit = hasReferral ? (coursePrice * 0.5) : coursePrice
-      
-      return studentSum + profit
-    }, 0) || 0
-    return sum + studentProfit
-  }, 0) || 0
 
   return (
     <div className="min-h-screen flex flex-col items-start justify-between gap-8 md:p-8 md:pb-0 p-4 pt-8 pb-0">
       <div className="space-y-5">
         {/* Admin Actions */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <h1 className="text-2xl font-medium text-gray-800">Admin Dashboard</h1>
+          <h1 className="text-2xl font-medium text-gray-800">
+            {isEducator ? 'Admin Dashboard' : 'Sub-Admin Dashboard'}
+          </h1>
+
+          {isEducator && (
           <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              onClick={() => setShowProfileRestrictionModal(true)}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              Manage Profile Restrictions
-            </button>
+              <button
+                onClick={() => setShowProfileRestrictionModal(true)}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Manage Profile Restrictions
+              </button>
             <button
               onClick={() => setShowMakeSubAdminModal(true)}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
@@ -322,65 +309,49 @@ const Dashboard = () => {
               Make Full Admin
             </button>
           </div>
+          )}
         </div>
 
-        <div className="flex flex-wrap gap-5 items-center">
-          {/* Total Enrollments */}
-          <div className="flex items-center gap-3 shadow-card border border-blue-500 p-4 w-56 rounded-md h-28">
-            <img
-              className="w-10 h-10 object-contain"
-              src={assets.patients_icon}
-              alt="patient_icon"
-            />
-            <div>
-              <p className="text-2xl font-medium text-gray-600">{totalEnrollments}</p>
-              <p className="text-base text-gray-500">Total Enrollments</p>
+
+
+        {/* Financial Summary */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Financial Summary
+          </h3>
+          
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-600 mb-2">
+                {currency}{Math.round(dashboardData.totalRevenue) || '0'}
+              </div>
+              <div className="text-sm text-gray-600">Total Revenue</div>
+              <div className="text-xs text-gray-500 mt-1">100% of all course sales</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600 mb-2">
+                {currency}{Math.round(dashboardData.totalProfit) || '0'}
+              </div>
+              <div className="text-sm text-gray-600">Your Profit</div>
+              <div className="text-xs text-gray-500 mt-1">{dashboardData.profitPercentage || '0%'} of revenue</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-orange-600 mb-2">
+                {currency}{Math.round(dashboardData.totalAffiliateOutflow) || '0'}
+              </div>
+              <div className="text-sm text-gray-600">Affiliate Payouts</div>
+              <div className="text-xs text-gray-500 mt-1">{dashboardData.affiliatePercentage || '0%'} of revenue</div>
             </div>
           </div>
-
-          {/* Total Courses */}
-          <div className="flex items-center gap-3 shadow-card border border-blue-500 p-4 w-56 rounded-md h-28">
-            <img
-              className="w-10 h-10 object-contain"
-              src={assets.appointments_icon}
-              alt="course_icon"
-            />
-            <div>
-              <p className="text-2xl font-medium text-gray-600">{dashboardData.totalCourses}</p>
-              <p className="text-base text-gray-500">Total Courses</p>
-            </div>
-          </div>
-
-          {/* Total Earnings */}
-          <div className="flex items-center gap-3 shadow-card border border-blue-500 p-4 w-56 rounded-md h-28">
-            <img
-              className="w-10 h-10 object-contain"
-              src={assets.earning_icon}
-              alt="earning_icon"
-            />
-            <div>
-              <p className="text-2xl font-medium text-gray-600">
-                {currency}
-                {Math.round(totalEarnings)}
-              </p>
-              <p className="text-base text-gray-500">Total Earnings</p>
-            </div>
-          </div>
-
-          {/* Total Profit */}
-          <div className="flex items-center gap-3 shadow-card border border-green-500 p-4 w-56 rounded-md h-28">
-            <img
-              className="w-10 h-10 object-contain"
-              src={assets.earning_icon}
-              alt="profit_icon"
-            />
-            <div>
-              <p className="text-2xl font-medium text-gray-600">
-                {currency}
-                {Math.round(totalProfit)}
-              </p>
-              <p className="text-base text-gray-500">Total Profit</p>
-            </div>
+          <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+            <p className="text-sm text-blue-800 text-center">
+              <strong>Note:</strong> When users purchase with referral codes, 60% goes to affiliates and 40% is your profit. 
+              Without referrals, you keep 100% of the revenue.
+            </p>
           </div>
         </div>
 
@@ -445,6 +416,31 @@ const Dashboard = () => {
                         <span className="text-green-600 font-medium">
                           {currency}{Math.round(studentData.totalSpent) || '0'}
                         </span>
+                      </div>
+
+                      {/* Financial Breakdown */}
+                      <div className="mt-3 p-2 bg-gray-50 rounded border-l-4 border-blue-500">
+                        <div className="text-xs font-medium text-gray-700 mb-2">Financial Breakdown:</div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-600">Revenue:</span>
+                            <span className="text-blue-600 font-medium">
+                              {currency}{Math.round(studentData.totalSpent) || '0'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-600">Your Profit:</span>
+                            <span className="text-green-600 font-medium">
+                              {currency}{Math.round(studentData.totalSpent * 0.4) || '0'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-600">Affiliate (if any):</span>
+                            <span className="text-orange-600 font-medium">
+                              {currency}{Math.round(studentData.totalSpent * 0.6) || '0'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="flex justify-between">
@@ -535,6 +531,9 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Admin-only Modals - Only visible to full admins */}
+      {isEducator && (
+        <>
       {/* Modal for Making User Admin */}
       {showMakeAdminModal && (
         <div
@@ -639,59 +638,61 @@ const Dashboard = () => {
             </form>
           </div>
         </div>
-      )}
+          )}
 
-      {/* Modal for Managing Profile Edit Restrictions */}
-      {showProfileRestrictionModal && (
-        <div
-          onClick={() => setShowProfileRestrictionModal(false)}
-          className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 cursor-pointer"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
-          >
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Manage Profile Edit Restrictions</h2>
-            <p className="text-sm text-gray-600 mb-4">Reset profile edit restrictions for users who need to make additional changes to their profiles.</p>
+          {/* Modal for Managing Profile Edit Restrictions */}
+          {showProfileRestrictionModal && (
+            <div
+              onClick={() => setShowProfileRestrictionModal(false)}
+              className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 cursor-pointer"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
+              >
+                <h2 className="text-xl font-semibold mb-4 text-gray-800">Manage Profile Edit Restrictions</h2>
+                <p className="text-sm text-gray-600 mb-4">Reset profile edit restrictions for users who need to make additional changes to their profiles.</p>
 
-            <form onSubmit={resetProfileEditRestriction} className="space-y-4">
-              <div>
-                <label htmlFor="restrictionEmail" className="block text-sm font-medium text-gray-700 mb-2">
-                  User Email Address
-                </label>
-                <input
-                  type="email"
-                  id="restrictionEmail"
-                  value={restrictionEmail}
-                  onChange={(e) => setRestrictionEmail(e.target.value)}
-                  placeholder="Enter user's email address"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                  required
-                />
+                <form onSubmit={resetProfileEditRestriction} className="space-y-4">
+                  <div>
+                    <label htmlFor="restrictionEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                      User Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="restrictionEmail"
+                      value={restrictionEmail}
+                      onChange={(e) => setRestrictionEmail(e.target.value)}
+                      placeholder="Enter user's email address"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowProfileRestrictionModal(false)}
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={resettingRestriction}
+                      className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${resettingRestriction
+                          ? 'bg-amber-400 cursor-not-allowed'
+                          : 'bg-amber-600 hover:bg-amber-700'
+                        }`}
+                    >
+                      {resettingRestriction ? 'Resetting...' : 'Reset Restriction'}
+                    </button>
+                  </div>
+                </form>
               </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowProfileRestrictionModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={resettingRestriction}
-                  className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${resettingRestriction
-                      ? 'bg-amber-400 cursor-not-allowed'
-                      : 'bg-amber-600 hover:bg-amber-700'
-                    }`}
-                >
-                  {resettingRestriction ? 'Resetting...' : 'Reset Restriction'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
