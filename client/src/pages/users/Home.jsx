@@ -1,10 +1,12 @@
-import React, { useContext, useMemo } from 'react'
+import React, { useContext, useMemo, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext'
 import Hero from '../../components/users/Hero'
 import TestimonialsSection from '../../components/users/TestimonialsSection'
 import CallToAction from '../../components/users/CallToAction'
 import Footer from '../../components/users/Footer'
+import Popup from '../../components/common/Popup'
+import axios from 'axios'
 import { 
   getPackageStyling, 
   getPackageBadge, 
@@ -40,8 +42,10 @@ const floatingStyles = `
 `;
 
 const Home = () => {
-  const { allCourses, currency } = useContext(AppContext);
+  const { allCourses, currency, backendUrl } = useContext(AppContext);
   const navigate = useNavigate();
+  const [popup, setPopup] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
 
   const randomCourses = useMemo(() => {
     const shuffled = [...allCourses];
@@ -73,10 +77,54 @@ const Home = () => {
     return sorted;
   }, [randomCourses]);
 
+  // Fetch active popup on component mount - for everyone (logged in or not)
+  useEffect(() => {
+    const fetchActivePopup = async () => {
+      try {
+        const response = await axios.get(`${backendUrl}/api/popups/active`);
+        
+        if (response.data.success && response.data.popup) {
+          setPopup(response.data.popup);
+          setShowPopup(true);
+        }
+      } catch (error) {
+        console.error('Error fetching popup:', error);
+      }
+    };
+
+    // Fetch popup immediately when component mounts
+    fetchActivePopup();
+    
+    // Also fetch popup when page becomes visible (for page reloads)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchActivePopup();
+      }
+    };
+    
+    // Listen for page visibility changes (optional, for better UX)
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [backendUrl]);
+
+  const handlePopupClose = () => {
+    setShowPopup(false);
+  };
+
   return (
     <div className='relative flex flex-col items-center text-center overflow-hidden'>
       {/* Inject custom CSS for floating animations */}
       <style>{floatingStyles}</style>
+      
+      {/* Popup Component */}
+      {showPopup && popup && (
+        <Popup popup={popup} onClose={handlePopupClose} />
+      )}
+      
+
       
       {/* Beautiful Background Ellipses with Blur Effects - Covering Whole Home Page */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">

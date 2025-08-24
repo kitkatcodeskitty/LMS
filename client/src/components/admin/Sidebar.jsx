@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { NavLink } from 'react-router-dom'
-import { FiHome, FiPlusSquare, FiBook, FiUsers, FiClipboard, FiCheckCircle, FiDollarSign } from 'react-icons/fi'
+import { FiHome, FiPlusSquare, FiBook, FiUsers, FiClipboard, FiCheckCircle, FiDollarSign, FiImage } from 'react-icons/fi'
 import axios from 'axios'
 
 const Sidebar = () => {
@@ -40,12 +40,13 @@ const Sidebar = () => {
   // Full admin menu items
   const fullAdminMenuItems = [
     { name: 'Dashboard', path: '/educator', icon: <FiHome size={24} /> },
-            { name: 'Add Package', path: '/educator/add-package', icon: <FiPlusSquare size={24} /> },
-        { name: 'My Packages', path: '/educator/myCourse', icon: <FiBook size={24} /> },
+    { name: 'Add Package', path: '/educator/add-package', icon: <FiPlusSquare size={24} /> },
+    { name: 'My Packages', path: '/educator/myCourse', icon: <FiBook size={24} /> },
     { name: 'Student Enrolled', path: '/educator/student-Enrolled', icon: <FiUsers size={24} /> },
     { name: 'Pending Orders', path: '/educator/pending-orders', icon: <FiClipboard size={24} /> },
     { name: 'KYC Review', path: '/educator/kyc-review', icon: <FiCheckCircle size={24} /> },
-    { name: 'Withdrawals', path: '/educator/withdrawal-management', icon: <FiDollarSign size={24} /> }
+    { name: 'Withdrawals', path: '/educator/withdrawal-management', icon: <FiDollarSign size={24} /> },
+    { name: 'Popup Management', path: '/educator/popup-management', icon: <FiImage size={24} /> }
   ]
 
   // Sub-admin menu items (limited access)

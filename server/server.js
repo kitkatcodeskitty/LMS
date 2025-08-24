@@ -9,6 +9,7 @@ import cartRouter from './routes/cartRoute.js';
 import notificationRouter from './routes/notificationRoute.js';
 import kycRouter from './routes/kycRoute.js';
 import withdrawalRouter from './routes/withdrawalRoute.js';
+import popupRouter from './routes/popupRoute.js';
 import dotenv from "dotenv";
 import { globalErrorHandler } from './middleware/errorHandler.js';
 
@@ -55,6 +56,7 @@ app.use('/api/cart', cartRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/kyc', kycRouter);
 app.use('/api/withdrawals', withdrawalRouter);
+app.use('/api/popups', popupRouter);
 
 
 
@@ -65,7 +67,7 @@ app.use(globalErrorHandler);
 const PORT = process.env.PORT || 5000
 
 app.listen(PORT, () => {
-    // Server is running on port ${PORT}
+    console.log(`Server is running on port ${PORT}`)
 })
 
 

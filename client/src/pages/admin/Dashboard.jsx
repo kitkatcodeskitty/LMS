@@ -6,6 +6,7 @@ import { formatDateTime } from '../../utils/formatters'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
+
 const Dashboard = () => {
   const { currency, backendUrl, isEducator, getToken, userData } = useContext(AppContext)
   const [dashboardData, setDashboardData] = useState(null)
@@ -514,6 +515,8 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+
+
       </div>
 
       {/* Modal for Payment Screenshot */}

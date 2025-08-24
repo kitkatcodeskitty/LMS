@@ -18,6 +18,7 @@ import StudentsEnrolled from './pages/admin/StudentsEnrolled';
 import KycReview from './pages/admin/KycReview';
 import PendingOrders from './pages/admin/PendingOrders';
 import WithdrawalManagement from './pages/admin/WithdrawalManagement';
+import PopupManagement from './pages/admin/PopupManagement';
 
 import Navbar from './components/users/Navbar';
 import 'quill/dist/quill.snow.css';
@@ -92,6 +93,7 @@ const App = () => {
           <Route path="pending-orders" element={<PendingOrders />} />
           <Route path="kyc-review" element={<KycReview />} />
           <Route path="withdrawal-management" element={<WithdrawalManagement />} />
+          <Route path="popup-management" element={<PopupManagement />} />
         </Route>
       </Routes>
     </div>
