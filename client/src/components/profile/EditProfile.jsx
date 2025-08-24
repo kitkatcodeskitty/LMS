@@ -17,6 +17,7 @@ const EditProfile = ({
     newPassword: '',
     confirmPassword: ''
   });
+  const [passwordErrors, setPasswordErrors] = useState({});
 
   const handleProfileImageChange = (e) => {
     const file = e.target.files[0];
@@ -55,6 +56,11 @@ const EditProfile = ({
     const updatedPasswordData = { ...passwordData, [name]: value };
     setPasswordData(updatedPasswordData);
     
+    // Clear errors when user types
+    if (passwordErrors[name]) {
+      setPasswordErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    
     // Update parent editForm with password data
     setEditForm(prev => ({ ...prev, passwordData: updatedPasswordData }));
   };
@@ -67,19 +73,75 @@ const EditProfile = ({
         newPassword: '',
         confirmPassword: ''
       });
+      setPasswordErrors({});
     }
   };
 
-  const validatePassword = () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('New password and confirm password do not match');
+  const validatePassword = async () => {
+    const errors = {};
+
+    // Check if current password is provided
+    if (!passwordData.currentPassword.trim()) {
+      errors.currentPassword = 'Current password is required';
+    }
+
+    // Check if new password is provided
+    if (!passwordData.newPassword.trim()) {
+      errors.newPassword = 'New password is required';
+    } else if (passwordData.newPassword.length < 6) {
+      errors.newPassword = 'New password must be at least 6 characters long';
+    }
+
+    // Check if confirm password matches
+    if (!passwordData.confirmPassword.trim()) {
+      errors.confirmPassword = 'Please confirm your new password';
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      errors.confirmPassword = 'New password and confirm password do not match';
+    }
+
+    // Check if new password is different from current password
+    if (passwordData.currentPassword && passwordData.newPassword && 
+        passwordData.currentPassword === passwordData.newPassword) {
+      errors.newPassword = 'New password must be different from current password';
+    }
+
+    // If there are validation errors, set them and return false
+    if (Object.keys(errors).length > 0) {
+      setPasswordErrors(errors);
       return false;
     }
-    if (passwordData.newPassword.length < 6) {
-      alert('New password must be at least 6 characters long');
-      return false;
-    }
+
+    // Clear any previous errors
+    setPasswordErrors({});
+
+    // Note: Backend will handle the actual password verification and hashing
     return true;
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    
+    // If password fields are open, validate and update password first
+    if (showPasswordFields) {
+      if (!await validatePassword()) {
+        return;
+      }
+      
+      // Prepare password data for backend
+      const passwordUpdateData = {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      };
+
+      // Update parent editForm with properly structured password data
+      setEditForm(prev => ({ 
+        ...prev, 
+        passwordData: passwordUpdateData
+      }));
+    }
+
+    // Call the parent handler
+    handleEditProfile(e);
   };
 
   return (
@@ -121,7 +183,7 @@ const EditProfile = ({
           </div>
         )}
 
-        <form onSubmit={handleEditProfile} className="space-y-4 sm:space-y-6">
+        <form onSubmit={handleFormSubmit} className="space-y-4 sm:space-y-6">
           {/* Profile Photo Section */}
           <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6 pb-4 sm:pb-6 border-b border-gray-200 animate-fade-in-up animation-delay-200">
             <div className="relative">
@@ -243,11 +305,18 @@ const EditProfile = ({
                       name="currentPassword"
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm hover:border-rose-300 transition-colors duration-200"
+                      className={`w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm transition-colors duration-200 ${
+                        passwordErrors.currentPassword 
+                          ? 'border-red-300 bg-red-50' 
+                          : 'border-gray-300 hover:border-rose-300'
+                      }`}
                       placeholder="Enter your current password"
                       required={showPasswordFields}
                       disabled={profileEditStatus?.hasEditedProfile}
                     />
+                    {passwordErrors.currentPassword && (
+                      <p className="text-xs text-red-600 mt-1">{passwordErrors.currentPassword}</p>
+                    )}
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -260,11 +329,18 @@ const EditProfile = ({
                         name="newPassword"
                         value={passwordData.newPassword}
                         onChange={handlePasswordChange}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm hover:border-rose-300 transition-colors duration-200"
+                        className={`w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm transition-colors duration-200 ${
+                          passwordErrors.newPassword 
+                            ? 'border-red-300 bg-red-50' 
+                            : 'border-gray-300 hover:border-rose-300'
+                        }`}
                         placeholder="Enter new password"
                         required={showPasswordFields}
                         disabled={profileEditStatus?.hasEditedProfile}
                       />
+                      {passwordErrors.newPassword && (
+                        <p className="text-xs text-red-600 mt-1">{passwordErrors.newPassword}</p>
+                      )}
                     </div>
                     
                     <div>
@@ -276,11 +352,18 @@ const EditProfile = ({
                         name="confirmPassword"
                         value={passwordData.confirmPassword}
                         onChange={handlePasswordChange}
-                        className="w-full px-3 sm:px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm hover:border-rose-300 transition-colors duration-200"
+                        className={`w-full px-3 sm:px-4 py-2 rounded-lg border focus:ring-2 focus:ring-rose-500 focus:border-transparent text-sm transition-colors duration-200 ${
+                          passwordErrors.confirmPassword 
+                            ? 'border-red-300 bg-red-50' 
+                            : 'border-gray-300 hover:border-rose-300'
+                        }`}
                         placeholder="Confirm new password"
                         required={showPasswordFields}
                         disabled={profileEditStatus?.hasEditedProfile}
                       />
+                      {passwordErrors.confirmPassword && (
+                        <p className="text-xs text-red-600 mt-1">{passwordErrors.confirmPassword}</p>
+                      )}
                     </div>
                   </div>
                   
