@@ -35,7 +35,6 @@ import FAQ from './pages/users/FAQ';
 import Terms from './pages/users/Terms';
 import Refund from './pages/users/Refund';
 import Contact from './pages/users/Contact';
-import Certificates from './pages/users/Certificates';
 
 import ScrollToTop from './components/common/ScrollToTop'; // ScrollToTop import
 
@@ -78,7 +77,6 @@ const App = () => {
         <Route path="/refund" element={<Refund />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/certificates" element={<Certificates />} />
 
         {/* Admin-only routes */}
         <Route
