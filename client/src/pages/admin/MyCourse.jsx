@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/users/Loading'
 import axios from 'axios'
-import { toast } from 'react-toastify'
 import UpdatePackagePopup from '../../components/users/UpdateCoursePopup' 
 
 const MyPackages = () => {
@@ -22,11 +21,11 @@ const MyPackages = () => {
       if (data.success) {
         setCourses(data.courses)
       } else {
-        toast.error(data.message || "Failed to fetch courses");
+        console.error(data.message || "Failed to fetch courses");
       }
     } catch (error) {
       console.error("Error fetching courses:", error);
-      toast.error("Failed to fetch courses");
+      console.error("Failed to fetch courses");
     } finally {
       setLoading(false);
     }
@@ -53,13 +52,13 @@ const MyPackages = () => {
       )
 
       if (data.success) {
-        toast.success('Package deleted successfully')
+        console.log('Package deleted successfully')
         setCourses((prev) => prev.filter((course) => course._id !== courseId))
       } else {
-        toast.error(data.message || 'Failed to delete package')
+        console.error(data.message || 'Failed to delete package')
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error deleting package')
+      console.error(error.response?.data?.message || error.message || 'Error deleting package')
     } finally {
       setLoading(false)
     }

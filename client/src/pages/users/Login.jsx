@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import axios from "axios";
 import { AppContext } from "../../context/AppContext";
-import { toast } from "react-toastify";
+
 import Footer from "../../components/users/Footer";
 
 const Login = () => {
@@ -25,17 +25,17 @@ const Login = () => {
 
     // Basic validation
     if (!form.email.trim()) {
-      toast.error("Please enter your email address");
+      console.error("Please enter your email address");
       return;
     }
 
     if (!form.password.trim()) {
-      toast.error("Please enter your password");
+      console.error("Please enter your password");
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      toast.error("Please enter a valid email address");
+      console.error("Please enter a valid email address");
       return;
     }
 
@@ -53,18 +53,18 @@ const Login = () => {
         
         try {
           await fetchUserEnrolledCourses();
-          toast.success("Welcome back! Login successful");
+          console.log("Welcome back! Login successful");
           navigate("/");
         } catch (fetchErr) {
           console.error("Data fetch error after login:", fetchErr);
-          toast.warning("Logged in, but failed to load some data");
+          console.warn("Logged in, but failed to load some data");
           navigate("/");
         }
       } else {
         throw new Error(res.data.message || 'Login failed');
       }
     } catch (err) {
-      toast.error(err?.response?.data?.error || err?.response?.data?.message || "Login failed");
+      console.error("Login failed:", err?.response?.data?.error || err?.response?.data?.message || err.message);
     } finally {
       setSubmitting(false);
     }

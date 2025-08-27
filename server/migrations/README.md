@@ -37,6 +37,16 @@ This directory contains database migration scripts for the LMS application.
   - Requires admin approval for additional changes
 - **Status**: ✅ Ready to run
 
+### 7. `007_add_package_hierarchy_commission.js` 🆕 **BRAND NEW**
+- **Purpose**: Implement new package hierarchy-based commission system
+- **Changes**:
+  - Adds `highestPackage` field to User model to track user's highest purchased package
+  - Implements new commission logic: 60% commission based on package hierarchy
+  - If referrer has higher/equal package: gets 60% of purchased package price
+  - If referrer has lower package: gets 60% of their own package's earning potential
+  - Updates existing users with their highest package based on enrolled courses
+- **Status**: ✅ Ready to run
+
 ## Running Migrations
 
 ### Manual Migration Commands
@@ -66,6 +76,24 @@ mongoose.connect(process.env.MONGODB_URI)
 node -e "
 const mongoose = require('mongoose');
 const migration = require('./migrations/006_add_profile_edit_restriction.js');
+require('dotenv').config();
+
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => migration.up())
+  .then(() => {
+    console.log('✅ Migration completed successfully');
+    process.exit(0);
+  })
+  .catch(err => {
+    console.error('❌ Migration failed:', err);
+    process.exit(1);
+  });
+"
+
+# Run the package hierarchy commission migration
+node -e "
+const mongoose = require('mongoose');
+const migration = require('./migrations/007_add_package_hierarchy_commission.js');
 require('dotenv').config();
 
 mongoose.connect(process.env.MONGODB_URI)
@@ -125,3 +153,30 @@ import('./migrations/005_update_package_system.js').then(async (migration) => {
 - `Course.packageType`: Updated enum values
 - `Course.courseLimit`: New field with package-specific defaults
 - `Purchase.commissionRate`: Updated default to 0.6
+
+## New Commission System (Migration 007)
+
+### Package Hierarchy Commission Logic
+The new system implements intelligent commission calculation based on package hierarchy:
+
+1. **Higher Package Referrer**: If a user with a higher package refers someone buying a lower package, they get 60% of the purchased package price.
+
+2. **Lower Package Referrer**: If a user with a lower package refers someone buying a higher package, they get 60% of their own package's earning potential.
+
+3. **Equal Package Referrer**: If both referrer and purchaser have the same package level, the referrer gets 60% of the purchased package price.
+
+### Example Scenarios
+- **Prime user refers Master purchase**: Gets 60% of Master package price
+- **Master user refers Prime purchase**: Gets 60% of Prime package price  
+- **Elite user refers Master purchase**: Gets 60% of Elite package earning potential
+- **Creator user refers Elite purchase**: Gets 60% of Elite package price
+
+### Database Changes
+- `User.highestPackage`: New field tracking user's highest purchased package
+- Commission calculation now considers package hierarchy
+- Existing users automatically updated based on their enrolled courses
+
+### Benefits
+- Encourages users to upgrade to higher packages for better earning potential
+- Fair commission distribution based on investment level
+- Maintains 60% commission rate while adding intelligence to the system

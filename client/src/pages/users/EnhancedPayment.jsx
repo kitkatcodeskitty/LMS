@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import { AppContext } from '../../context/AppContext';
 import Footer from '../../components/users/Footer';
 import Button from '../../components/common/Button';
@@ -68,7 +67,7 @@ const EnhancedPayment = () => {
   // Check if user is trying to use their own referral code from URL
   useEffect(() => {
     if (userData && referralFromUrl && referralFromUrl === userData.affiliateCode) {
-      toast.warning('You cannot use your own referral code for purchases. The referral code has been cleared.');
+      console.warn('You cannot use your own referral code for purchases. The referral code has been cleared.');
       setReferralCode(''); // Clear the referral code
     }
   }, [userData, referralFromUrl]);
@@ -79,11 +78,11 @@ const EnhancedPayment = () => {
       if (data.success && data.course) {
         setCourse(data.course);
       } else {
-        toast.error(data.message || 'Package not found');
+        console.error(data.message || 'Package not found');
         navigate('/packages-list');
       }
     } catch (error) {
-              toast.error(error.response?.data?.message || 'Error loading package details');
+              console.error(error.response?.data?.message || 'Error loading package details');
         navigate('/packages-list');
     } finally {
       setLoadingCourse(false);
@@ -104,12 +103,12 @@ const EnhancedPayment = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('File size should be less than 5MB');
+        console.error('File size should be less than 5MB');
         return;
       }
       
       if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file');
+        console.error('Please select an image file');
         return;
       }
 
@@ -126,12 +125,12 @@ const EnhancedPayment = () => {
     e.preventDefault();
     
     if (registrationData.password !== registrationData.confirmPassword) {
-      toast.error('Passwords do not match');
+      console.error('Passwords do not match');
       return;
     }
 
     if (registrationData.password.length < 8) {
-      toast.error('Password must be at least 8 characters long');
+      console.error('Password must be at least 8 characters long');
       return;
     }
 
@@ -153,7 +152,7 @@ const EnhancedPayment = () => {
       if (data.success) {
         // Store token and update user data
         localStorage.setItem('token', data.token);
-        toast.success('Registration successful! You can now complete your payment.');
+        console.log('Registration successful! You can now complete your payment.');
         setShowRegistration(false);
         
         // Reset profile image states
@@ -163,10 +162,10 @@ const EnhancedPayment = () => {
         // Refresh page to update user context
         window.location.reload();
       } else {
-        toast.error(data.message || 'Registration failed');
+        console.error(data.message || 'Registration failed');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      console.error(error.response?.data?.message || 'Registration failed');
     } finally {
       setRegistering(false);
     }
@@ -176,7 +175,7 @@ const EnhancedPayment = () => {
     e.preventDefault();
     
     if (!loginData.email || !loginData.password) {
-      toast.error('Please fill in all fields');
+      console.error('Please fill in all fields');
       return;
     }
 
@@ -191,16 +190,16 @@ const EnhancedPayment = () => {
       if (data.success) {
         // Store token and update user data
         localStorage.setItem('token', data.token);
-        toast.success('Login successful! You can now complete your payment.');
+        console.log('Login successful! You can now complete your payment.');
         setShowRegistration(false);
         setShowLogin(false);
         // Refresh page to update user context
         window.location.reload();
       } else {
-        toast.error(data.message || 'Login failed');
+        console.error(data.message || 'Login failed');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      console.error(error.response?.data?.message || 'Login failed');
     } finally {
       setLoggingIn(false);
     }
@@ -210,12 +209,12 @@ const EnhancedPayment = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { 
-        toast.error('File size should be less than 5MB');
+        console.error('File size should be less than 5MB');
         return;
       }
       
       if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file');
+        console.error('Please select an image file');
         return;
       }
 
@@ -232,27 +231,27 @@ const EnhancedPayment = () => {
     e.preventDefault();
     
     if (!userData) {
-      toast.error('Please register or login first');
+      console.error('Please register or login first');
       return;
     }
 
     setIsSubmitting(true);
 
     if (!transactionId.trim()) {
-      toast.error('Please enter your transaction ID.');
+      console.error('Please enter your transaction ID.');
       setIsSubmitting(false);
       return;
     }
 
     if (!paymentScreenshot) {
-      toast.error('Please upload a payment screenshot.');
+      console.error('Please upload a payment screenshot.');
       setIsSubmitting(false);
       return;
     }
 
     // Prevent users from using their own referral code
     if (referralCode.trim() && referralCode.trim() === userData.affiliateCode) {
-      toast.error('You cannot use your own referral code for purchases.');
+      console.error('You cannot use your own referral code for purchases.');
       setIsSubmitting(false);
       return;
     }
@@ -260,7 +259,7 @@ const EnhancedPayment = () => {
     try {
       const token = await getToken();
       if (!token) {
-        toast.error('Please login to continue');
+        console.error('Please login to continue');
         setIsSubmitting(false);
         return;
       }
@@ -285,7 +284,7 @@ const EnhancedPayment = () => {
         throw new Error(data.message || 'Failed to add course to cart');
       }
 
-      toast.success('Payment submitted successfully! Wait for admin validation.');
+      console.log('Payment submitted successfully! Wait for admin validation.');
       setShowModal(true);
       
       // Reset form
@@ -294,7 +293,7 @@ const EnhancedPayment = () => {
       setPaymentScreenshot(null);
       setPreviewImage(null);
     } catch (error) {
-      toast.error('Error: ' + error.message);
+      console.error('Error: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -771,7 +770,7 @@ const EnhancedPayment = () => {
                       
                       // Show warning if user tries to enter their own referral code
                       if (value.trim() && userData?.affiliateCode && value.trim() === userData.affiliateCode) {
-                        toast.warning('You cannot use your own referral code for purchases.');
+                        console.warn('You cannot use your own referral code for purchases.');
                       }
                     }}
                     placeholder="Enter referral code (optional)"

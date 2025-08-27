@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import Footer from '../../components/users/Footer';
-import { toast } from 'react-toastify';
-
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -24,7 +22,7 @@ const Contact = () => {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.subject || !formData.message) {
-      toast.error('Please fill in all required fields');
+      console.error('Please fill in all required fields');
       return;
     }
 
@@ -32,7 +30,7 @@ const Contact = () => {
     
     // Simulate API call
     setTimeout(() => {
-      toast.success('Your message has been sent successfully! We\'ll get back to you within 24 hours.');
+      console.log('Your message has been sent successfully! We\'ll get back to you within 24 hours.');
       setFormData({
         name: '',
         email: '',

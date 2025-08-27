@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
 import axios from 'axios';
-import { toast } from 'react-toastify';
-
 const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
   const { backendUrl, getToken, userData } = useContext(AppContext);
   const [courses, setCourses] = useState([]);

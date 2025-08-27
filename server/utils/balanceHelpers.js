@@ -2,6 +2,7 @@ import { Purchase } from '../models/Purchase.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
 import { safeNumber, safeRound, ensurePositive } from './numberUtils.js';
+import { calculatePackageBasedCommission } from './priceHelpers.js';
 
 /**
  * Calculate total withdrawable balance for a user based on their purchases
@@ -183,16 +184,31 @@ export const updateUserEarningsFields = async (userId, affiliateAmount) => {
  * @param {string} referrerId - Referrer's user ID
  * @param {number} coursePrice - Course price
  * @param {number} commissionRate - Commission rate (default 0.6 for 60%)
+ * @param {string} referrerPackage - Referrer's highest package
+ * @param {string} purchasedPackage - Package being purchased
  * @returns {Promise<Object>} Processing result
  */
-export const processAffiliateEarnings = async (referrerId, coursePrice, commissionRate = 0.6) => {
+export const processAffiliateEarnings = async (referrerId, coursePrice, commissionRate = 0.6, referrerPackage = null, purchasedPackage = null) => {
     try {
         const referrer = await User.findById(referrerId);
         if (!referrer) {
             throw new Error('Referrer not found');
         }
 
-        const affiliateAmount = coursePrice * commissionRate;
+        // Use package-based commission calculation if package information is available
+        let affiliateAmount;
+        if (referrerPackage && purchasedPackage) {
+            affiliateAmount = calculatePackageBasedCommission(
+                coursePrice,
+                referrerPackage,
+                purchasedPackage,
+                commissionRate
+            );
+        } else {
+            // Fallback to simple commission calculation
+            affiliateAmount = coursePrice * commissionRate;
+        }
+
         const withdrawableAmount = affiliateAmount; // Full affiliate amount is withdrawable (already the commission)
 
         // Update referrer's balance

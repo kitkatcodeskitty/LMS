@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
-import { toast } from 'react-toastify';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Card from '../common/Card';
 import Badge from '../common/Badge';
@@ -35,7 +34,7 @@ const AdminWithdrawals = () => {
     try {
       const token = getToken();
       if (!token) {
-        toast.error('Authentication required. Please log in.');
+        console.error('Authentication required. Please log in.');
         setFatalError('Authentication required. Please log in.');
         setLoading(false);
         return;
@@ -57,12 +56,12 @@ const AdminWithdrawals = () => {
         setWithdrawals(data.data.withdrawals);
         setPagination(data.data.pagination);
       } else {
-        toast.error('Failed to fetch withdrawals');
+        console.error('Failed to fetch withdrawals');
         setFatalError(data.error?.message || 'Failed to fetch withdrawals');
       }
     } catch (error) {
       setFatalError(error.message || 'Unknown error');
-      toast.error('Error fetching withdrawals');
+      console.error('Error fetching withdrawals');
       console.error(error);
     } finally {
       setLoading(false);
@@ -73,7 +72,7 @@ const AdminWithdrawals = () => {
     try {
       const token = getToken();
       if (!token) {
-        toast.error('Authentication required. Please log in.');
+        console.error('Authentication required. Please log in.');
         return;
       }
 
@@ -91,7 +90,7 @@ const AdminWithdrawals = () => {
         
         // Check if the response has success property and it's true
         if (data && data.success === true) {
-          toast.success(`Withdrawal ${action}${action.endsWith('e') ? 'd' : 'ed'} successfully!`);
+          console.log(`Withdrawal ${action}${action.endsWith('e') ? 'd' : 'ed'} successfully!`);
           setShowDetailsModal(false);
           setSelectedWithdrawal(null);
           // Refetch withdrawals to update UI immediately
@@ -102,7 +101,7 @@ const AdminWithdrawals = () => {
         // If HTTP status is successful but no success property, assume it worked
         // This handles cases where backend returns 200 but doesn't include success: true
         if (data && !data.hasOwnProperty('success')) {
-          toast.success(`Withdrawal ${action}${action.endsWith('e') ? 'd' : 'ed'} successfully!`);
+          console.log(`Withdrawal ${action}${action.endsWith('e') ? 'd' : 'ed'} successfully!`);
           setShowDetailsModal(false);
           setSelectedWithdrawal(null);
           await fetchWithdrawals();
@@ -110,9 +109,9 @@ const AdminWithdrawals = () => {
         }
         
         // If we get here, HTTP was successful but success was false
-        toast.error(data?.error?.message || data?.message || `Failed to ${action} withdrawal`);
+        console.error(data?.error?.message || data?.message || `Failed to ${action} withdrawal`);
       } else {
-        toast.error(`HTTP ${response.status}: Failed to ${action} withdrawal`);
+        console.error(`HTTP ${response.status}: Failed to ${action} withdrawal`);
       }
     } catch (error) {
       console.error(`Error ${action}ing withdrawal:`, error);
@@ -142,7 +141,7 @@ const AdminWithdrawals = () => {
         errorMessage = error.message;
       }
       
-      toast.error(errorMessage);
+      console.error(errorMessage);
     }
   };
 

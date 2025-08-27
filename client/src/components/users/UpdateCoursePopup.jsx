@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { nanoid } from 'nanoid'
 import Quill from 'quill'
-import { toast } from 'react-toastify'
 import axios from 'axios'
 import { AppContext } from '../../context/AppContext'
 import { assets } from '../../assets/assets'
@@ -95,7 +94,7 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
   // Save edited chapter title inline
   const saveChapterEdit = () => {
     if (!chapterEditTitle.trim()) {
-      toast.error('Chapter title cannot be empty')
+      console.error('Chapter title cannot be empty')
       return
     }
     setChapters(
@@ -159,7 +158,7 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
   // Add or update lecture in chapters
   const addOrUpdateLecture = () => {
     if (!lectureDetails.lectureTitle.trim()) {
-      toast.error('Lecture title cannot be empty')
+      console.error('Lecture title cannot be empty')
       return
     }
 
@@ -221,7 +220,7 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
     e.preventDefault()
     try {
       if (!courseTitle.trim()) {
-        toast.error('Course title cannot be empty')
+        console.error('Course title cannot be empty')
         return
       }
 
@@ -254,14 +253,14 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
       )
 
       if (data.success) {
-        toast.success('Course updated successfully')
+        console.log('Course updated successfully')
         onUpdate(data.data)
         onClose()
       } else {
-        toast.error(data.message || 'Failed to update course')
+        console.error(data.message || 'Failed to update course')
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred while updating the course')
+      console.error(error.message || 'An error occurred while updating the course')
     }
   }
 

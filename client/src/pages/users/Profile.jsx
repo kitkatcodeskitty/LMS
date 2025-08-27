@@ -1,7 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
 import { assets } from '../../assets/assets';
-import { toast } from 'react-toastify';
 import axios from 'axios';
 
 import Dashboard from '../../components/profile/Dashboard';
@@ -184,7 +183,7 @@ const Profile = () => {
       } else {
         errorMessage = 'Failed to fetch profile data.';
       }
-      toast.error(errorMessage);
+      console.error(errorMessage);
       // Set mock data for demonstration
       setEarningsData({
         lifetime: userData?.affiliateEarnings || 0,
@@ -206,7 +205,7 @@ const Profile = () => {
     
     // Check if user has already edited profile once
     if (profileEditStatus.hasEditedProfile) {
-      toast.error('Profile can only be edited once. Please contact an administrator for any further changes.');
+      console.error('Profile can only be edited once. Please contact an administrator for any further changes.');
       return;
     }
     
@@ -242,7 +241,7 @@ const Profile = () => {
       );
 
       if (response.data.success) {
-        toast.success(response.data.message || 'Profile updated successfully! Note: Profile can only be edited once.');
+        console.log(response.data.message || 'Profile updated successfully! Note: Profile can only be edited once.');
         // Update local state to reflect the restriction
         setProfileEditStatus({
           hasEditedProfile: true,
@@ -251,28 +250,28 @@ const Profile = () => {
         // Refresh user data
         window.location.reload();
       } else {
-        toast.error(response.data.message || 'Profile update failed');
+        console.error(response.data.message || 'Profile update failed');
       }
     } catch (error) {
       console.error('Profile update error:', error);
       
       // Handle specific error for profile edit restriction
       if (error.response?.status === 403 && error.response?.data?.hasEditedProfile) {
-        toast.error('Profile can only be edited once. Please contact an administrator for any further changes.');
+        console.error('Profile can only be edited once. Please contact an administrator for any further changes.');
         // Update local state
         setProfileEditStatus({
           hasEditedProfile: true,
           profileEditDate: error.response.data.profileEditDate
         });
       } else {
-        toast.error(error.response?.data?.message || 'Failed to update profile');
+        console.error(error.response?.data?.message || 'Failed to update profile');
       }
     }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard!');
+    console.log('Copied to clipboard!');
   };
 
   if (!userData) {

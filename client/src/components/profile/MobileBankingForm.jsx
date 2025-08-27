@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { toast } from 'react-toastify';
 import axios from 'axios';
 import Button from '../common/Button';
 import { validateRequired } from '../../utils/apiHelpers';
@@ -109,7 +108,7 @@ const MobileBankingForm = ({ availableBalance, onBack, onSuccess, loading, setLo
     e.preventDefault();
     
     if (balanceError) {
-      toast.error('Cannot submit: failed to fetch balance');
+      console.error('Cannot submit: failed to fetch balance');
       return;
     }
     
@@ -141,9 +140,9 @@ const MobileBankingForm = ({ availableBalance, onBack, onSuccess, loading, setLo
       } else {
         // Show detailed backend error if available
         if (data.error?.details) {
-          toast.error(`${data.error.message} Details: ${JSON.stringify(data.error.details)}`);
+          console.error(`${data.error.message} Details: ${JSON.stringify(data.error.details)}`);
         } else {
-          toast.error(data.error?.message || 'Failed to submit withdrawal request');
+          console.error(data.error?.message || 'Failed to submit withdrawal request');
         }
       }
     } catch (error) {
@@ -151,7 +150,7 @@ const MobileBankingForm = ({ availableBalance, onBack, onSuccess, loading, setLo
       const errorMessage = error.response?.data?.error?.message || 
                           error.response?.data?.message || 
                           'Failed to submit withdrawal request';
-      toast.error(errorMessage);
+      console.error(errorMessage);
     } finally {
       setLoading(false);
     }

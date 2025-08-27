@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
-import { toast } from 'react-toastify';
 import Footer from '../../components/users/Footer';
 import { 
   FaCheckCircle, 
@@ -131,13 +130,13 @@ const Kyc = () => {
     if (file) {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('File size must be less than 5MB');
+        console.error('File size must be less than 5MB');
         return;
       }
       
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        toast.error('Please upload only image files');
+        console.error('Please upload only image files');
         return;
       }
       
@@ -156,7 +155,7 @@ const Kyc = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error('Please fix the errors in the form');
+      console.error('Please fix the errors in the form');
       return;
     }
     
@@ -164,7 +163,7 @@ const Kyc = () => {
     try {
       const token = getToken();
       if (!token) {
-        toast.error('Please login first');
+        console.error('Please login first');
         return;
       }
       
@@ -182,13 +181,13 @@ const Kyc = () => {
       });
 
       if (data.success) {
-        toast.success('KYC submitted successfully! We will review your application within 24-48 hours.');
+        console.log('KYC submitted successfully! We will review your application within 24-48 hours.');
         setMyKyc(data.kyc);
       } else {
-        toast.error(data.message || 'Submission failed');
+        console.error(data.message || 'Submission failed');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'An error occurred while submitting KYC');
+      console.error(error.response?.data?.message || 'An error occurred while submitting KYC');
     } finally {
       setLoading(false);
     }

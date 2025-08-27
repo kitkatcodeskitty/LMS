@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { toast } from 'react-toastify';
 import axios from 'axios';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Badge from '../common/Badge';
@@ -63,11 +62,11 @@ const WithdrawalHistory = () => {
         setWithdrawals(data.data.withdrawals);
         setPagination(data.data.pagination);
       } else {
-        toast.error('Failed to fetch withdrawal history');
+        console.error('Failed to fetch withdrawal history');
       }
     } catch (error) {
       console.error('Error fetching withdrawals:', error);
-      toast.error(error.response?.data?.error?.message || 'Failed to fetch withdrawal history');
+      console.error(error.response?.data?.error?.message || 'Failed to fetch withdrawal history');
     } finally {
       setLoading(false);
     }

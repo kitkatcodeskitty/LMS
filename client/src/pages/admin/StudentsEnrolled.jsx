@@ -3,8 +3,6 @@ import axios from 'axios'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/users/Loading'
 import { formatDate, formatDateTime } from '../../utils/formatters'
-import { toast } from 'react-toastify'
-
 const StudentEnrollment = () => {
   const { backendUrl, getToken, currency } = useContext(AppContext)
   const [purchases, setPurchases] = useState([])
@@ -52,7 +50,7 @@ const StudentEnrollment = () => {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (!data.success) {
-          toast.error('Failed to fetch purchases')
+          console.error('Failed to fetch purchases')
           setLoading(false)
           return
         }
@@ -85,7 +83,7 @@ const StudentEnrollment = () => {
 
         setPurchases(studentsWithKyc)
       } catch (error) {
-        toast.error('Error fetching data')
+        console.error('Error fetching data')
       } finally {
         setLoading(false)
       }
@@ -234,7 +232,7 @@ const StudentEnrollment = () => {
       )
 
       if (data.success) {
-        toast.success('KYC updated successfully')
+        console.log('KYC updated successfully')
         setEditingKycUserId(null)
         // Refresh the purchases data to show updated KYC
         const token2 = await getToken()
@@ -243,10 +241,10 @@ const StudentEnrollment = () => {
         })
         if (purchasesRes.success) setPurchases(purchasesRes.purchases)
       } else {
-        toast.error(data.message || 'Failed to update KYC')
+        console.error(data.message || 'Failed to update KYC')
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error updating KYC')
+      console.error(error.response?.data?.message || error.message || 'Error updating KYC')
     } finally {
       setUploadingKyc(false)
     }
@@ -285,7 +283,7 @@ const StudentEnrollment = () => {
       )
       
              if (data.success) {
-        toast.success('User updated successfully')
+        console.log('User updated successfully')
         
         // Update the local state with the new data
         setPurchases((prev) =>
@@ -306,10 +304,10 @@ const StudentEnrollment = () => {
         setCurrentEditingUser(null)
         setShowPassword(false)
       } else {
-        toast.error(data.message || 'Failed to update user')
+        console.error(data.message || 'Failed to update user')
       }
          } catch (error) {
-       toast.error(error.response?.data?.message || error.message || 'Error updating user')
+       console.error(error.response?.data?.message || error.message || 'Error updating user')
     }
   }
 
@@ -320,7 +318,7 @@ const StudentEnrollment = () => {
     try {
       const token = await getToken()
       
-      toast.info('Syncing earnings data... This may take a moment.')
+      console.info('Syncing earnings data... This may take a moment.')
       
       const { data } = await axios.post(
         `${backendUrl}/api/admin/sync-earnings`,
@@ -331,14 +329,14 @@ const StudentEnrollment = () => {
       )
       
       if (data.success) {
-        toast.success(`Earnings sync completed! Updated ${data.results.updatedUsers} users.`)
+        console.log(`Earnings sync completed! Updated ${data.results.updatedUsers} users.`)
         
 
       } else {
-        toast.error(data.message || 'Failed to sync earnings')
+        console.error(data.message || 'Failed to sync earnings')
       }
          } catch (error) {
-       toast.error(error.response?.data?.message || error.message || 'Error syncing earnings')
+       console.error(error.response?.data?.message || error.message || 'Error syncing earnings')
     }
   }
 

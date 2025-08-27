@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+ import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+
 import { assets } from '../../assets/assets';
 import Loading from '../../components/users/Loading';
 
@@ -36,7 +36,7 @@ const PopupManagement = () => {
         setPopups(response.data.popups);
       }
     } catch (error) {
-      toast.error('Failed to fetch popups');
+      console.error('Failed to fetch popups:', error);
     } finally {
       setLoading(false);
     }
@@ -78,13 +78,13 @@ const PopupManagement = () => {
       });
 
       if (response.data.success) {
-        toast.success('Popup created successfully');
+        console.log('Popup created successfully');
         setShowCreateModal(false);
         resetForm();
         fetchPopups();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create popup');
+      console.error('Failed to create popup:', error.response?.data?.message || error.message);
     }
   };
 
@@ -109,14 +109,14 @@ const PopupManagement = () => {
       });
 
       if (response.data.success) {
-        toast.success('Popup updated successfully');
+        console.log('Popup updated successfully');
         setShowEditModal(false);
         setEditingPopup(null);
         resetForm();
         fetchPopups();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update popup');
+      console.error('Failed to update popup:', error.response?.data?.message || error.message);
     }
   };
 
@@ -130,11 +130,11 @@ const PopupManagement = () => {
       });
       
       if (response.data.success) {
-        toast.success('Popup deleted successfully');
+        console.log('Popup deleted successfully');
         fetchPopups();
       }
     } catch (error) {
-      toast.error('Failed to delete popup');
+      console.error('Failed to delete popup:', error);
     }
   };
 
@@ -146,11 +146,11 @@ const PopupManagement = () => {
       });
       
       if (response.data.success) {
-        toast.success(response.data.message);
+        console.log(response.data.message);
         fetchPopups();
       }
     } catch (error) {
-      toast.error('Failed to toggle popup status');
+      console.error('Failed to toggle popup status:', error);
     }
   };
 

@@ -4,7 +4,7 @@ import { assets } from '../../assets/assets'
 import Loading from '../../components/users/Loading'
 import { formatDateTime } from '../../utils/formatters'
 import axios from 'axios'
-import { toast } from 'react-toastify'
+
 
 
 const Dashboard = () => {
@@ -44,19 +44,19 @@ const Dashboard = () => {
       if (dashRes.data.success) {
         setDashboardData(dashRes.data.dashboardData);
       } else {
-        toast.error(dashRes.data.message || 'Failed to fetch dashboard data.');
+        console.error('Failed to fetch dashboard data:', dashRes.data.message);
       }
 
       if (purchasesRes.data.success) {
         setPurchasesData(purchasesRes.data);
       } else {
-        toast.error(purchasesRes.data.message || 'Failed to fetch purchases data.');
+        console.error('Failed to fetch purchases data:', purchasesRes.data.message);
       }
 
       if (cartsRes.data.success) setCartsData(cartsRes.data.carts)
-      else toast.error(cartsRes.data.message || 'Failed to fetch cart data.')
+      else console.error('Failed to fetch cart data:', cartsRes.data.message)
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error fetching data.')
+      console.error('Error fetching data:', error.response?.data?.message || error.message)
     } finally {
       setLoading(false)
     }
@@ -82,7 +82,7 @@ const Dashboard = () => {
       )
 
       if (res.data.success) {
-        toast.success('Purchase validated successfully.')
+        console.log('Purchase validated successfully.')
 
         setCartsData((prevCarts) =>
           prevCarts
@@ -98,10 +98,10 @@ const Dashboard = () => {
             .filter((cart) => cart.courses.length > 0)
         )
       } else {
-        toast.error(res.data.message || 'Failed to validate purchase.')
+        console.error('Failed to validate purchase:', res.data.message)
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error validating purchase.')
+      console.error('Error validating purchase:', error.response?.data?.message || error.message)
     } finally {
       setValidatingIds((prev) => prev.filter((id) => id !== courseId))
     }
@@ -120,7 +120,7 @@ const Dashboard = () => {
       )
 
       if (res.data.success) {
-        toast.success('Purchase rejected successfully.')
+        console.log('Purchase rejected successfully.')
 
         setCartsData((prevCarts) =>
           prevCarts
@@ -136,10 +136,10 @@ const Dashboard = () => {
             .filter((cart) => cart.courses.length > 0)
         )
       } else {
-        toast.error(res.data.message || 'Failed to reject purchase.')
+        console.error(res.data.message || 'Failed to reject purchase.')
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error rejecting purchase.')
+      console.error(error.response?.data?.message || error.message || 'Error rejecting purchase.')
     } finally {
       setValidatingIds((prev) => prev.filter((id) => id !== courseId))
     }
@@ -158,7 +158,7 @@ const Dashboard = () => {
       })
 
       if (!userRes.data._id) {
-        toast.error('User not found with this email address.')
+        console.error('User not found with this email address.')
         return
       }
 
@@ -172,14 +172,14 @@ const Dashboard = () => {
       )
 
       if (res.data.success) {
-        toast.success('Profile edit restriction has been reset for this user.')
+        console.log('Profile edit restriction has been reset for this user.')
         setShowProfileRestrictionModal(false)
         setRestrictionEmail('')
       } else {
-        toast.error(res.data.message || 'Failed to reset profile edit restriction.')
+        console.error(res.data.message || 'Failed to reset profile edit restriction.')
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error resetting profile edit restriction.')
+      console.error(error.response?.data?.message || error.message || 'Error resetting profile edit restriction.')
     } finally {
       setResettingRestriction(false)
     }
@@ -190,7 +190,7 @@ const Dashboard = () => {
     e.preventDefault()
 
     if (!adminEmail.trim()) {
-      toast.error('Please enter an email address')
+      console.error('Please enter an email address')
       return
     }
 
@@ -205,14 +205,14 @@ const Dashboard = () => {
       )
 
       if (res.data.success) {
-        toast.success(res.data.message)
+        console.log(res.data.message)
         setAdminEmail('')
         setShowMakeAdminModal(false)
       } else {
-        toast.error(res.data.message || 'Failed to make user admin.')
+        console.error(res.data.message || 'Failed to make user admin.')
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error making user admin.')
+      console.error(error.response?.data?.message || error.message || 'Error making user admin.')
     } finally {
       setMakingAdmin(false)
     }
@@ -223,7 +223,7 @@ const Dashboard = () => {
     e.preventDefault()
 
     if (!subAdminEmail.trim()) {
-      toast.error('Please enter an email address')
+      console.error('Please enter an email address')
       return
     }
 
@@ -238,14 +238,14 @@ const Dashboard = () => {
       )
 
       if (res.data.success) {
-        toast.success(res.data.message)
+        console.log(res.data.message)
         setSubAdminEmail('')
         setShowMakeSubAdminModal(false)
       } else {
-        toast.error(res.data.message || 'Failed to make user sub-admin.')
+        console.error(res.data.message || 'Failed to make user sub-admin.')
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Error making user sub-admin.')
+      console.error(error.response?.data?.message || error.message || 'Error making user sub-admin.')
     } finally {
       setMakingSubAdmin(false)
     }
@@ -506,7 +506,7 @@ const Dashboard = () => {
                 onClick={() => {
                   // You can implement a "show more" functionality here
                   // For now, we'll just show a message
-                  toast.info(`Showing latest 12 students out of ${purchasesData.purchases.length} total students`)
+                  console.info(`Showing latest 12 students out of ${purchasesData.purchases.length} total students`)
                 }}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-md transition-colors"
               >

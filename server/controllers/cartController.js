@@ -5,7 +5,7 @@ import User from '../models/User.js';
 import Course from '../models/Course.js';
 import { v2 as cloudinary } from 'cloudinary';
 import { createNotification } from './notificationController.js';
-import { calculateDiscountedPrice } from '../utils/priceHelpers.js';
+import { calculateDiscountedPrice, calculatePackageBasedCommission } from '../utils/priceHelpers.js';
 
 export const addToCart = async (req, res) => {
   try {
@@ -125,13 +125,11 @@ export const validatePurchase = async (req, res) => {
   try {
     const { userId, courseId } = req.body;
 
-
     const userCart = await Cart.findOne({ "user._id": userId });
 
     if (!userCart) {
       return res.status(404).json({ success: false, message: "User cart not found" });
     }
-
 
     const courseItem = userCart.courses.find(
       (item) => item.course._id.toString() === courseId
@@ -148,6 +146,11 @@ export const validatePurchase = async (req, res) => {
       purchasingUser.enrolledCourses.push(courseId);
     }
 
+    // Update user's highest package if this course has a higher package
+    if (courseItem.course.packageType) {
+      purchasingUser.updateHighestPackage(courseItem.course.packageType);
+    }
+
     if (!purchasingUser.affiliateCode) {
       const generatedCode = purchasingUser._id.toString().slice(-6);
       purchasingUser.affiliateCode = generatedCode;
@@ -157,7 +160,13 @@ export const validatePurchase = async (req, res) => {
       const referrer = await User.findOne({ affiliateCode: courseItem.referralCode });
 
       if (referrer && referrer._id.toString() !== userId) {
-        const affiliateAmount = courseItem.course.coursePrice * 0.6; // 60% commission
+        // Calculate commission based on package hierarchy
+        const affiliateAmount = calculatePackageBasedCommission(
+          courseItem.course.coursePrice,
+          referrer.highestPackage,
+          courseItem.course.packageType,
+          0.6 // 60% base commission rate
+        );
         
         // Update both affiliate earnings and withdrawable balance
         referrer.updateWithdrawableBalance(affiliateAmount);
@@ -189,12 +198,18 @@ export const validatePurchase = async (req, res) => {
       transactionId: courseItem.transactionId,
       paymentScreenshot: courseItem.paymentScreenshot,
     });
+
     if (courseItem.referralCode) {
       const referrer = await User.findOne({ affiliateCode: courseItem.referralCode });
       if (referrer) {
         purchaseDoc.referrerId = referrer._id;
-        // 60% commission rate
-        purchaseDoc.affiliateAmount = courseItem.course.coursePrice * 0.6;
+        // Calculate commission based on package hierarchy
+        purchaseDoc.affiliateAmount = calculatePackageBasedCommission(
+          courseItem.course.coursePrice,
+          referrer.highestPackage,
+          courseItem.course.packageType,
+          0.6 // 60% base commission rate
+        );
         purchaseDoc.commissionRate = 0.6; // 60% commission
       }
     }

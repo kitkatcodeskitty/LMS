@@ -22,7 +22,7 @@ import PopupManagement from './pages/admin/PopupManagement';
 
 import Navbar from './components/users/Navbar';
 import 'quill/dist/quill.snow.css';
-import { ToastContainer } from 'react-toastify';
+
 
 import Register from './pages/users/Registration';
 import Login from './pages/users/Login';
@@ -50,7 +50,7 @@ const App = () => {
 
   return (
     <div className="text-default min-h-screen bg-white">
-      <ToastContainer />
+
       <ScrollToTop /> {/* Scrolls to top on route change */}
 
       {showNavbar && <Navbar />}

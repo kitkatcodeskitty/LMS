@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema(
     // Profile edit restriction
     hasEditedProfile: { type: Boolean, default: false },
     profileEditDate: { type: Date, default: null },
+    highestPackage: { type: String, enum: ["elite", "creator", "prime", "master"], default: null },
   },
   { timestamps: true }
 );
@@ -137,6 +138,39 @@ userSchema.methods.addPendingWithdrawal = function (withdrawalAmount) {
   }
 
   this.pendingWithdrawals = (Number(this.pendingWithdrawals) || 0) + amount;
+};
+
+// Instance method to get package hierarchy value for comparison
+userSchema.methods.getPackageHierarchyValue = function() {
+  const packageHierarchy = {
+    'elite': 1,
+    'creator': 2,
+    'prime': 3,
+    'master': 4
+  };
+  return this.highestPackage ? packageHierarchy[this.highestPackage] || 0 : 0;
+};
+
+// Instance method to update highest package if new package is higher
+userSchema.methods.updateHighestPackage = function(newPackageType) {
+  if (!newPackageType) return false;
+  
+  const packageHierarchy = {
+    'elite': 1,
+    'creator': 2,
+    'prime': 3,
+    'master': 4
+  };
+  
+  const currentValue = this.getPackageHierarchyValue();
+  const newValue = packageHierarchy[newPackageType] || 0;
+  
+  if (newValue > currentValue) {
+    this.highestPackage = newPackageType;
+    return true;
+  }
+  
+  return false;
 };
 
 // Static method to update user balance after purchase

@@ -7,7 +7,6 @@ import YouTube from 'react-youtube'
 import Footer from '../../components/users/Footer'
 import Rating from '../../components/users/Rating'
 import axios from 'axios'
-import { toast } from 'react-toastify'
 import Loading from '../../components/users/Loading'
 
 const Player = () => {
@@ -91,13 +90,13 @@ const Player = () => {
         headers: { Authorization: `Bearer ${token}` } });
 
       if(data.success) {
-        toast.success(data.message);
+        console.log(data.message);
         fetchUserEnrolledCourses();
       }else {
-        toast.error(data.message);
+        console.error(data.message);
       }
     }catch (error) {
-      toast.error(error.message);
+      console.error(error.message);
    
     }
 

@@ -1,6 +1,5 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { toast } from 'react-toastify';
 import { FiBell } from 'react-icons/fi'; // Notification bell icon
 
 const NotificationBell = () => {
@@ -19,7 +18,7 @@ const NotificationBell = () => {
     try {
       await markNotificationAsRead(notificationId);
     } catch (error) {
-      toast.error('Failed to mark notification as read');
+      console.error('Failed to mark notification as read');
     }
   };
 
@@ -27,9 +26,9 @@ const NotificationBell = () => {
     try {
       setLoading(true);
       await markAllNotificationsAsRead();
-      toast.success('All notifications marked as read');
+      console.log('All notifications marked as read');
     } catch (error) {
-      toast.error('Failed to mark all notifications as read');
+      console.error('Failed to mark all notifications as read');
     } finally {
       setLoading(false);
     }
@@ -38,9 +37,9 @@ const NotificationBell = () => {
   const handleDeleteNotification = async (notificationId) => {
     try {
       await deleteNotification(notificationId);
-      toast.success('Notification deleted');
+      console.log('Notification deleted');
     } catch (error) {
-      toast.error('Failed to delete notification');
+      console.error('Failed to delete notification');
     }
   };
 

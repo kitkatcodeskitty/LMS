@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../context/AppContext';
-import { toast } from 'react-toastify';
 import axios from 'axios';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
@@ -36,11 +35,11 @@ const WithdrawalRequest = ({ isOpen = true, onClose, onSuccess, inline = false }
         setBalanceData(data.data);
         setAvailableBalance(data.data.availableBalance);
       } else {
-        toast.error('Failed to fetch balance information');
+        console.error('Failed to fetch balance information');
       }
     } catch (error) {
       console.error('Error fetching balance:', error);
-      toast.error(error.response?.data?.error?.message || 'Failed to fetch balance');
+      console.error(error.response?.data?.error?.message || 'Failed to fetch balance');
     } finally {
       setFetchingBalance(false);
     }
@@ -58,7 +57,7 @@ const WithdrawalRequest = ({ isOpen = true, onClose, onSuccess, inline = false }
     setSelectedMethod('');
     onSuccess?.();
     onClose();
-    toast.success('Withdrawal request submitted successfully!');
+    console.log('Withdrawal request submitted successfully!');
   };
 
   const renderMethodSelection = () => (

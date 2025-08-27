@@ -1,8 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
-import { toast } from 'react-toastify';
-
 const KycReview = () => {
   const { backendUrl, getToken } = useContext(AppContext);
   const [list, setList] = useState([]);
@@ -22,7 +20,7 @@ const KycReview = () => {
       });
       if (data.success) setList(data.kycs);
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
+      console.error(error.response?.data?.message || error.message);
     } finally {
       setLoading(false);
     }
@@ -40,11 +38,11 @@ const KycReview = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (data.success) {
-        toast.success(`KYC ${type}ed`);
+        console.log(`KYC ${type}ed`);
         setList((prev) => prev.filter((k) => k._id !== id));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
+      console.error(error.response?.data?.message || error.message);
     }
   };
 
@@ -88,7 +86,7 @@ const KycReview = () => {
     
     // Validate that editingKyc exists and has an _id
     if (!editingKyc || !editingKyc._id) {
-      toast.error('KYC data is invalid. Please try editing again.');
+      console.error('KYC data is invalid. Please try editing again.');
       return;
     }
     
@@ -128,20 +126,20 @@ const KycReview = () => {
       );
 
       if (data.success) {
-        toast.success('KYC updated successfully');
+        console.log('KYC updated successfully');
         setEditingKyc(null);
         fetchList(); // Refresh the list
       } else {
-        toast.error(data.message || 'Failed to update KYC');
+        console.error(data.message || 'Failed to update KYC');
       }
     } catch (error) {
       console.error('KYC Update Error:', error);
       if (error.response?.status === 404) {
-        toast.error('KYC not found. Please refresh the page and try again.');
+        console.error('KYC not found. Please refresh the page and try again.');
       } else if (error.response?.status === 500) {
-        toast.error('Server error occurred. Please try again later.');
+        console.error('Server error occurred. Please try again later.');
       } else {
-        toast.error(error.response?.data?.message || error.message || 'Error updating KYC');
+        console.error(error.response?.data?.message || error.message || 'Error updating KYC');
       }
     } finally {
       setUploading(false);

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { nanoid } from 'nanoid';
 import Quill from 'quill';
 import { assets } from '../../assets/assets';
-import { toast } from 'react-toastify';
 import axios from 'axios';
 import { AppContext } from '../../context/AppContext';
 import { getPackageDefaultPrice, getPackageDefaultDescription } from '../../constants/packages';
@@ -155,14 +154,14 @@ const AddPackage = () => {
     
     // Check if the selected package type already exists
     if (existingPackageTypes.includes(packageType)) {
-      toast.error(`${packageType.charAt(0).toUpperCase() + packageType.slice(1)} package already exists! Please choose a different package type.`);
+      console.error(`${packageType.charAt(0).toUpperCase() + packageType.slice(1)} package already exists! Please choose a different package type.`);
       return;
     }
     
     setLoading(true);
     try {
       if (!image) {
-        toast.error('Please upload a package thumbnail');
+        console.error('Please upload a package thumbnail');
         setLoading(false);
         return;
       }
@@ -191,7 +190,7 @@ const AddPackage = () => {
       });
 
             if (data.success) {
-        toast.success('Package added successfully');
+        console.log('Package added successfully');
         setCourseTitle('');
         setPackageType('elite');
         setCoursePrice(1000);
@@ -203,10 +202,10 @@ const AddPackage = () => {
         // Refresh existing package types after successful creation
         fetchExistingPackageTypes();
       } else {
-        toast.error(data.message || 'Failed to add package');
+        console.error(data.message || 'Failed to add package');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred while adding the package');
+      console.error(error.message || 'An error occurred while adding the package');
     } finally {
       setLoading(false);
     }

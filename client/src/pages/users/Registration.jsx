@@ -1,7 +1,7 @@
   import { useState, useContext } from "react";
 import axios from "axios";
 import { AppContext } from "../../context/AppContext";
-import { toast } from "react-toastify";
+
 import Footer from "../../components/users/Footer";
 
 const Register = () => {
@@ -59,12 +59,12 @@ const Register = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('File size should be less than 5MB');
+        console.error('File size should be less than 5MB');
         return;
       }
       
       if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file');
+        console.error('Please select an image file');
         return;
       }
 
@@ -82,17 +82,17 @@ const Register = () => {
 
     // Validation
     if (form.password !== form.confirmPassword) {
-      toast.error("Passwords do not match");
+      console.error("Passwords do not match");
       return;
     }
 
     if (form.password.length < 8) {
-      toast.error("Password must be at least 8 characters long");
+      console.error("Password must be at least 8 characters long");
       return;
     }
 
     if (!form.firstName.trim() || !form.lastName.trim()) {
-      toast.error("First name and last name are required");
+      console.error("First name and last name are required");
       return;
     }
 
@@ -121,13 +121,13 @@ const Register = () => {
         setUserData(data.user);
         setIsEducator(data.user.isAdmin || false);
 
-        toast.success("Registration successful! Welcome to our platform!");
+        console.log("Registration successful! Welcome to our platform!");
         navigate("/");
       } else {
-        toast.error("Registration succeeded but no token received.");
+        console.error("Registration succeeded but no token received.");
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Registration failed");
+      console.error("Registration failed:", err?.response?.data?.message || err.message);
     } finally {
       setSubmitting(false);
     }

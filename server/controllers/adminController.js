@@ -61,69 +61,15 @@ export const addCourse = async (req, res) => {
 export const adminDashboardData = async (req, res) => {
   try {
     const adminId = req.user.id;
-    const courses = await Course.find({ admin: adminId });
-    const totalCourses = courses.length;
+    const completedPurchases = await Purchase.find({ status: "completed" })
+      .populate('courseId', 'courseTitle coursePrice packageType')
+      .populate('userId', 'firstName lastName email')
+      .populate('referrerId', 'firstName lastName email highestPackage');
 
-    // If no courses found, return empty dashboard
-    if (totalCourses === 0) {
-      return res.json({
-        success: true,
-        dashboardData: {
-          totalCourses: 0,
-          totalRevenue: '0',
-          totalProfit: '0',
-          totalAffiliateOutflow: '0',
-          profitPercentage: '0%',
-          affiliatePercentage: '0%',
-          enrolledStudentsData: []
-        }
-      });
-    }
-
+    const courses = await Course.find({}).select('courseTitle coursePrice packageType');
+    const totalRevenue = 0;
+    const totalAffiliateOutflow = 0;
     const enrolledStudentsData = [];
-    let totalRevenue = 0;
-    let totalAffiliateOutflow = 0;
-
-    // First, check validated courses in Cart
-    for (const course of courses) {
-      const cartsWithCourse = await Cart.find({
-        "courses.course._id": course._id,
-        "courses.isValidated": true
-      });
-
-      cartsWithCourse.forEach(cart => {
-        const validatedCourse = cart.courses.find(
-          c => c.course._id.toString() === course._id.toString() && c.isValidated
-        );
-
-        if (validatedCourse) {
-          const courseRevenue = validatedCourse.course.coursePrice;
-          totalRevenue += courseRevenue;
-          
-          // Calculate affiliate outflow if referral code was used
-          if (validatedCourse.referralCode) {
-            const affiliateAmount = courseRevenue * 0.6; // 60% commission
-            totalAffiliateOutflow += affiliateAmount;
-          }
-
-          enrolledStudentsData.push({
-            courseTitle: course.courseTitle,
-            student: cart.user,
-            referralCode: validatedCourse.referralCode || null,
-            transactionId: validatedCourse.transactionId,
-            paymentScreenshot: validatedCourse.paymentScreenshot,
-            revenue: courseRevenue,
-            affiliateOutflow: validatedCourse.referralCode ? courseRevenue * 0.6 : 0
-          });
-        }
-      });
-    }
-
-    // Also check completed purchases in Purchase collection
-    const completedPurchases = await Purchase.find({
-      courseId: { $in: courses.map(c => c._id) }
-      // Note: Purchase model doesn't have status field, so we'll get all purchases
-    });
 
     completedPurchases.forEach(purchase => {
       const course = courses.find(c => c._id.toString() === purchase.courseId.toString());
@@ -134,7 +80,9 @@ export const adminDashboardData = async (req, res) => {
         
         // Calculate affiliate outflow if referral code was used
         if (purchase.referralCode || purchase.referrerId) {
-          const affiliateAmount = courseRevenue * 0.6; // 60% commission
+          // Use the actual affiliate amount from the purchase record
+          // This will already be calculated using the new package hierarchy system
+          const affiliateAmount = purchase.affiliateAmount || 0;
           totalAffiliateOutflow += affiliateAmount;
         }
 
@@ -151,7 +99,7 @@ export const adminDashboardData = async (req, res) => {
             transactionId: purchase.transactionId,
             paymentScreenshot: purchase.paymentScreenshot,
             revenue: courseRevenue,
-            affiliateOutflow: (purchase.referralCode || purchase.referrerId) ? courseRevenue * 0.6 : 0
+            affiliateOutflow: (purchase.referralCode || purchase.referrerId) ? (purchase.affiliateAmount || 0) : 0
           });
         }
       }
@@ -167,12 +115,11 @@ export const adminDashboardData = async (req, res) => {
     res.json({
       success: true,
       dashboardData: {
-        totalCourses,
-        totalRevenue: Math.round(totalRevenue).toString(),
-        totalProfit: Math.round(totalProfit).toString(),
-        totalAffiliateOutflow: Math.round(totalAffiliateOutflow).toString(),
-        profitPercentage: `${profitPercentage}%`,
-        affiliatePercentage: `${affiliatePercentage}%`,
+        totalRevenue,
+        totalProfit,
+        totalAffiliateOutflow,
+        profitPercentage,
+        affiliatePercentage,
         enrolledStudentsData
       }
     });

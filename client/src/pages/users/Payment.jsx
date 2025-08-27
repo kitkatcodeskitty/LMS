@@ -1,6 +1,5 @@
 import React, { useState, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import { AppContext } from '../../context/AppContext';
 import Footer from '../../components/users/Footer';
 import Button from '../../components/common/Button';
@@ -48,12 +47,12 @@ const PaymentPage = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { 
-        toast.error('File size should be less than 5MB');
+        console.error('File size should be less than 5MB');
         return;
       }
       
       if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file');
+        console.error('Please select an image file');
         return;
       }
 
@@ -71,13 +70,13 @@ const PaymentPage = () => {
     setIsSubmitting(true);
 
     if (!transactionId.trim()) {
-      toast.error('Please enter your transaction ID.');
+      console.error('Please enter your transaction ID.');
       setIsSubmitting(false);
       return;
     }
 
     if (!paymentScreenshot) {
-      toast.error('Please upload a payment screenshot.');
+      console.error('Please upload a payment screenshot.');
       setIsSubmitting(false);
       return;
     }
@@ -85,7 +84,7 @@ const PaymentPage = () => {
     try {
       const token = await getToken();
       if (!token) {
-        toast.error('Please login to continue');
+        console.error('Please login to continue');
         setIsSubmitting(false);
         return;
       }
@@ -107,7 +106,7 @@ const PaymentPage = () => {
 
       // Prevent users from using their own referral code
       if (codeToSend && userData?.affiliateCode && codeToSend === userData.affiliateCode) {
-        toast.error('You cannot use your own referral code for purchases.');
+        console.error('You cannot use your own referral code for purchases.');
         setIsSubmitting(false);
         return;
       }
@@ -129,11 +128,11 @@ const PaymentPage = () => {
         throw new Error(data.message || 'Failed to add course to cart');
       }
 
-      toast.success('Payment submitted successfully! Wait for admin validation.');
+      console.log('Payment submitted successfully! Wait for admin validation.');
       setShowModal(true);
       resetForm();
     } catch (error) {
-      toast.error('Error: ' + error.message);
+      console.error('Error: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -265,7 +264,7 @@ const PaymentPage = () => {
                       
                       // Show warning if user tries to enter their own referral code
                       if (value.trim() && userData?.affiliateCode && value.trim() === userData.affiliateCode) {
-                        toast.warning('You cannot use your own referral code for purchases.');
+                        console.warn('You cannot use your own referral code for purchases.');
                       }
                     }}
                     placeholder="Enter referral code (e.g., ABCD1234)"

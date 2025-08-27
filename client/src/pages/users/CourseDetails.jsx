@@ -6,7 +6,6 @@ import { assets } from '../../assets/assets'
 import humanizeDuration from 'humanize-duration'
 import Footer from '../../components/users/Footer'
 import Youtube from 'react-youtube'
-import { toast } from 'react-toastify'
 import { calculateDiscountedPrice } from '../../utils/priceUtils'
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa'
 
@@ -57,7 +56,7 @@ const PackageDetails = () => {
       }
       setIsAlreadyEnrolled(false)
     } catch (error) {
-      toast.error('Failed to load package. ' + error.message)
+      console.error('Failed to load package. ' + error.message)
     }
   }
 
@@ -78,7 +77,7 @@ const PackageDetails = () => {
       const videoId = url.pathname.split('/').pop()
       setPlayerData({ videoId })
     } catch {
-      toast.error('Invalid video URL')
+      console.error('Invalid video URL')
     }
   }
 
@@ -91,7 +90,7 @@ const PackageDetails = () => {
     }
 
     if (userData.isAdmin) {
-      toast.info('Admins cannot enroll in packages.')
+      console.info('Admins cannot enroll in packages.')
       return
     }
 

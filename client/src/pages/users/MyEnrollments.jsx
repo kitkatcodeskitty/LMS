@@ -2,8 +2,6 @@ import React, { useEffect, useState, useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
 import Footer from '../../components/users/Footer';
 import axios from 'axios';
-import { toast } from 'react-toastify';
-
 const MyEnrollments = () => {
   const {
     navigate,
@@ -25,7 +23,7 @@ const MyEnrollments = () => {
       setLoading(true);
       const token = getToken();
       if (!token) {
-        toast.error('Please login to view your enrollments');
+        console.error('Please login to view your enrollments');
         navigate('/login');
         return;
       }
@@ -38,10 +36,10 @@ const MyEnrollments = () => {
         const validCourses = (data.purchasedCourses || []).filter(course => course && course._id);
         setPurchasedCourses(validCourses);
       } else {
-        toast.error(data.message || "Failed to fetch purchased courses");
+        console.error(data.message || "Failed to fetch purchased courses");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
+      console.error(error.response?.data?.message || error.message);
     } finally {
       setLoading(false);
     }

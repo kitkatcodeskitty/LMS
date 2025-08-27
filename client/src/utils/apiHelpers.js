@@ -1,16 +1,14 @@
-import { toast } from 'react-toastify'
-
 // Common error handler for API responses
 export const handleApiError = (error, defaultMessage = 'An error occurred') => {
   const message = error.response?.data?.message || error.message || defaultMessage
-  toast.error(message)
+  console.error(message)
   return message
 }
 
 // Common success handler for API responses
 export const handleApiSuccess = (response, defaultMessage = 'Operation successful') => {
   const message = response.data?.message || defaultMessage
-  toast.success(message)
+  console.log(message)
   return message
 }
 

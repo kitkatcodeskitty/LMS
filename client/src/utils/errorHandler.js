@@ -174,47 +174,7 @@ export const handleWithdrawalError = (error) => {
   return parsedError;
 };
 
-/**
- * Get appropriate toast type based on error severity
- * @param {string} severity - Error severity level
- * @returns {string} Toast type
- */
-export const getToastType = (severity) => {
-  switch (severity) {
-    case ERROR_SEVERITY.LOW:
-      return 'warning';
-    case ERROR_SEVERITY.MEDIUM:
-      return 'error';
-    case ERROR_SEVERITY.HIGH:
-    case ERROR_SEVERITY.CRITICAL:
-      return 'error';
-    default:
-      return 'error';
-  }
-};
 
-/**
- * Show error toast with appropriate styling
- * @param {Function} toast - Toast function
- * @param {Object} error - Error object
- * @param {Object} options - Toast options
- */
-export const showErrorToast = (toast, error, options = {}) => {
-  const parsedError = typeof error === 'string' ? { message: error, severity: ERROR_SEVERITY.MEDIUM } : error;
-  const toastType = getToastType(parsedError.severity);
-  
-  const toastOptions = {
-    position: 'top-right',
-    autoClose: parsedError.severity === ERROR_SEVERITY.CRITICAL ? 8000 : 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    ...options
-  };
-
-  toast[toastType](parsedError.userFriendlyMessage || parsedError.message, toastOptions);
-};
 
 /**
  * Map field-specific errors to form fields

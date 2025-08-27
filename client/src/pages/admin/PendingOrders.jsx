@@ -2,7 +2,6 @@ import React, { useEffect, useState, useContext } from 'react'
 import axios from 'axios'
 import { AppContext } from '../../context/AppContext'
 import { formatDateTime } from '../../utils/formatters'
-import { toast } from 'react-toastify'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
@@ -35,10 +34,10 @@ const PendingOrders = () => {
       if (data.success) {
         setPendingOrders(data.pendingOrders)
       } else {
-        toast.error('Failed to fetch pending orders')
+        console.error('Failed to fetch pending orders')
       }
     } catch (error) {
-      toast.error('Error fetching pending orders')
+      console.error('Error fetching pending orders')
       console.error(error)
     } finally {
       setLoading(false)
@@ -60,14 +59,14 @@ const PendingOrders = () => {
       )
 
       if (data.success) {
-        toast.success('Order accepted successfully!')
+        console.log('Order accepted successfully!')
         fetchPendingOrders() // Refresh the list
         fetchPendingOrdersCount() // Update the count in sidebar
       } else {
-        toast.error('Failed to accept order')
+        console.error('Failed to accept order')
       }
     } catch (error) {
-      toast.error('Error accepting order')
+      console.error('Error accepting order')
       console.error(error)
     }
   }
@@ -88,14 +87,14 @@ const PendingOrders = () => {
       })
 
       if (data.success) {
-        toast.success('Order rejected successfully!')
+        console.log('Order rejected successfully!')
         fetchPendingOrders() // Refresh the list
         fetchPendingOrdersCount() // Update the count in sidebar
       } else {
-        toast.error('Failed to reject order')
+        console.error('Failed to reject order')
       }
     } catch (error) {
-      toast.error('Error rejecting order')
+      console.error('Error rejecting order')
       console.error(error)
     }
   }
@@ -137,15 +136,15 @@ const PendingOrders = () => {
       )
 
       if (data.success) {
-        toast.success('Order updated successfully!')
+        console.log('Order updated successfully!')
         setEditingOrder(null)
         fetchPendingOrders() // Refresh the list
         fetchPendingOrdersCount() // Update the count in sidebar
       } else {
-        toast.error(data.message || 'Failed to update order')
+        console.error(data.message || 'Failed to update order')
       }
     } catch (error) {
-      toast.error('Error updating order')
+      console.error('Error updating order')
       console.error(error)
     }
   }
