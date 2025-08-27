@@ -610,7 +610,7 @@ export const getUserReferrals = async (req, res) => {
 
     // Find all purchases made by users referred by this user
     const referralPurchases = await Purchase.find({ referrerId: userId })
-      .populate('userId', 'firstName lastName email createdAt')
+      .populate('userId', 'firstName lastName email createdAt imageUrl')
       .populate('courseId', 'courseTitle coursePrice')
       .sort({ createdAt: -1 });
 
@@ -626,6 +626,7 @@ export const getUserReferrals = async (req, res) => {
             name: `${purchase.userId.firstName} ${purchase.userId.lastName}`,
             email: purchase.userId.email,
             joinDate: purchase.userId.createdAt,
+            imageUrl: purchase.userId.imageUrl, // Add profile image URL
             coursesBought: 0,
             commissionEarned: 0,
           });

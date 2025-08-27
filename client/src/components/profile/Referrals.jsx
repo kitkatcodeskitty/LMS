@@ -78,10 +78,23 @@ const Referrals = ({ referralData, currency, setActiveTab, userData, backendUrl,
                     return (
                       <div key={index} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
                         <div className="flex items-start space-x-3">
-                          <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-rose-600 font-medium text-base">
-                              {referral.firstName?.charAt(0) || referral.name?.charAt(0) || '?'}
-                            </span>
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {referral.imageUrl ? (
+                              <img 
+                                src={referral.imageUrl} 
+                                alt={referral.name || 'Profile'} 
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            <div className={`w-full h-full flex items-center justify-center ${referral.imageUrl ? 'hidden' : 'flex'} bg-rose-100`}>
+                              <span className="text-rose-600 font-medium text-base">
+                                {referral.firstName?.charAt(0) || referral.name?.charAt(0) || '?'}
+                              </span>
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="space-y-2">
@@ -164,10 +177,23 @@ const Referrals = ({ referralData, currency, setActiveTab, userData, backendUrl,
                         <tr key={index} className="hover:bg-gray-50">
                           <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-rose-600 font-medium text-sm">
-                                  {referral.firstName?.charAt(0) || referral.name?.charAt(0) || '?'}
-                                </span>
+                              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                {referral.imageUrl ? (
+                                  <img 
+                                    src={referral.imageUrl} 
+                                    alt={referral.name || 'Profile'} 
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                  />
+                                ) : null}
+                                <div className={`w-full h-full flex items-center justify-center ${referral.imageUrl ? 'hidden' : 'flex'} bg-rose-100`}>
+                                  <span className="text-rose-600 font-medium text-sm">
+                                    {referral.firstName?.charAt(0) || referral.name?.charAt(0) || '?'}
+                                  </span>
+                                </div>
                               </div>
                               <div className="ml-3 lg:ml-4 min-w-0">
                                 <div className="text-sm font-medium text-gray-900 truncate">
