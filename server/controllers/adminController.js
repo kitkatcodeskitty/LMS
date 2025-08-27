@@ -61,45 +61,47 @@ export const addCourse = async (req, res) => {
 export const adminDashboardData = async (req, res) => {
   try {
     const adminId = req.user.id;
-    const completedPurchases = await Purchase.find({ status: "completed" })
+    
+    // Use Purchase collection for financial calculations since that's where actual purchase data is stored
+    // This matches what the enrolled students table is using
+    const allPurchases = await Purchase.find({})
+      .populate('userId', 'firstName lastName email affiliateCode')
       .populate('courseId', 'courseTitle coursePrice packageType')
-      .populate('userId', 'firstName lastName email')
-      .populate('referrerId', 'firstName lastName email highestPackage');
+      .populate('referrerId', 'firstName lastName email affiliateCode');
 
     const courses = await Course.find({}).select('courseTitle coursePrice packageType');
-    const totalRevenue = 0;
-    const totalAffiliateOutflow = 0;
+    
+    let totalRevenue = 0;
+    let totalAffiliateOutflow = 0;
     const enrolledStudentsData = [];
-
-    completedPurchases.forEach(purchase => {
-      const course = courses.find(c => c._id.toString() === purchase.courseId.toString());
-      
-      if (course) {
-        const courseRevenue = purchase.amount || course.coursePrice;
-        totalRevenue += courseRevenue;
+    
+    allPurchases.forEach((purchase) => {
+      if (purchase.amount && purchase.amount > 0) {
+        // Calculate revenue from purchase amount
+        const purchaseRevenue = purchase.amount;
+        totalRevenue += purchaseRevenue;
         
         // Calculate affiliate outflow if referral code was used
         if (purchase.referralCode || purchase.referrerId) {
-          // Use the actual affiliate amount from the purchase record
-          // This will already be calculated using the new package hierarchy system
-          const affiliateAmount = purchase.affiliateAmount || 0;
+          // Calculate 60% commission for affiliate
+          const affiliateAmount = purchaseRevenue * 0.6;
           totalAffiliateOutflow += affiliateAmount;
         }
 
         // Add to enrolled students if not already added
         const existingStudent = enrolledStudentsData.find(
-          student => student.student._id.toString() === purchase.userId.toString()
+          student => student.student._id.toString() === purchase.userId._id.toString()
         );
         
         if (!existingStudent) {
           enrolledStudentsData.push({
-            courseTitle: course.courseTitle,
-            student: { _id: purchase.userId },
+            courseTitle: purchase.courseId?.courseTitle || 'Unknown Course',
+            student: { _id: purchase.userId._id },
             referralCode: purchase.referralCode || null,
-            transactionId: purchase.transactionId,
-            paymentScreenshot: purchase.paymentScreenshot,
-            revenue: courseRevenue,
-            affiliateOutflow: (purchase.referralCode || purchase.referrerId) ? (purchase.affiliateAmount || 0) : 0
+            transactionId: purchase._id,
+            paymentScreenshot: '', // Purchase doesn't have payment screenshot
+            revenue: purchaseRevenue,
+            affiliateOutflow: (purchase.referralCode || purchase.referrerId) ? (purchaseRevenue * 0.6) : 0
           });
         }
       }
@@ -111,6 +113,8 @@ export const adminDashboardData = async (req, res) => {
     // Calculate percentages
     const profitPercentage = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(2) : 0;
     const affiliatePercentage = totalRevenue > 0 ? ((totalAffiliateOutflow / totalRevenue) * 100).toFixed(2) : 0;
+
+
 
     res.json({
       success: true,
@@ -1104,6 +1108,154 @@ export const syncAllUsersEarnings = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: error.message 
+    });
+  }
+};
+
+// Delete user and all associated data
+export const deleteUser = async (req, res) => {
+  try {
+    const adminId = req.user.id;
+    const userId = req.params.userId;
+    
+
+    
+    // Verify admin permissions
+    const admin = await User.findById(adminId);
+    if (!admin || (!admin.isAdmin && !admin.isSubAdmin)) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Access denied. Admin or Sub-Admin privileges required.' 
+      });
+    }
+
+    // Prevent admin from deleting themselves
+    if (adminId === userId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'You cannot delete your own account.' 
+      });
+    }
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found.' 
+      });
+    }
+
+    // Prevent deletion of other admins (unless super admin)
+    if (user.isAdmin && !admin.isAdmin) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Sub-admins cannot delete admin accounts.' 
+      });
+    }
+
+    // Check if user has referred other users (for informational purposes only)
+    const referredUsers = await User.find({ referredBy: user.affiliateCode });
+    const referralCount = referredUsers.length;
+
+    // Get user statistics for confirmation
+    const userStats = {
+      totalPurchases: await Purchase.countDocuments({ userId: userId }),
+      totalWithdrawals: await Withdrawal.countDocuments({ userId: userId }),
+      hasKyc: await (await import('../models/Kyc.js')).default.exists({ user: userId }),
+      referredUsers: referralCount,
+      totalSpent: await Purchase.aggregate([
+        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]).then(result => result[0]?.total || 0)
+    };
+
+    // Check if user has pending purchases or withdrawals
+    const pendingPurchases = await Purchase.find({ 
+      userId: userId, 
+      status: { $in: ['pending', 'processing'] } 
+    });
+    
+    const pendingWithdrawals = await Withdrawal.find({ 
+      userId: userId, 
+      status: { $in: ['pending', 'processing'] } 
+    });
+
+    if (pendingPurchases.length > 0 || pendingWithdrawals.length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Cannot delete user. User has ${pendingPurchases.length} pending purchases and ${pendingWithdrawals.length} pending withdrawals. Please resolve these first.` 
+      });
+    }
+
+    // Note: Earnings and balance checks removed - admins can now delete users with earnings
+
+    // Start a transaction to ensure data consistency
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Delete all associated data
+      
+      // 1. Delete all purchases by this user
+      await Purchase.deleteMany({ userId: userId }, { session });
+      
+      // 2. Delete KYC data
+      const Kyc = await import('../models/Kyc.js');
+      await Kyc.default.deleteMany({ user: userId }, { session });
+      
+      // 3. Delete cart items
+      await Cart.deleteMany({ userId: userId }, { session });
+      
+      // 4. Delete withdrawal requests
+      await Withdrawal.deleteMany({ userId: userId }, { session });
+      
+      // 5. Handle referral relationships - remove referrer but preserve referred users' earnings
+      if (user.affiliateCode && referredUsers.length > 0) {
+        // Remove the referrer relationship but keep all earnings intact
+        await User.updateMany(
+          { referredBy: user.affiliateCode },
+          { $unset: { referredBy: 1 } },
+          { session }
+        );
+        
+
+      }
+      
+      // 6. Delete the user account
+      await User.findByIdAndDelete(userId, { session });
+
+      // Commit the transaction
+      await session.commitTransaction();
+      
+
+      
+      res.json({ 
+        success: true, 
+        message: referralCount > 0 
+          ? `User deleted successfully. ${referralCount} referred users' earnings were preserved.`
+          : 'User and all associated data deleted successfully',
+        deletedUser: {
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          stats: userStats
+        }
+      });
+
+    } catch (error) {
+      // Rollback the transaction on error
+
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+
+  } catch (error) {
+
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'An error occurred while deleting the user' 
     });
   }
 };

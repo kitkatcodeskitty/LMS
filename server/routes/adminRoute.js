@@ -12,7 +12,8 @@ import {
   approveWithdrawal,
   rejectWithdrawal,
   editWithdrawal,
-  syncAllUsersEarnings
+  syncAllUsersEarnings,
+  deleteUser
 } from '../controllers/adminController.js';
 
 import { verify, verifyAdmin, verifyAdminOrSubAdmin } from "../auth.js";
@@ -37,5 +38,8 @@ adminRouter.put('/withdrawals/:id/edit', verify, verifyAdminOrSubAdmin, editWith
 
 // Earnings management endpoints
 adminRouter.post('/sync-earnings', verify, verifyAdmin, syncAllUsersEarnings);
+
+// User management endpoints
+adminRouter.delete('/delete-user/:userId', verify, verifyAdminOrSubAdmin, deleteUser);
 
 export default adminRouter;

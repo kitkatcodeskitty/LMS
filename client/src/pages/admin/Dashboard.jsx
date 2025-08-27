@@ -356,157 +356,273 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Latest Enrolled Students - Card Layout */}
-        <div>
-          <h2 className="pb-4 text-lg font-medium">Latest Enrolled Students</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl">
-            {(!purchasesData.purchases || purchasesData.purchases.length === 0) && (
-              <p className="text-center text-gray-600 col-span-full">No enrolled students found.</p>
-            )}
-
-            {purchasesData.purchases && purchasesData.purchases
-              .sort((a, b) => new Date(b.lastPurchase) - new Date(a.lastPurchase))
-              .slice(0, 12)
-              .map((studentData) => {
-                const latestPurchase = studentData.purchases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
-
-                return (
-                  <div
-                    key={studentData.userDetails._id}
-                    className="bg-white shadow-lg rounded-lg p-5 border border-gray-200 hover:shadow-xl transition-shadow duration-300"
-                  >
-                    {/* Header with Status Badge */}
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                          {studentData.userDetails?.firstName} {studentData.userDetails?.lastName}
-                        </h3>
-                        <p className="text-sm text-gray-500">{studentData.userDetails?.email}</p>
-                      </div>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {studentData.totalCourses} Course{studentData.totalCourses > 1 ? 's' : ''}
-                      </span>
-                    </div>
-
-                    {/* Course Information - Latest Purchase */}
-                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-gray-900 mb-2">
-                        Latest: {latestPurchase.courseId?.courseTitle || 'Course Title Not Available'}
-                      </h4>
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-green-600">
-                          Total: {currency}{Math.round(studentData.totalSpent) || '0'}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {formatDateTime(latestPurchase.createdAt)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Student Stats */}
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Total Courses:</span>
-                        <span className="text-gray-900 font-medium">
-                          {studentData.totalCourses}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Total Spent:</span>
-                        <span className="text-green-600 font-medium">
-                          {currency}{Math.round(studentData.totalSpent) || '0'}
-                        </span>
-                      </div>
-
-                      {/* Financial Breakdown */}
-                      <div className="mt-3 p-2 bg-gray-50 rounded border-l-4 border-blue-500">
-                        <div className="text-xs font-medium text-gray-700 mb-2">Financial Breakdown:</div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-600">Revenue:</span>
-                            <span className="text-blue-600 font-medium">
-                              {currency}{Math.round(studentData.totalSpent) || '0'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-600">Your Profit:</span>
-                            <span className="text-green-600 font-medium">
-                              {currency}{Math.round(studentData.totalSpent * 0.4) || '0'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-600">Affiliate (if any):</span>
-                            <span className="text-orange-600 font-medium">
-                              {currency}{Math.round(studentData.totalSpent * 0.6) || '0'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Referrals Made:</span>
-                        <span className="text-orange-600 font-medium">
-                          {studentData.referralCount || 0}
-                        </span>
-                      </div>
-
-                      {studentData.userDetails?.affiliateCode && (
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">Affiliate Code:</span>
-                          <span className="text-blue-600 font-medium">
-                            {studentData.userDetails.affiliateCode}
-                          </span>
-                        </div>
+                 {/* Latest Enrolled Students - Table for Web, Cards for Mobile */}
+         <div>
+           <h2 className="pb-4 text-lg font-medium">Latest Enrolled Students</h2>
+           
+                       {/* Web View - Table */}
+            <div className="hidden md:block">
+              <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
+                <div className="overflow-x-auto">
+                  <table className="w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Student</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Latest Course</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Total Spent</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Courses</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Referrals</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">Latest Purchase</th>
+                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {(!purchasesData.purchases || purchasesData.purchases.length === 0) ? (
+                        <tr>
+                          <td colSpan="7" className="px-3 py-4 text-center text-gray-600">No enrolled students found.</td>
+                        </tr>
+                      ) : (
+                        purchasesData.purchases
+                          .sort((a, b) => new Date(b.lastPurchase) - new Date(a.lastPurchase))
+                          .slice(0, 5)
+                          .map((studentData) => {
+                            const latestPurchase = studentData.purchases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
+                            
+                            return (
+                              <tr key={studentData.userDetails._id} className="hover:bg-gray-50">
+                                <td className="px-3 py-4">
+                                  <div className="flex items-center min-w-0">
+                                    <div className="flex-shrink-0 h-10 w-10">
+                                      {studentData.userDetails?.imageUrl ? (
+                                        <img className="h-10 w-10 rounded-full" src={studentData.userDetails.imageUrl} alt="Profile" />
+                                      ) : (
+                                        <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                          <span className="text-sm font-medium text-gray-700">
+                                            {studentData.userDetails?.firstName?.charAt(0)}{studentData.userDetails?.lastName?.charAt(0)}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="ml-3 min-w-0 flex-1">
+                                      <div className="text-sm font-medium text-gray-900 truncate">
+                                        {studentData.userDetails?.firstName} {studentData.userDetails?.lastName}
+                                      </div>
+                                      <div className="text-sm text-gray-500 truncate">{studentData.userDetails?.email}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-4">
+                                  <div className="text-sm text-gray-900 truncate" title={latestPurchase.courseId?.courseTitle}>
+                                    {latestPurchase.courseId?.courseTitle || 'Course Title Not Available'}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-4">
+                                  <div className="text-sm font-semibold text-green-600">
+                                    {currency}{Math.round(studentData.totalSpent) || '0'}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Profit: {currency}{Math.round(studentData.totalSpent * 0.4) || '0'}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-4">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    {studentData.totalCourses} Course{studentData.totalCourses > 1 ? 's' : ''}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-4">
+                                  <div className="text-sm text-gray-900">{studentData.referralCount || 0}</div>
+                                  {studentData.userDetails?.affiliateCode && (
+                                    <div className="text-xs text-gray-500 font-mono truncate" title={studentData.userDetails.affiliateCode}>
+                                      {studentData.userDetails.affiliateCode}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-3 py-4">
+                                  <div className="text-sm text-gray-900 truncate">{formatDateTime(latestPurchase.createdAt)}</div>
+                                  <div className="text-xs text-gray-500 truncate">{formatDateTime(studentData.firstPurchase)}</div>
+                                </td>
+                                <td className="px-3 py-4 text-sm font-medium">
+                                  <div className="flex flex-col space-y-1">
+                                    {latestPurchase.paymentScreenshot && (
+                                      <button
+                                        className="text-blue-600 hover:text-blue-900 text-xs"
+                                        onClick={() => setModalImage(latestPurchase.paymentScreenshot)}
+                                      >
+                                        📷 Screenshot
+                                      </button>
+                                    )}
+                                    <button
+                                      className="text-green-600 hover:text-green-900 text-xs"
+                                      onClick={() => {
+                                        // You can implement view details functionality here
+                                        console.info(`View details for ${studentData.userDetails?.firstName} ${studentData.userDetails?.lastName}`)
+                                      }}
+                                    >
+                                      View Details
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )
+                          })
                       )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
 
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Latest Transaction:</span>
-                        <span className="text-gray-900 text-right break-all max-w-32" title={latestPurchase.transactionId}>
-                          {latestPurchase.transactionId || 'N/A'}
-                        </span>
-                      </div>
+           {/* Mobile View - Cards */}
+           <div className="md:hidden">
+             <div className="grid grid-cols-1 gap-4">
+               {(!purchasesData.purchases || purchasesData.purchases.length === 0) && (
+                 <p className="text-center text-gray-600">No enrolled students found.</p>
+               )}
 
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Status:</span>
-                        <span className="text-green-600 font-medium capitalize">
-                          Active Student
-                        </span>
-                      </div>
-                    </div>
+               {purchasesData.purchases && purchasesData.purchases
+                 .sort((a, b) => new Date(b.lastPurchase) - new Date(a.lastPurchase))
+                 .slice(0, 5)
+                 .map((studentData) => {
+                   const latestPurchase = studentData.purchases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
 
-                    {/* Payment Screenshot */}
-                    {latestPurchase.paymentScreenshot && (
-                      <div className="mt-4 pt-3 border-t border-gray-200">
-                        <button
-                          className="w-full text-blue-600 hover:text-blue-800 hover:bg-blue-50 py-2 px-3 rounded-md transition-colors text-sm font-medium"
-                          onClick={() => setModalImage(latestPurchase.paymentScreenshot)}
-                          type="button"
-                        >
-                          📷 View Latest Payment Screenshot
-                        </button>
-                      </div>
-                    )}
+                   return (
+                     <div
+                       key={studentData.userDetails._id}
+                       className="bg-white shadow-lg rounded-lg p-4 border border-gray-200"
+                     >
+                       {/* Header with Status Badge */}
+                       <div className="flex justify-between items-start mb-3">
+                         <div className="flex-1">
+                           <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                             {studentData.userDetails?.firstName} {studentData.userDetails?.lastName}
+                           </h3>
+                           <p className="text-sm text-gray-500">{studentData.userDetails?.email}</p>
+                         </div>
+                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                           {studentData.totalCourses} Course{studentData.totalCourses > 1 ? 's' : ''}
+                         </span>
+                       </div>
 
-                    {/* Enrollment Date Footer */}
-                    <div className="mt-4 pt-3 border-t border-gray-200 text-center">
-                      <span className="text-xs text-gray-500">
-                        First enrolled: {formatDateTime(studentData.firstPurchase)} • Latest: {formatDateTime(studentData.lastPurchase)}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-          </div>
+                       {/* Course Information - Latest Purchase */}
+                       <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+                         <h4 className="font-medium text-gray-900 mb-2">
+                           Latest: {latestPurchase.courseId?.courseTitle || 'Course Title Not Available'}
+                         </h4>
+                         <div className="flex justify-between items-center">
+                           <span className="text-lg font-bold text-green-600">
+                             Total: {currency}{Math.round(studentData.totalSpent) || '0'}
+                           </span>
+                           <span className="text-xs text-gray-500">
+                             {formatDateTime(latestPurchase.createdAt)}
+                           </span>
+                         </div>
+                       </div>
+
+                       {/* Student Stats */}
+                       <div className="space-y-2 text-sm">
+                         <div className="flex justify-between">
+                           <span className="font-medium text-gray-700">Total Courses:</span>
+                           <span className="text-gray-900 font-medium">
+                             {studentData.totalCourses}
+                           </span>
+                         </div>
+
+                         <div className="flex justify-between">
+                           <span className="font-medium text-gray-700">Total Spent:</span>
+                           <span className="text-green-600 font-medium">
+                             {currency}{Math.round(studentData.totalSpent) || '0'}
+                           </span>
+                         </div>
+
+                         {/* Financial Breakdown */}
+                         <div className="mt-3 p-2 bg-gray-50 rounded border-l-4 border-blue-500">
+                           <div className="text-xs font-medium text-gray-700 mb-2">Financial Breakdown:</div>
+                           <div className="space-y-1">
+                             <div className="flex justify-between text-xs">
+                               <span className="text-gray-600">Revenue:</span>
+                               <span className="text-blue-600 font-medium">
+                                 {currency}{Math.round(studentData.totalSpent) || '0'}
+                               </span>
+                             </div>
+                             <div className="flex justify-between text-xs">
+                               <span className="text-gray-600">Your Profit:</span>
+                               <span className="text-green-600 font-medium">
+                                 {currency}{Math.round(studentData.totalSpent * 0.4) || '0'}
+                               </span>
+                             </div>
+                             <div className="flex justify-between text-xs">
+                               <span className="text-gray-600">Affiliate (if any):</span>
+                               <span className="text-orange-600 font-medium">
+                                 {currency}{Math.round(studentData.totalSpent * 0.6) || '0'}
+                               </span>
+                             </div>
+                           </div>
+                         </div>
+
+                         <div className="flex justify-between">
+                           <span className="font-medium text-gray-700">Referrals Made:</span>
+                           <span className="text-orange-600 font-medium">
+                             {studentData.referralCount || 0}
+                           </span>
+                         </div>
+
+                         {studentData.userDetails?.affiliateCode && (
+                           <div className="flex justify-between">
+                             <span className="font-medium text-gray-700">Affiliate Code:</span>
+                             <span className="text-blue-600 font-medium">
+                               {studentData.userDetails.affiliateCode}
+                             </span>
+                           </div>
+                         )}
+
+                         <div className="flex justify-between">
+                           <span className="font-medium text-gray-700">Latest Transaction:</span>
+                           <span className="text-gray-900 text-right break-all max-w-32" title={latestPurchase.transactionId}>
+                             {latestPurchase.transactionId || 'N/A'}
+                           </span>
+                         </div>
+
+                         <div className="flex justify-between">
+                           <span className="font-medium text-gray-700">Status:</span>
+                           <span className="text-green-600 font-medium capitalize">
+                             Active Student
+                           </span>
+                         </div>
+                       </div>
+
+                       {/* Payment Screenshot */}
+                       {latestPurchase.paymentScreenshot && (
+                         <div className="mt-4 pt-3 border-t border-gray-200">
+                           <button
+                             className="w-full text-blue-600 hover:text-blue-800 hover:bg-blue-50 py-2 px-3 rounded-md transition-colors text-sm font-medium"
+                             onClick={() => setModalImage(latestPurchase.paymentScreenshot)}
+                             type="button"
+                           >
+                             📷 View Latest Payment Screenshot
+                           </button>
+                         </div>
+                       )}
+
+                       {/* Enrollment Date Footer */}
+                       <div className="mt-4 pt-3 border-t border-gray-200 text-center">
+                         <span className="text-xs text-gray-500">
+                           First enrolled: {formatDateTime(studentData.firstPurchase)} • Latest: {formatDateTime(studentData.lastPurchase)}
+                         </span>
+                       </div>
+                     </div>
+                   )
+                 })}
+             </div>
+           </div>
 
           {/* Show More Button */}
-          {purchasesData.purchases && purchasesData.purchases.length > 12 && (
+          {purchasesData.purchases && purchasesData.purchases.length > 5 && (
             <div className="text-center mt-6">
               <button
                 onClick={() => {
                   // You can implement a "show more" functionality here
                   // For now, we'll just show a message
-                  console.info(`Showing latest 12 students out of ${purchasesData.purchases.length} total students`)
+                  console.info(`Showing latest 5 students out of ${purchasesData.purchases.length} total students`)
                 }}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-md transition-colors"
               >
