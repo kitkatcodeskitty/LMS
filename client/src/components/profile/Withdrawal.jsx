@@ -49,7 +49,7 @@ const Withdrawal = () => {
                 <div className="text-xl font-bold">
                   <AnimatedNumber 
                     value={userData.withdrawableBalance || 0} 
-                    currency={currency || 'Rs'} 
+                    currency={currency} 
                     duration={2000} 
                     delay={100} 
                   />
@@ -60,7 +60,7 @@ const Withdrawal = () => {
                 <div className="text-xl font-bold">
                   <AnimatedNumber 
                     value={userData.pendingWithdrawals || 0} 
-                    currency={currency || 'Rs'} 
+                    currency={currency} 
                     duration={1800} 
                     delay={200} 
                   />
@@ -171,7 +171,7 @@ const Withdrawal = () => {
               <div className="text-2xl font-bold mb-1">
                 <AnimatedNumber 
                   value={500} 
-                  currency={currency || 'Rs'} 
+                  currency={currency} 
                   duration={1500} 
                   delay={300} 
                 />

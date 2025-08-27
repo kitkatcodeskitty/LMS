@@ -9,12 +9,21 @@ const connectCloudinary = async () => {
     });
 };
 
-export const uploadToCloudinary = async (filePath, folder = 'general') => {
+export const uploadToCloudinary = async (filePath, folder = 'general', options = {}) => {
     try {
-        const result = await cloudinary.uploader.upload(filePath, {
+        // Preserve original image quality - no transformations
+        const uploadOptions = {
             folder: folder,
             resource_type: 'auto',
-        });
+            // Performance settings only - no quality reduction
+            eager_async: true,                                  // Process asynchronously for speed
+            eager_notification_url: null,                       // No webhook for faster processing
+            // Upload optimization
+            chunk_size: 6000000,                               // 6MB chunks for better upload
+            ...options
+        };
+        
+        const result = await cloudinary.uploader.upload(filePath, uploadOptions);
         
         // Clean up the uploaded file from local storage
         fs.unlinkSync(filePath);
@@ -27,6 +36,16 @@ export const uploadToCloudinary = async (filePath, folder = 'general') => {
         }
         throw error;
     }
+};
+
+// Optimized upload specifically for popups - preserving original quality
+export const uploadPopupImage = async (filePath) => {
+    return uploadToCloudinary(filePath, 'popups', {
+        // No transformations - keep original image quality and size
+        // Only performance optimizations
+        eager_async: true,
+        chunk_size: 6000000
+    });
 };
 
 export default connectCloudinary;

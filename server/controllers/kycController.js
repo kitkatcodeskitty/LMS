@@ -7,16 +7,14 @@ export const submitKyc = async (req, res) => {
   try {
     const userId = req.user.id;
     const {
-      fullName,
-      dob,
-      addressLine1,
+      name,
+      fatherName,
+      grandfatherName,
+      age,
       phoneNumber,
-      city,
-      state,
-      postalCode,
-      country,
-      idType,
-      idNumber,
+      address,
+      documentType,
+      documentNumber,
     } = req.body;
 
     const files = req.files || {};
@@ -34,16 +32,14 @@ export const submitKyc = async (req, res) => {
     ]);
 
     const update = {
-      fullName,
-      dob,
-      addressLine1,
+      name,
+      fatherName,
+      grandfatherName,
+      age: parseInt(age, 10),
       phoneNumber,
-      city,
-      state,
-      postalCode,
-      country,
-      idType,
-      idNumber,
+      address,
+      documentType,
+      documentNumber,
       submittedAt: new Date(),
       verifiedAt: null,
       status: "pending",
@@ -156,22 +152,43 @@ export const rejectKyc = async (req, res) => {
   }
 };
 
-// Get KYC by user ID (for admin use)
+// Get KYC by user ID (for admin use and referral display)
 export const getKycByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
+    const requestingUserId = req.user.id;
+    
+    // Check if the requesting user is an admin or if they're requesting their own KYC
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'sub-admin';
+    const isOwnKyc = requestingUserId === userId;
+    
     const kyc = await Kyc.findOne({ user: userId });
     
     if (!kyc) {
       return res.status(404).json({ success: false, message: "KYC not found for this user" });
     }
     
+    // If it's not an admin and not their own KYC, only return basic info for referral display
+    if (!isAdmin && !isOwnKyc) {
+      const basicKycInfo = {
+        _id: kyc._id,
+        user: kyc.user,
+        name: kyc.name,
+        age: kyc.age,
+        phoneNumber: kyc.phoneNumber,
+        status: kyc.status,
+        submittedAt: kyc.submittedAt,
+        verifiedAt: kyc.verifiedAt
+      };
+      return res.status(200).json({ success: true, kyc: basicKycInfo });
+    }
+    
+    // Return full KYC data for admins or own KYC
     res.status(200).json({ success: true, kyc });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // Update KYC by admin/sub-admin
 export const updateKyc = async (req, res) => {
@@ -179,17 +196,14 @@ export const updateKyc = async (req, res) => {
     const { id } = req.params;
 
     const {
-      fullName,
-      dob,
-      addressLine1,
+      name,
+      fatherName,
+      grandfatherName,
+      age,
       phoneNumber,
-      city,
-      state,
-      postalCode,
-      country,
-      idType,
-      idNumber,
-      documentIssuingAuthority,
+      address,
+      documentType,
+      documentNumber,
       status,
       remarks
     } = req.body;
@@ -210,17 +224,14 @@ export const updateKyc = async (req, res) => {
     ]);
 
     const updateData = {
-      fullName,
-      dob,
-      addressLine1,
+      name,
+      fatherName,
+      grandfatherName,
+      age: age ? parseInt(age, 10) : undefined,
       phoneNumber,
-      city,
-      state,
-      postalCode,
-      country,
-      idType,
-      idNumber,
-      documentIssuingAuthority,
+      address,
+      documentType,
+      documentNumber,
       status,
       remarks,
       updatedAt: new Date()

@@ -1,5 +1,6 @@
 import Popup from '../models/Popup.js';
-import { uploadToCloudinary } from '../configs/cloudinary.js';
+import { uploadPopupImage } from '../configs/cloudinary.js';
+import fs from 'fs';
 
 // Create a new popup
 export const createPopup = async (req, res) => {
@@ -11,8 +12,34 @@ export const createPopup = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Image is required' });
     }
 
-    // Upload image to Cloudinary
-    const uploadResult = await uploadToCloudinary(imageFile.path, 'popups');
+    let uploadResult;
+    
+    // Handle memory storage (faster for small files)
+    if (imageFile.buffer) {
+      // Convert buffer to temporary file for Cloudinary
+      const tempPath = `uploads/temp-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+      
+      // Ensure uploads directory exists
+      if (!fs.existsSync('uploads/')) {
+        fs.mkdirSync('uploads/', { recursive: true });
+      }
+      
+      // Write buffer to temporary file
+      fs.writeFileSync(tempPath, imageFile.buffer);
+      
+      try {
+        // Upload to Cloudinary using optimized function
+        uploadResult = await uploadPopupImage(tempPath);
+      } finally {
+        // Clean up temp file
+        if (fs.existsSync(tempPath)) {
+          fs.unlinkSync(tempPath);
+        }
+      }
+    } else {
+      // Handle disk storage (fallback)
+      uploadResult = await uploadPopupImage(imageFile.path);
+    }
     
     const popup = new Popup({
       title,
@@ -106,7 +133,7 @@ export const updatePopup = async (req, res) => {
 
     if (imageFile) {
       // Upload new image to Cloudinary
-      const uploadResult = await uploadToCloudinary(imageFile.path, 'popups');
+      const uploadResult = await uploadPopupImage(imageFile.path);
       updateData.imageUrl = uploadResult.secure_url;
     }
 

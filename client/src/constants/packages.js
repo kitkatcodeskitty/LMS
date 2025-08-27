@@ -41,7 +41,7 @@ export const PACKAGE_CONFIG = {
     ],
     color: 'blue',
     icon: '⭐',
-    earningRange: 'Rs. 500 - Rs. 1,000',
+    earningRange: '500 - 1,000',
     badge: 'BASIC',
     badgeColor: 'bg-blue-500 text-white',
     title: 'Elite Package',
@@ -90,7 +90,7 @@ export const PACKAGE_CONFIG = {
     ],
     color: 'green',
     icon: '🚀',
-    earningRange: 'Rs. 1,500 - Rs. 3,000',
+    earningRange: '1,500 - 3,000',
     badge: 'POPULAR',
     badgeColor: 'bg-green-500 text-white',
     title: 'Creator Package',
@@ -144,7 +144,7 @@ export const PACKAGE_CONFIG = {
     ],
     color: 'purple',
     icon: '💎',
-    earningRange: 'Rs. 2,000 - Rs. 4,000',
+    earningRange: '2,000 - 4,000',
     badge: 'PREMIUM',
     badgeColor: 'bg-purple-500 text-white',
     title: 'Prime Package',
@@ -213,7 +213,7 @@ export const PACKAGE_CONFIG = {
     ],
     color: 'gold',
     icon: '👑',
-    earningRange: 'Rs. 3,000 - Rs. 6,000',
+    earningRange: '3,000 - 6,000',
     badge: 'ULTIMATE',
     badgeColor: 'bg-yellow-400 text-gray-900',
     title: 'Master Package',
@@ -242,8 +242,9 @@ export const getPackageCourseLimit = (packageType) => {
   return PACKAGE_CONFIG[packageType]?.courseLimit || 1;
 };
 
-export const getPackageEarningRange = (packageType) => {
-  return PACKAGE_CONFIG[packageType]?.earningRange || 'Rs. 0 - Rs. 0';
+export const getPackageEarningRange = (packageType, currency = 'Rs') => {
+  const range = PACKAGE_CONFIG[packageType]?.earningRange || '0 - 0';
+  return `${currency} ${range}`;
 };
 
 export const getPackageDefaultPrice = (packageType) => {

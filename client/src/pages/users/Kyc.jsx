@@ -21,22 +21,14 @@ const Kyc = () => {
   const [myKyc, setMyKyc] = useState(null);
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState({
-    fullName: '',
-    dob: '',
-    gender: '',
-    nationality: '',
-    occupation: '',
-    maritalStatus: '',
-    addressLine1: '',
+    name: '',
+    fatherName: '',
+    grandfatherName: '',
+    age: '',
     phoneNumber: '',
-    alternatePhone: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    country: '',
-    idType: 'national_id',
-    idNumber: '',
-    documentIssuingAuthority: '',
+    address: '',
+    documentType: 'citizenship',
+    documentNumber: '',
   });
   const [files, setFiles] = useState({ idFront: null, idBack: null, selfie: null });
   const [filePreviews, setFilePreviews] = useState({ idFront: null, idBack: null, selfie: null });
@@ -53,22 +45,14 @@ const Kyc = () => {
         // Pre-fill form if KYC exists
         if (data.kyc) {
           setForm({
-            fullName: data.kyc.fullName || '',
-            dob: data.kyc.dob || '',
-            gender: data.kyc.gender || '',
-            nationality: data.kyc.nationality || '',
-            occupation: data.kyc.occupation || '',
-            maritalStatus: data.kyc.maritalStatus || '',
-            addressLine1: data.kyc.addressLine1 || '',
+            name: data.kyc.name || '',
+            fatherName: data.kyc.fatherName || '',
+            grandfatherName: data.kyc.grandfatherName || '',
+            age: data.kyc.age || '',
             phoneNumber: data.kyc.phoneNumber || '',
-            alternatePhone: data.kyc.alternatePhone || '',
-            city: data.kyc.city || '',
-            state: data.kyc.state || '',
-            postalCode: data.kyc.postalCode || '',
-            country: data.kyc.country || '',
-            idType: data.kyc.idType || 'national_id',
-            idNumber: data.kyc.idNumber || '',
-            documentIssuingAuthority: data.kyc.documentIssuingAuthority || '',
+            address: data.kyc.address || '',
+            documentType: data.kyc.documentType || 'citizenship',
+            documentNumber: data.kyc.documentNumber || '',
           });
         }
       }
@@ -84,15 +68,13 @@ const Kyc = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!form.fullName.trim()) newErrors.fullName = 'Full name is required';
-    if (!form.dob) newErrors.dob = 'Date of birth is required';
-    if (!form.addressLine1.trim()) newErrors.addressLine1 = 'Address is required';
+    if (!form.name.trim()) newErrors.name = 'Name is required';
+    if (!form.fatherName.trim()) newErrors.fatherName = 'Father\'s name is required';
+    if (!form.grandfatherName.trim()) newErrors.grandfatherName = 'Grandfather\'s name is required';
+    if (!form.age) newErrors.age = 'Age is required';
     if (!form.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
-    if (!form.city.trim()) newErrors.city = 'City is required';
-    if (!form.state.trim()) newErrors.state = 'State is required';
-    if (!form.postalCode.trim()) newErrors.postalCode = 'Postal code is required';
-    if (!form.country.trim()) newErrors.country = 'Country is required';
-    if (!form.idNumber.trim()) newErrors.idNumber = 'ID number is required';
+    if (!form.address.trim()) newErrors.address = 'Address is required';
+    if (!form.documentNumber.trim()) newErrors.documentNumber = 'Document number is required';
     
     // Phone number validation
     const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
@@ -100,13 +82,11 @@ const Kyc = () => {
       newErrors.phoneNumber = 'Please enter a valid phone number';
     }
     
-    // Date validation (must be at least 18 years old)
-    if (form.dob) {
-      const today = new Date();
-      const birthDate = new Date(form.dob);
-      const age = today.getFullYear() - birthDate.getFullYear();
+    // Age validation (must be at least 18 years old)
+    if (form.age) {
+      const age = parseInt(form.age, 10);
       if (age < 18) {
-        newErrors.dob = 'You must be at least 18 years old';
+        newErrors.age = 'You must be at least 18 years old';
       }
     }
     
@@ -286,97 +266,71 @@ const Kyc = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up animation-delay-500">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name *
+                      Name *
                     </label>
                     <input
-                      name="fullName"
-                      value={form.fullName}
+                      name="name"
+                      value={form.name}
                       onChange={onChange}
                       placeholder="e.g., Ram Bahadur Thapa"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
-                        errors.fullName ? 'border-red-500' : 'border-gray-300'
+                        errors.name ? 'border-red-500' : 'border-gray-300'
                       }`}
                       required
                     />
-                    {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
+                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date of Birth *
+                      Father's Name *
                     </label>
                     <input
-                      name="dob"
-                      type="date"
-                      value={form.dob}
+                      name="fatherName"
+                      value={form.fatherName}
                       onChange={onChange}
+                      placeholder="e.g., Laxman Thapa"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
-                        errors.dob ? 'border-red-500' : 'border-gray-300'
+                        errors.fatherName ? 'border-red-500' : 'border-gray-300'
                       }`}
                       required
                     />
-                    {errors.dob && <p className="text-red-500 text-sm mt-1">{errors.dob}</p>}
+                    {errors.fatherName && <p className="text-red-500 text-sm mt-1">{errors.fatherName}</p>}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Gender
-                    </label>
-                    <select
-                      name="gender"
-                      value={form.gender}
-                      onChange={onChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nationality
+                      Grandfather's Name *
                     </label>
                     <input
-                      name="nationality"
-                      value={form.nationality}
+                      name="grandfatherName"
+                      value={form.grandfatherName}
                       onChange={onChange}
-                      placeholder="e.g., Nepali"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                      placeholder="e.g., Shiva Thapa"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
+                        errors.grandfatherName ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      required
                     />
+                    {errors.grandfatherName && <p className="text-red-500 text-sm mt-1">{errors.grandfatherName}</p>}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Occupation
+                      Age *
                     </label>
                     <input
-                      name="occupation"
-                      value={form.occupation}
+                      name="age"
+                      type="number"
+                      value={form.age}
                       onChange={onChange}
-                      placeholder="e.g., Student, Teacher, Business"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
+                      placeholder="e.g., 25"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
+                        errors.age ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      required
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Marital Status
-                    </label>
-                    <select
-                      name="maritalStatus"
-                      value={form.maritalStatus}
-                      onChange={onChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
-                    >
-                      <option value="">Select Marital Status</option>
-                      <option value="single">Single</option>
-                      <option value="married">Married</option>
-                      <option value="divorced">Divorced</option>
-                      <option value="widowed">Widowed</option>
-                    </select>
+                    {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
                   </div>
 
                   <div>
@@ -397,103 +351,22 @@ const Kyc = () => {
                     {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
                   </div>
 
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Alternate Phone
+                      Full Address *
                     </label>
-                    <input
-                      name="alternatePhone"
-                      value={form.alternatePhone}
+                    <textarea
+                      name="address"
+                      value={form.address}
                       onChange={onChange}
-                      placeholder="e.g., 9851234567 (optional)"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Optional: Secondary contact number</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address Line 1 *
-                    </label>
-                    <input
-                      name="addressLine1"
-                      value={form.addressLine1}
-                      onChange={onChange}
-                      placeholder="e.g., Ward No. 5, Thamel, Kathmandu"
+                      placeholder="e.g., Ward No. 5, Thamel, Kathmandu, Nepal"
+                      rows="3"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
-                        errors.addressLine1 ? 'border-red-500' : 'border-gray-300'
+                        errors.address ? 'border-red-500' : 'border-gray-300'
                       }`}
                       required
                     />
-                    {errors.addressLine1 && <p className="text-red-500 text-sm mt-1">{errors.addressLine1}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      City *
-                    </label>
-                    <input
-                      name="city"
-                      value={form.city}
-                      onChange={onChange}
-                      placeholder="e.g., Kathmandu, Pokhara, Biratnagar"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
-                        errors.city ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      required
-                    />
-                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      State/Province *
-                    </label>
-                    <input
-                      name="state"
-                      value={form.state}
-                      onChange={onChange}
-                      placeholder="e.g., Bagmati, Gandaki, Koshi"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
-                        errors.state ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      required
-                    />
-                    {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Postal Code *
-                    </label>
-                    <input
-                      name="postalCode"
-                      value={form.postalCode}
-                      onChange={onChange}
-                      placeholder="e.g., 44600"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
-                        errors.postalCode ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      required
-                    />
-                    {errors.postalCode && <p className="text-red-500 text-sm mt-1">{errors.postalCode}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Country *
-                    </label>
-                    <input
-                      name="country"
-                      value={form.country}
-                      onChange={onChange}
-                      placeholder="e.g., Nepal"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
-                        errors.country ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      required
-                    />
-                    {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+                    {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
                   </div>
                 </div>
 
@@ -507,50 +380,40 @@ const Kyc = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        ID Type *
+                        Document Type *
                       </label>
                       <select
-                        name="idType"
-                        value={form.idType}
+                        name="documentType"
+                        value={form.documentType}
                         onChange={onChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
                       >
+                        <option value="citizenship">Citizenship</option>
                         <option value="passport">Passport</option>
-                        <option value="national_id">National ID</option>
                         <option value="driving_license">Driving License</option>
                         <option value="voter_id">Voter ID</option>
+                        <option value="national_id">National ID</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        ID Number *
+                        Document Number *
                       </label>
                       <input
-                        name="idNumber"
-                        value={form.idNumber}
+                        name="documentNumber"
+                        value={form.documentNumber}
                         onChange={onChange}
                         placeholder="e.g., 1234567890 or 01-01-123456-01"
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors ${
-                          errors.idNumber ? 'border-red-500' : 'border-gray-300'
+                          errors.documentNumber ? 'border-red-500' : 'border-gray-300'
                         }`}
                         required
                       />
-                      {errors.idNumber && <p className="text-red-500 text-sm mt-1">{errors.idNumber}</p>}
+                      {errors.documentNumber && <p className="text-red-500 text-sm mt-1">{errors.documentNumber}</p>}
                     </div>
 
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Document Issuing Authority
-                      </label>
-                      <input
-                        name="documentIssuingAuthority"
-                        value={form.documentIssuingAuthority}
-                        onChange={onChange}
-                        placeholder="e.g., Department of Passports, Election Commission, Department of Transport Management"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors"
-                      />
-                    </div>
+
                   </div>
                 </div>
 

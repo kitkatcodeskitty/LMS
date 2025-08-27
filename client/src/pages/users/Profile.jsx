@@ -352,6 +352,9 @@ const Profile = () => {
             referralData={referralData}
             currency={currency}
             setActiveTab={setActiveTab}
+            userData={userData}
+            backendUrl={backendUrl}
+            getToken={getToken}
           />
         );
       case 'courses':

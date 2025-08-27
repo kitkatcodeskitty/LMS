@@ -54,28 +54,27 @@ const KycReview = () => {
       kyc.user?.firstName?.toLowerCase().includes(searchLower) ||
       kyc.user?.lastName?.toLowerCase().includes(searchLower) ||
       kyc.user?.email?.toLowerCase().includes(searchLower) ||
-      kyc.fullName?.toLowerCase().includes(searchLower) ||
+      kyc.name?.toLowerCase().includes(searchLower) ||
+      kyc.fatherName?.toLowerCase().includes(searchLower) ||
+      kyc.grandfatherName?.toLowerCase().includes(searchLower) ||
       kyc.phoneNumber?.toLowerCase().includes(searchLower) ||
-      kyc.country?.toLowerCase().includes(searchLower) ||
-      kyc.idNumber?.toLowerCase().includes(searchLower) ||
-      kyc.idType?.toLowerCase().includes(searchLower)
+      kyc.address?.toLowerCase().includes(searchLower) ||
+      kyc.documentNumber?.toLowerCase().includes(searchLower) ||
+      kyc.documentType?.toLowerCase().includes(searchLower)
     );
   });
 
   const startEditing = (kyc) => {
     setEditingKyc(kyc);
     setEditForm({
-      fullName: kyc.fullName || '',
-      dob: kyc.dob || '',
-      addressLine1: kyc.addressLine1 || '',
+      name: kyc.name || '',
+      fatherName: kyc.fatherName || '',
+      grandfatherName: kyc.grandfatherName || '',
+      age: kyc.age || '',
       phoneNumber: kyc.phoneNumber || '',
-      city: kyc.city || '',
-      state: kyc.state || '',
-      postalCode: kyc.postalCode || '',
-      country: kyc.country || '',
-      idType: kyc.idType || '',
-      idNumber: kyc.idNumber || '',
-      documentIssuingAuthority: kyc.documentIssuingAuthority || '',
+      address: kyc.address || '',
+      documentType: kyc.documentType || '',
+      documentNumber: kyc.documentNumber || '',
       status: kyc.status || 'pending',
       remarks: kyc.remarks || ''
     });
@@ -166,7 +165,7 @@ const KycReview = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search by name, email, phone, country..."
+              placeholder="Search by name, father name, phone, address..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full sm:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -236,9 +235,24 @@ const KycReview = () => {
                 {/* Right: KYC Details */}
                 <div>
                   <div className="text-sm text-zinc-600 space-y-1">
-                    {k.fullName && (
+                    {k.name && (
                       <div>
-                        <span className="text-gray-500">Full Name:</span> {k.fullName}
+                        <span className="text-gray-500">Name:</span> {k.name}
+                      </div>
+                    )}
+                    {k.fatherName && (
+                      <div>
+                        <span className="text-gray-500">Father's Name:</span> {k.fatherName}
+                      </div>
+                    )}
+                    {k.grandfatherName && (
+                      <div>
+                        <span className="text-gray-500">Grandfather's Name:</span> {k.grandfatherName}
+                      </div>
+                    )}
+                    {k.age && (
+                      <div>
+                        <span className="text-gray-500">Age:</span> {k.age}
                       </div>
                     )}
                     {k.phoneNumber && (
@@ -246,13 +260,13 @@ const KycReview = () => {
                         <span className="text-gray-500">Phone:</span> {k.phoneNumber}
                       </div>
                     )}
-                    {k.country && (
+                    {k.address && (
                       <div>
-                        <span className="text-gray-500">Country:</span> {k.country}
+                        <span className="text-gray-500">Address:</span> {k.address}
                       </div>
                     )}
                     <div>
-                      <span className="text-gray-500">ID:</span> {k.idType} - {k.idNumber}
+                      <span className="text-gray-500">Document:</span> {k.documentType} - {k.documentNumber}
                     </div>
                     <div>
                       <span className="text-gray-500">Status:</span>{' '}
@@ -363,23 +377,44 @@ const KycReview = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                       <input
                         type="text"
-                        name="fullName"
-                        value={editForm.fullName}
+                        name="name"
+                        value={editForm.name}
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Father's Name</label>
                       <input
-                        type="date"
-                        name="dob"
-                        value={editForm.dob}
+                        type="text"
+                        name="fatherName"
+                        value={editForm.fatherName}
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Grandfather's Name</label>
+                      <input
+                        type="text"
+                        name="grandfatherName"
+                        value={editForm.grandfatherName}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                      <input
+                        type="number"
+                        name="age"
+                        value={editForm.age}
+                        onChange={handleInputChange}
+                        min="1"
+                        max="120"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -397,7 +432,6 @@ const KycReview = () => {
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-
                   </div>
                 </div>
 
@@ -406,53 +440,14 @@ const KycReview = () => {
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Address Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="md:col-span-2 lg:col-span-3">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                      <input
-                        type="text"
-                        name="addressLine1"
-                        value={editForm.addressLine1}
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Address</label>
+                      <textarea
+                        name="address"
+                        value={editForm.address}
                         onChange={handleInputChange}
+                        rows={3}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={editForm.city}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
-                      <input
-                        type="text"
-                        name="state"
-                        value={editForm.state}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
-                      <input
-                        type="text"
-                        name="postalCode"
-                        value={editForm.postalCode}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                      <input
-                        type="text"
-                        name="country"
-                        value={editForm.country}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter complete address including city, state, country..."
                       />
                     </div>
                   </div>
@@ -465,37 +460,28 @@ const KycReview = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
                       <select
-                        name="idType"
-                        value={editForm.idType}
+                        name="documentType"
+                        value={editForm.documentType}
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select Document Type</option>
+                        <option value="citizenship">Citizenship</option>
                         <option value="passport">Passport</option>
-                        <option value="national_id">National ID</option>
                         <option value="driving_license">Driving License</option>
                         <option value="voter_id">Voter ID</option>
+                        <option value="national_id">National ID</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
                       <input
                         type="text"
-                        name="idNumber"
-                        value={editForm.idNumber}
+                        name="documentNumber"
+                        value={editForm.documentNumber}
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Authority</label>
-                      <input
-                        type="text"
-                        name="documentIssuingAuthority"
-                        value={editForm.documentIssuingAuthority}
-                        onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter document number"
                       />
                     </div>
                   </div>

@@ -20,6 +20,8 @@ const PopupManagement = () => {
     endDate: '',
     priority: 1
   });
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     fetchPopups();
@@ -51,10 +53,18 @@ const PopupManagement = () => {
   };
 
   const handleFileChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      image: e.target.files[0]
-    }));
+    const file = e.target.files[0];
+    if (file) {
+      // Keep original image quality - no compression
+      setFormData(prev => ({
+        ...prev,
+        image: file
+      }));
+      
+      // Show file selected confirmation
+      setUploadProgress(100);
+      setTimeout(() => setUploadProgress(0), 1000);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -320,9 +330,28 @@ const PopupManagement = () => {
                   name="image"
                   onChange={handleFileChange}
                   accept="image/*"
-                  className="w-full border rounded-lg px-3 py-2"
                   required
+                  className="w-full border rounded-lg px-3 py-2"
                 />
+                {uploadProgress > 0 && (
+                  <div className="mt-2">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                      <span>Progress: {uploadProgress}%</span>
+                      <span>{isUploading ? 'Uploading...' : 'Processing...'}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+                {formData.image && (
+                  <div className="mt-2 text-sm text-green-600">
+                    ✓ Image selected: {formData.image.name}
+                  </div>
+                )}
               </div>
               
               <div className="mb-4">

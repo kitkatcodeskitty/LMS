@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
 
 const AffiliateEarningsCard = () => {
-  const { backendUrl, getToken, currency = '$' } = useContext(AppContext);
+  const { backendUrl, getToken, currency } = useContext(AppContext);
   const [earnings, setEarnings] = useState({ today: 0, last7: 0, last30: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +28,7 @@ const AffiliateEarningsCard = () => {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-full bg-violet-500 flex items-center justify-center">
-            <span className="text-white font-bold">$</span>
+            <span className="text-white font-bold">{currency}</span>
           </div>
           <h3 className="text-lg font-semibold text-gray-800">Affiliate Earnings</h3>
         </div>

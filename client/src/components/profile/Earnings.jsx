@@ -12,7 +12,7 @@ const Earnings = ({ earningsData, currency, referralData, userData }) => {
   // Add safety checks and default values to prevent crashes
   const safeEarningsData = earningsData || {};
   const safeReferralData = referralData || [];
-  const safeCurrency = currency || 'Rs ';
+  const safeCurrency = currency || 'Rs';
   const safeUserData = userData || {};
 
   // Helper function to get earnings value with fallbacks
@@ -92,7 +92,7 @@ const Earnings = ({ earningsData, currency, referralData, userData }) => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-xl font-semibold">Today's Performance</h3>
-            <p className="text-white/80 text-sm">Daily earning target: Rs 20,000</p>
+            <p className="text-white/80 text-sm">Daily earning target: {safeCurrency} 20,000</p>
           </div>
           <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
             <FaChartLine className="w-6 h-6 text-white" />

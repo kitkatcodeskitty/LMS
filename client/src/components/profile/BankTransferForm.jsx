@@ -98,7 +98,7 @@ const BankTransferForm = ({ availableBalance, onBack, onSuccess, loading, setLoa
     if (formData.amount) {
       const amount = parseInt(formData.amount, 10);
       if (isNaN(amount) || amount < 500) {
-        newErrors.amount = `Minimum withdrawal amount is ${currency}500`;
+        newErrors.amount = `Minimum withdrawal amount is ${currency} 500`;
       } else if (amount % 1 !== 0) {
         newErrors.amount = 'Amount must be a whole number (no decimals)';
       } else if (amount > (balance || availableBalance)) {

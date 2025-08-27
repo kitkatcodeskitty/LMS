@@ -5,7 +5,6 @@ import { submitKyc, getMyKyc, listKyc, verifyKyc, rejectKyc, getKycByUserId, upd
 
 const router = express.Router();
 
-
 router.post(
   "/submit",
   verify,
@@ -17,9 +16,9 @@ router.post(
   submitKyc
 );
 
-
 router.get("/me", verify, getMyKyc);
-router.get("/user/:userId", verify, verifyAdminOrSubAdmin, getKycByUserId);
+// Allow users to get KYC data for referral users (for display purposes)
+router.get("/user/:userId", verify, getKycByUserId);
 router.get("/", verify, verifyAdminOrSubAdmin, listKyc);
 router.patch("/:id/verify", verify, verifyAdminOrSubAdmin, verifyKyc);
 router.patch("/:id/reject", verify, verifyAdminOrSubAdmin, rejectKyc);

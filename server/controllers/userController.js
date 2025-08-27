@@ -622,6 +622,7 @@ export const getUserReferrals = async (req, res) => {
         const userId = purchase.userId._id.toString();
         if (!referralMap.has(userId)) {
           referralMap.set(userId, {
+            userId: userId, // Add the user ID for KYC fetching
             name: `${purchase.userId.firstName} ${purchase.userId.lastName}`,
             email: purchase.userId.email,
             joinDate: purchase.userId.createdAt,

@@ -88,10 +88,10 @@ const Dashboard = ({
                   <FaUser className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
 
-                {/* Blue verification tick */}
+                {/* Clean blue verification badge */}
                 {userData.kycStatus === 'verified' && (
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                    <svg className="w-2 h-2 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200">
+                    <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -103,13 +103,13 @@ const Dashboard = ({
               <div className="text-xs sm:text-sm text-white/80 mb-1">Welcome Back!</div>
               <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2 flex items-center">
                 <span className="truncate">{fullName || 'Amy Amy'}</span>
-                {userData.kycStatus === 'verified' && (
-                  <div className="ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg flex-shrink-0">
-                    <svg className="w-2 h-2 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
+                                                                  {userData.kycStatus === 'verified' && (
+                    <div className="ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0">
+                      <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
               </h1>
               <div className="bg-white/20 backdrop-blur-sm px-2 sm:px-3 py-1 rounded-full inline-block">
                 <span className="text-xs font-semibold text-white flex items-center">
@@ -393,7 +393,7 @@ const Dashboard = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('teams')}
+              onClick={() => setActiveTab('referrals')}
               className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-2 sm:p-3 rounded-xl hover:shadow-lg transition-all duration-200 flex flex-col items-center"
             >
               <FaUsers className="w-4 h-4 sm:w-5 sm:h-5 mb-1" />

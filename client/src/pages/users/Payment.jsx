@@ -10,7 +10,7 @@ const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { backendUrl, getToken, currency: appCurrency, userData } = useContext(AppContext);
-  const { courseId, courseTitle, coursePrice, currency = appCurrency || '$' } = location.state || {};
+  const { courseId, courseTitle, coursePrice, currency = appCurrency } = location.state || {};
 
   const [referralCode, setReferralCode] = useState('');
   const [affiliateLink, setAffiliateLink] = useState('');

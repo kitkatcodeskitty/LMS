@@ -12,8 +12,27 @@ import { authenticateToken, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Configure multer for file uploads
+// Optimized multer configuration - keeping original file sizes for quality
 const upload = multer({
+  // Use memory storage for faster processing (no file size limits)
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    // Only allow image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024, // Increased to 10MB to preserve image quality
+    files: 1,                    // Only one file at a time
+    fieldSize: 1024 * 1024      // 1MB field size limit
+  }
+});
+
+// Alternative disk storage for very large files (fallback)
+const diskUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, 'uploads/');
@@ -31,7 +50,8 @@ const upload = multer({
     }
   },
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 20 * 1024 * 1024, // 20MB for very large images
+    files: 1
   }
 });
 

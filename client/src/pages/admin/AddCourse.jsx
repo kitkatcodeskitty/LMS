@@ -249,7 +249,7 @@ const AddPackage = () => {
               {packageTypeOptions.map((option) => (
                 <div key={option.value} className="flex items-center justify-between p-2 bg-white rounded border">
                   <span className="font-medium">{option.label}</span>
-                  <span className="text-blue-600">Rs. {getPackageDefaultPrice(option.value).toLocaleString()}</span>
+                  <span className="text-blue-600">{currency || 'Rs'} {getPackageDefaultPrice(option.value).toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -291,7 +291,7 @@ const AddPackage = () => {
                 ✅ Auto-filled: {getPackageDefaultDescription(packageType)}
               </p>
               <div className="mt-2 text-xs text-green-600">
-                <p>💰 Price: Rs. {getPackageDefaultPrice(packageType).toLocaleString()}</p>
+                <p>💰 Price: {currency || 'Rs'} {getPackageDefaultPrice(packageType).toLocaleString()}</p>
                 <p>📚 Course Limit: {getCourseLimitByPackageType(packageType)} course(s)</p>
               </div>
             </div>
@@ -342,7 +342,7 @@ const AddPackage = () => {
                  {/* Package Price and Thumbnail */}
         <div className='flex items-center justify-between flex-wrap'>
           <div className='flex flex-col gap-1'>
-            <p>Package Price (Rs.)</p>
+                            <p>Package Price ({currency || 'Rs'})</p>
             <div className="flex items-center gap-2">
               <input
                 onChange={(e) => setCoursePrice(e.target.value)}
@@ -354,7 +354,7 @@ const AddPackage = () => {
               />
               {packageType && (
                 <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded border">
-                  Default: Rs. {getPackageDefaultPrice(packageType).toLocaleString()}
+                  Default: {currency || 'Rs'} {getPackageDefaultPrice(packageType).toLocaleString()}
                 </span>
               )}
             </div>
@@ -390,7 +390,7 @@ const AddPackage = () => {
               className='outline-none py-1 px-2 rounded border border-gray-500 text-sm'
             >
               <option value='percentage'>Percentage (%)</option>
-              <option value='amount'>Amount ({currency || '$'})</option>
+                              <option value='amount'>Amount ({currency || 'Rs'})</option>
             </select>
           </div>
           <input

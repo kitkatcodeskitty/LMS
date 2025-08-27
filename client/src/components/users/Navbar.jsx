@@ -231,9 +231,9 @@ const Navbar = () => {
                         alt="Profile"
                         className="w-8 h-8 rounded-full object-cover border-2 border-rose-200"
                       />
-                      {/* KYC Verified Badge on Profile Picture */}
+                      {/* Instagram-style KYC Verified Badge on Profile Picture */}
                       {userData.kycStatus === 'verified' && (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center border-2 border-white">
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-all duration-200">
                           <svg
                             className="w-2 h-2 text-white"
                             fill="currentColor"
