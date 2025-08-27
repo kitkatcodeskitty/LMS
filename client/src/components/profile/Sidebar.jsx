@@ -12,7 +12,8 @@ import {
   FaTrophy,               // Leaderboard
   FaLink,                 // Affilated Link
   FaEdit,                // Edit Profile
-  FaUserCircle           // Profile Icon
+  FaUserCircle,           // Profile Icon
+  FaShieldAlt             // KYC Verification
 } from 'react-icons/fa';
 
 const ProfileHeader = ({ onCloseMobile, isMobile, userData }) => (
@@ -60,7 +61,8 @@ const Sidebar = ({
     { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, color: 'from-blue-500 to-blue-600' },
     { id: 'earnings', label: 'Earnings', icon: <FaDollarSign />, color: 'from-green-500 to-green-600' },
     { id: 'withdrawal', label: 'Withdrawal', icon: <FaMoneyBillWave />, color: 'from-rose-500 to-pink-500' },
-            { id: 'referrals', label: 'My Team', icon: <FaUsers />, color: 'from-purple-500 to-purple-600' },
+    { id: 'referrals', label: 'My Team', icon: <FaUsers />, color: 'from-purple-500 to-purple-600' },
+    { id: 'kyc', label: 'KYC Verification', icon: <FaShieldAlt />, color: 'from-emerald-500 to-emerald-600' },
     { id: 'courses', label: 'My Packages', icon: <FaBook />, color: 'from-indigo-500 to-indigo-600' },
     { id: 'statements', label: 'Referral Earning', icon: <FaFileAlt />, color: 'from-orange-500 to-orange-600' },
     { id: 'purchase-history', label: 'Purchase History', icon: <FaShoppingCart />, color: 'from-teal-500 to-teal-600' },
@@ -87,6 +89,20 @@ const Sidebar = ({
           >
             <span className="text-xl flex-shrink-0">{item.icon}</span>
             <span className="font-medium">{item.label}</span>
+            
+            {/* KYC Status Indicator */}
+            {item.id === 'kyc' && (
+              <div className="ml-auto flex items-center space-x-2">
+                {userData?.kycStatus === 'verified' ? (
+                  <span className="text-green-500 text-xs font-medium">✓ Verified</span>
+                ) : userData?.kycStatus === 'pending' ? (
+                  <span className="text-yellow-500 text-xs font-medium">⏳ Pending</span>
+                ) : (
+                  <span className="text-red-500 text-xs font-medium">⚠ Required</span>
+                )}
+              </div>
+            )}
+            
             {activeTab === item.id && (
               <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
             )}

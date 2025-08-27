@@ -18,6 +18,8 @@ import WithdrawalRequest from '../../components/profile/WithdrawalRequest';
 import WithdrawalHistory from '../../components/profile/WithdrawalHistory';
 import Withdrawal from '../../components/profile/Withdrawal';
 import Footer from '../../components/users/Footer';
+import Kyc from './Kyc';
+import KycDetails from '../../components/profile/KycDetails';
 
 const customStyles = `
   .scrollbar-hide {
@@ -356,6 +358,14 @@ const Profile = () => {
             backendUrl={backendUrl}
             getToken={getToken}
           />
+        );
+      case 'kyc':
+        return (
+          userData?.kycStatus === 'verified' ? (
+            <KycDetails />
+          ) : (
+            <Kyc />
+          )
         );
       case 'courses':
         return (

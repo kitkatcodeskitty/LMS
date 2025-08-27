@@ -42,6 +42,11 @@ const StudentEnrollment = () => {
   const [kycEditForm, setKycEditForm] = useState({})
   const [uploadingKyc, setUploadingKyc] = useState(false)
 
+  // Delete user state
+  const [deletingUserId, setDeletingUserId] = useState(null)
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
+
   useEffect(() => {
     const fetchPurchasesWithUserData = async () => {
       try {
@@ -340,6 +345,73 @@ const StudentEnrollment = () => {
     }
   }
 
+  // Delete user and all associated data
+  const deleteUser = async () => {
+    if (!userToDelete) return
+    
+    try {
+      setDeletingUserId(userToDelete._id)
+      const token = await getToken()
+      
+      const { data } = await axios.delete(
+        `${backendUrl}/api/admin/delete-user/${userToDelete._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      
+      if (data.success) {
+        console.log('User deleted successfully:', data.deletedUser)
+        
+        // Remove user from local state
+        setPurchases(prev => prev.filter(purchase => purchase.userDetails._id !== userToDelete._id))
+        
+        // Close modal and reset state
+        setDeleteConfirmModal(false)
+        setUserToDelete(null)
+        setDeletingUserId(null)
+        
+        // Show success message
+        alert(`User ${data.deletedUser.name} deleted successfully!\n\nDeleted data:\n- ${data.deletedUser.stats.totalPurchases} purchases\n- ${data.deletedUser.stats.totalWithdrawals} withdrawals\n- ${data.deletedUser.stats.hasKyc ? 'KYC data' : 'No KYC data'}\n- Total spent: ${currency}${data.deletedUser.stats.totalSpent}`)
+      } else {
+        console.error(data.message || 'Failed to delete user')
+        alert(data.message || 'Failed to delete user')
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      
+      let errorMessage = 'Error deleting user'
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'User not found or endpoint not available'
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Access denied. You do not have permission to delete users'
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || 'Cannot delete user. Please check the requirements'
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      alert(errorMessage)
+    } finally {
+      setDeletingUserId(null)
+    }
+  }
+
+  // Open delete confirmation modal
+  const openDeleteModal = (user) => {
+    setUserToDelete(user)
+    setDeleteConfirmModal(true)
+  }
+
+  // Close delete confirmation modal
+  const closeDeleteModal = () => {
+    setDeleteConfirmModal(false)
+    setUserToDelete(null)
+  }
+
   if (loading) return <Loading />
 
   return (
@@ -629,6 +701,14 @@ const StudentEnrollment = () => {
                             View Details
                           </button>
                         </div>
+                        <div className="mt-2">
+                          <button
+                            onClick={() => openDeleteModal(user)}
+                            className="w-full bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
+                          >
+                            🗑️ Delete User
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )
@@ -710,6 +790,12 @@ const StudentEnrollment = () => {
                               className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium"
                             >
                               {isExpanded ? 'Collapse' : 'Expand'} Details
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(user)}
+                              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
+                            >
+                              🗑️ Delete User
                             </button>
                           </div>
                         </div>
@@ -1161,6 +1247,76 @@ const StudentEnrollment = () => {
                                   <span className="font-medium">Total Learning Time:</span> 
                                   {Math.ceil((new Date(studentData.lastPurchase) - new Date(studentData.firstPurchase)) / (1000 * 60 * 60 * 24))} days
                                 </div>
+                              </div>
+                            </div>
+                                    </div>
+        </div>
+      )}
+
+      {/* Delete User Confirmation Modal */}
+      {deleteConfirmModal && userToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                  <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+              </div>
+              
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Delete User Account
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to delete <strong>{userToDelete.firstName} {userToDelete.lastName}</strong>?
+                </p>
+                <p className="text-xs text-red-600 mt-2">
+                  This action will permanently delete:
+                </p>
+                <ul className="text-xs text-red-600 mt-1 text-left max-w-xs mx-auto">
+                  <li>• User account and profile</li>
+                  <li>• All course purchases</li>
+                  <li>• KYC verification data</li>
+                  <li>• Referral relationships</li>
+                  <li>• Earnings and balance data</li>
+                  <li>• All associated files and images</li>
+                </ul>
+                <p className="text-xs text-red-600 mt-2 font-semibold">
+                  This action cannot be undone!
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={closeDeleteModal}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={deleteUser}
+                  disabled={deletingUserId}
+                  className={`flex-1 px-4 py-2 text-white rounded-md transition-colors text-sm font-medium ${
+                    deletingUserId 
+                      ? 'bg-red-400 cursor-not-allowed' 
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                >
+                  {deletingUserId ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Deleting...
+                    </span>
+                  ) : (
+                    'Delete User'
+                  )}
+                </button>
                               </div>
                             </div>
                           </div>
@@ -1881,6 +2037,76 @@ const StudentEnrollment = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete User Confirmation Modal */}
+      {deleteConfirmModal && userToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                  <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+              </div>
+              
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Delete User Account
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to delete <strong>{userToDelete.firstName} {userToDelete.lastName}</strong>?
+                </p>
+                <p className="text-xs text-red-600 mt-2">
+                  This action will permanently delete:
+                </p>
+                <ul className="text-xs text-red-600 mt-1 text-left max-w-xs mx-auto">
+                  <li>• User account and profile</li>
+                  <li>• All course purchases</li>
+                  <li>• KYC verification data</li>
+                  <li>• Referral relationships</li>
+                  <li>• Earnings and balance data</li>
+                  <li>• All associated files and images</li>
+                </ul>
+                <p className="text-xs text-red-600 mt-2 font-semibold">
+                  This action cannot be undone!
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={closeDeleteModal}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={deleteUser}
+                  disabled={deletingUserId}
+                  className={`flex-1 px-4 py-2 text-white rounded-md transition-colors text-sm font-medium ${
+                    deletingUserId 
+                      ? 'bg-red-400 cursor-not-allowed' 
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                >
+                  {deletingUserId ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Deleting...
+                    </span>
+                  ) : (
+                    'Delete User'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

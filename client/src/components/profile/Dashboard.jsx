@@ -14,7 +14,8 @@ import {
   FaUser,
   FaFire,
   FaArrowRight,
-  FaShareAlt
+  FaShareAlt,
+  FaCheckCircle
 } from 'react-icons/fa';
 
 const Dashboard = ({
@@ -88,12 +89,10 @@ const Dashboard = ({
                   <FaUser className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
 
-                {/* Clean blue verification badge */}
+                {/* Clean verification badge using React icon */}
                 {userData.kycStatus === 'verified' && (
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200">
-                    <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200">
+                    <FaCheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   </div>
                 )}
               </div>
@@ -105,9 +104,7 @@ const Dashboard = ({
                 <span className="truncate">{fullName || 'Amy Amy'}</span>
                                                                   {userData.kycStatus === 'verified' && (
                     <div className="ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0">
-                      <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+                      <FaCheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
                     </div>
                   )}
               </h1>

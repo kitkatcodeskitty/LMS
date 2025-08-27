@@ -342,30 +342,7 @@ const Navbar = () => {
                             </svg>
                             Sub-Admin Panel
                           </button>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDesktopDropdownOpen(false);
-                                navigate('/kyc');
-                              }}
-                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                              <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              KYC Verification
-                              {userData.kycStatus === 'verified' && (
-                                <span className="ml-auto text-green-500">
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                </span>
-                              )}
-                            </button>
-                          </>
-                        )}
+                        ) : null}
 
                         <button
                           type="button"
@@ -562,26 +539,7 @@ const Navbar = () => {
                               My Learning
                             </button>
 
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setMobileDropdownOpen(false);
-                                navigate('/kyc');
-                              }}
-                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                            >
-                              <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              KYC Verification
-                              {userData.kycStatus === 'verified' && (
-                                <span className="ml-auto text-green-500">
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                </span>
-                              )}
-                            </button>
+
                           </>
                         )}
 
