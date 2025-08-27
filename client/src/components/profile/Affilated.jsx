@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from '../../context/AppContext';
 import axios from 'axios';
-const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
+const ReferralCenter = ({ affiliateCode, affiliateLink }) => {
   const { backendUrl, getToken, userData } = useContext(AppContext);
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
@@ -9,6 +9,26 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
   const [courseSpecificLink, setCourseSpecificLink] = useState('');
   const [hasPurchases, setHasPurchases] = useState(false);
   const [checkingPurchases, setCheckingPurchases] = useState(true);
+  const [copiedText, setCopiedText] = useState('');
+
+  // Copy to clipboard function
+  const copyToClipboard = async (text, type) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(type);
+      setTimeout(() => setCopiedText(''), 2000); // Reset after 2 seconds
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopiedText(type);
+      setTimeout(() => setCopiedText(''), 2000);
+    }
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -123,10 +143,10 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
                 className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-l-xl bg-gray-50 font-mono text-lg font-bold text-center min-w-0"
               />
               <button
-                onClick={() => copyToClipboard(affiliateCode)}
+                onClick={() => copyToClipboard(affiliateCode, 'Referral Code')}
                 className="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-r-xl hover:from-rose-600 hover:to-pink-700 hover:scale-105 transition-all duration-300 font-semibold shadow-lg transform"
               >
-                Copy
+                {copiedText === 'Referral Code' ? 'Copied!' : 'Copy'}
               </button>
             </div>
           </div>
@@ -144,10 +164,10 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
                 className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-l-xl bg-gray-50 text-sm min-w-0"
               />
               <button
-                onClick={() => copyToClipboard(affiliateLink)}
+                onClick={() => copyToClipboard(affiliateLink, 'General Share Link')}
                 className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-r-xl hover:from-blue-600 hover:to-cyan-700 hover:scale-105 transition-all duration-300 font-semibold shadow-lg transform"
               >
-                Share
+                {copiedText === 'General Share Link' ? 'Copied!' : 'Share'}
               </button>
             </div>
           </div>
@@ -205,10 +225,10 @@ const ReferralCenter = ({ affiliateCode, affiliateLink, copyToClipboard }) => {
                   className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-l-xl bg-gray-50 text-sm min-w-0"
                 />
                 <button
-                  onClick={() => copyToClipboard(courseSpecificLink)}
+                  onClick={() => copyToClipboard(courseSpecificLink, 'Package Payment Link')}
                   className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-r-xl hover:from-purple-600 hover:to-indigo-700 hover:scale-105 transition-all duration-300 font-semibold shadow-lg transform"
                 >
-                  Copy Link
+                  {copiedText === 'Package Payment Link' ? 'Copied!' : 'Copy Link'}
                 </button>
               </div>
               <p className="text-xs text-gray-500">
