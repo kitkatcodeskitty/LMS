@@ -88,7 +88,7 @@ const PopupManagement = () => {
       });
 
       if (response.data.success) {
-        console.log('Popup created successfully');
+
         setShowCreateModal(false);
         resetForm();
         fetchPopups();
@@ -119,7 +119,7 @@ const PopupManagement = () => {
       });
 
       if (response.data.success) {
-        console.log('Popup updated successfully');
+
         setShowEditModal(false);
         setEditingPopup(null);
         resetForm();
@@ -140,7 +140,7 @@ const PopupManagement = () => {
       });
       
       if (response.data.success) {
-        console.log('Popup deleted successfully');
+
         fetchPopups();
       }
     } catch (error) {
@@ -156,7 +156,7 @@ const PopupManagement = () => {
       });
       
       if (response.data.success) {
-        console.log(response.data.message);
+
         fetchPopups();
       }
     } catch (error) {

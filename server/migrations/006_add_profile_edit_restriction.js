@@ -4,7 +4,7 @@ const MIGRATION_NAME = '006_add_profile_edit_restriction';
 
 export const up = async () => {
   try {
-    console.log(`🔄 Starting migration: ${MIGRATION_NAME}`);
+    // Starting migration: ${MIGRATION_NAME}
     
     // Get the User model
     const User = mongoose.model('User');
@@ -23,8 +23,8 @@ export const up = async () => {
       }
     );
     
-    console.log(`✅ Migration ${MIGRATION_NAME} completed successfully`);
-    console.log(`📊 Updated ${result.modifiedCount} users with profile edit restriction fields`);
+    // Migration ${MIGRATION_NAME} completed successfully
+    // Updated ${result.modifiedCount} users with profile edit restriction fields
     
     return {
       success: true,
@@ -39,7 +39,7 @@ export const up = async () => {
 
 export const down = async () => {
   try {
-    console.log(`🔄 Rolling back migration: ${MIGRATION_NAME}`);
+    // Rolling back migration: ${MIGRATION_NAME}
     
     // Get the User model
     const User = mongoose.model('User');
@@ -55,8 +55,8 @@ export const down = async () => {
       }
     );
     
-    console.log(`✅ Rollback of ${MIGRATION_NAME} completed successfully`);
-    console.log(`📊 Removed profile edit restriction fields from ${result.modifiedCount} users`);
+    // Rollback of ${MIGRATION_NAME} completed successfully
+    // Removed profile edit restriction fields from ${result.modifiedCount} users
     
     return {
       success: true,

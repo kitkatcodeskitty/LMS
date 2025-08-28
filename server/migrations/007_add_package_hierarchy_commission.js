@@ -3,18 +3,18 @@ import mongoose from 'mongoose';
 const MIGRATION_NAME = '007_add_package_hierarchy_commission';
 
 export const up = async () => {
-  console.log(`🔄 Starting migration: ${MIGRATION_NAME}`);
+  // Starting migration: ${MIGRATION_NAME}
   
   try {
     // Connect to MongoDB
     const User = mongoose.model('User');
     const Course = mongoose.model('Course');
     
-    console.log('📊 Updating existing users with their highest purchased package...');
+    // Updating existing users with their highest purchased package...
     
     // Get all users who have enrolled courses
     const users = await User.find({ enrolledCourses: { $exists: true, $ne: [] } });
-    console.log(`Found ${users.length} users with enrolled courses`);
+          // Found ${users.length} users with enrolled courses
     
     let updatedUsers = 0;
     
@@ -50,7 +50,7 @@ export const up = async () => {
             user.highestPackage = highestPackage;
             await user.save();
             updatedUsers++;
-            console.log(`Updated user ${user.email} with highest package: ${highestPackage}`);
+            // Updated user ${user.email} with highest package: ${highestPackage}
           }
         }
       } catch (error) {
@@ -58,11 +58,11 @@ export const up = async () => {
       }
     }
     
-    console.log(`✅ Updated ${updatedUsers} users with their highest package`);
+    // Updated ${updatedUsers} users with their highest package
     
     // Verify the migration
     const usersWithPackages = await User.find({ highestPackage: { $exists: true, $ne: null } });
-    console.log('📊 Package distribution after migration:');
+    // Package distribution after migration:
     
     const packageCounts = {};
     usersWithPackages.forEach(user => {
@@ -70,10 +70,10 @@ export const up = async () => {
     });
     
     Object.entries(packageCounts).forEach(([type, count]) => {
-      console.log(`  ${type}: ${count} users`);
+              // ${type}: ${count} users
     });
     
-    console.log(`✅ Migration ${MIGRATION_NAME} completed successfully`);
+    // Migration ${MIGRATION_NAME} completed successfully
     
   } catch (error) {
     console.error(`❌ Migration ${MIGRATION_NAME} failed:`, error);
@@ -82,7 +82,7 @@ export const up = async () => {
 };
 
 export const down = async () => {
-  console.log(`🔄 Rolling back migration: ${MIGRATION_NAME}`);
+      // Rolling back migration: ${MIGRATION_NAME}
   
   try {
     // Connect to MongoDB
@@ -94,8 +94,8 @@ export const down = async () => {
       { $unset: { highestPackage: 1 } }
     );
     
-    console.log(`✅ Removed highestPackage field from ${rollbackResult.modifiedCount} users`);
-    console.log(`✅ Rollback of migration ${MIGRATION_NAME} completed successfully`);
+    // Removed highestPackage field from ${rollbackResult.modifiedCount} users
+    // Rollback of migration ${MIGRATION_NAME} completed successfully
     
   } catch (error) {
     console.error(`❌ Rollback of migration ${MIGRATION_NAME} failed:`, error);

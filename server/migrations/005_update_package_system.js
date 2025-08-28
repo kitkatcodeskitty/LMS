@@ -30,7 +30,7 @@ const NEW_PACKAGE_CONFIG = {
 };
 
 export const up = async () => {
-  console.log(`🔄 Starting migration: ${MIGRATION_NAME}`);
+  // Starting migration: ${MIGRATION_NAME}
   
   try {
     // Connect to MongoDB
@@ -67,11 +67,11 @@ export const up = async () => {
       ]
     );
     
-    console.log(`✅ Updated ${updateResult.modifiedCount} courses to new package system`);
+    // Updated ${updateResult.modifiedCount} courses to new package system
     
     // Verify the migration
     const courses = await Course.find({});
-    console.log('📊 Package type distribution after migration:');
+    // Package type distribution after migration:
     
     const packageCounts = {};
     courses.forEach(course => {
@@ -79,10 +79,10 @@ export const up = async () => {
     });
     
     Object.entries(packageCounts).forEach(([type, count]) => {
-      console.log(`  ${type}: ${count} courses`);
+              // ${type}: ${count} courses
     });
     
-    console.log(`✅ Migration ${MIGRATION_NAME} completed successfully`);
+    // Migration ${MIGRATION_NAME} completed successfully
     
   } catch (error) {
     console.error(`❌ Migration ${MIGRATION_NAME} failed:`, error);
@@ -91,7 +91,7 @@ export const up = async () => {
 };
 
 export const down = async () => {
-  console.log(`🔄 Rolling back migration: ${MIGRATION_NAME}`);
+      // Rolling back migration: ${MIGRATION_NAME}
   
   try {
     // Connect to MongoDB
@@ -128,8 +128,8 @@ export const down = async () => {
       ]
     );
     
-    console.log(`✅ Rolled back ${rollbackResult.modifiedCount} courses to old package system`);
-    console.log(`✅ Rollback of migration ${MIGRATION_NAME} completed successfully`);
+    // Rolled back ${rollbackResult.modifiedCount} courses to old package system
+    // Rollback of migration ${MIGRATION_NAME} completed successfully
     
   } catch (error) {
     console.error(`❌ Rollback of migration ${MIGRATION_NAME} failed:`, error);

@@ -59,7 +59,7 @@ const PendingOrders = () => {
       )
 
       if (data.success) {
-        console.log('Order accepted successfully!')
+
         fetchPendingOrders() // Refresh the list
         fetchPendingOrdersCount() // Update the count in sidebar
       } else {
@@ -87,7 +87,7 @@ const PendingOrders = () => {
       })
 
       if (data.success) {
-        console.log('Order rejected successfully!')
+
         fetchPendingOrders() // Refresh the list
         fetchPendingOrdersCount() // Update the count in sidebar
       } else {
@@ -136,7 +136,7 @@ const PendingOrders = () => {
       )
 
       if (data.success) {
-        console.log('Order updated successfully!')
+
         setEditingOrder(null)
         fetchPendingOrders() // Refresh the list
         fetchPendingOrdersCount() // Update the count in sidebar

@@ -178,7 +178,7 @@ export const updateUserEarningsFields = async (userId, affiliateAmount) => {
 
         await user.save();
     } catch (error) {
-        console.error('Error updating user earnings fields:', error);
+        // Error updating user earnings fields: ${error}
     }
 };
 
@@ -344,7 +344,7 @@ export const syncAllUsersEarningsFields = async () => {
                     results.updatedUsers++; // Count as updated since we're preserving admin values
                 }
             } catch (error) {
-                console.error(`Error updating earnings for user ${user._id}:`, error);
+                // Error updating earnings for user ${user._id}: ${error}
                 results.errors++;
             }
         }

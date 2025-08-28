@@ -182,7 +182,7 @@ export const validatePurchase = async (req, res) => {
           const { updateUserEarningsFields } = await import('../utils/balanceHelpers.js');
           await updateUserEarningsFields(referrer._id, affiliateAmount);
         } catch (error) {
-          console.error('Error updating earnings fields:', error);
+          // Error updating earnings fields: ${error}
         }
       }
     }
@@ -221,7 +221,7 @@ export const validatePurchase = async (req, res) => {
         const { updateUserEarningsFields } = await import('../utils/balanceHelpers.js');
         await updateUserEarningsFields(purchaseDoc.referrerId, purchaseDoc.affiliateAmount);
       } catch (error) {
-        console.error('Error updating earnings fields after purchase creation:', error);
+        // Error updating earnings fields after purchase creation: ${error}
       }
     }
 

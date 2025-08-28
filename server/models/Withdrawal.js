@@ -247,7 +247,7 @@ withdrawalSchema.pre('save', function(next) {
     
     next();
   } catch (error) {
-    console.error('Error in withdrawal pre-save middleware:', error);
+            // Error in withdrawal pre-save middleware: ${error}
     next(error);
   }
 });
@@ -268,7 +268,7 @@ withdrawalSchema.post('save', function(error, doc, next) {
         next();
       })
       .catch((retryError) => {
-        console.error('❌ Error in retry save:', retryError);
+        // Error in retry save: ${retryError}
         next(retryError);
       });
   } else {

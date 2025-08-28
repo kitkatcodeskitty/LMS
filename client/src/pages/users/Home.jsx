@@ -440,7 +440,7 @@ const Home = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Sarah Johnson</h3>
                 <p className="text-gray-600 mb-4">"From struggling student to successful entrepreneur in just 6 months!"</p>
-                <div className="text-rose-500 font-semibold">Earned ₹15L+</div>
+                <div className="text-rose-500 font-semibold">Earned {currency}15L+</div>
               </div>
             </div>
             
@@ -453,7 +453,7 @@ const Home = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Rahul Sharma</h3>
                 <p className="text-gray-600 mb-4">"The Supreme package transformed my career completely!"</p>
-                <div className="text-blue-500 font-semibold">Earned ₹25L+</div>
+                <div className="text-blue-500 font-semibold">Earned {currency}25L+</div>
               </div>
             </div>
             
@@ -466,7 +466,7 @@ const Home = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Priya Patel</h3>
                 <p className="text-gray-600 mb-4">"24/7 support helped me succeed even with a busy schedule!"</p>
-                <div className="text-green-500 font-semibold">Earned ₹12L+</div>
+                <div className="text-green-500 font-semibold">Earned {currency}12L+</div>
               </div>
             </div>
           </div>

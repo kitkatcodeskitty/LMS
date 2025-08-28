@@ -24,7 +24,8 @@ const Dashboard = ({
   purchasedCourses,
   referralData,
   navigate,
-  setActiveTab
+  setActiveTab,
+  currency
 }) => {
   const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
 
@@ -124,7 +125,7 @@ const Dashboard = ({
                 <span className="text-base sm:text-lg font-bold text-white">
                   <AnimatedNumber 
                     value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))} 
-                    currency="Rs" 
+                    currency={currency} 
                     duration={2000} 
                     delay={100} 
                   />
@@ -163,7 +164,7 @@ const Dashboard = ({
             <div className="text-xl sm:text-2xl font-bold mb-1">
               <AnimatedNumber 
                 value={getEarningsValue('today', getEarningsValue('dailyEarnings', 0))} 
-                currency="Rs" 
+                currency={currency} 
                 duration={2200} 
                 delay={300} 
               />
@@ -193,7 +194,7 @@ const Dashboard = ({
             <div className="text-xl sm:text-2xl font-bold mb-1">
               <AnimatedNumber 
                 value={getEarningsValue('availableBalance', getEarningsValue('withdrawableBalance', 0))} 
-                currency="Rs" 
+                currency={currency} 
                 duration={2400} 
                 delay={400} 
               />
@@ -250,7 +251,7 @@ const Dashboard = ({
             <div className="text-lg sm:text-xl font-bold text-white">
               <AnimatedNumber 
                 value={getEarningsValue('lastSevenDays', getEarningsValue('weeklyEarnings', 0))} 
-                currency="Rs" 
+                currency={currency} 
                 duration={2600} 
                 delay={600} 
               />
@@ -270,7 +271,7 @@ const Dashboard = ({
             <div className="text-lg sm:text-xl font-bold text-white">
               <AnimatedNumber 
                 value={getEarningsValue('thisMonth', getEarningsValue('monthlyEarnings', 0))} 
-                currency="Rs" 
+                currency={currency} 
                 duration={2800} 
                 delay={700} 
               />
@@ -290,7 +291,7 @@ const Dashboard = ({
             <div className="text-lg sm:text-xl font-bold text-white">
               <AnimatedNumber 
                 value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))} 
-                currency="Rs" 
+                currency={currency} 
                 duration={3000} 
                 delay={800} 
               />

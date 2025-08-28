@@ -85,7 +85,7 @@ const PackageDetails = () => {
 
   const enrolledCourse = () => {
     if (!userData) {
-      navigate('/register')
+      navigate(`/payment/${courseData._id}`)
       return
     }
 
@@ -306,7 +306,7 @@ const PackageDetails = () => {
               </button>
             ) : (
               <button
-                onClick={() => navigate('/register')}
+                onClick={() => navigate(`/payment/${courseData._id}`)}
                 className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium"
               >
                 Login to Enroll

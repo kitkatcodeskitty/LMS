@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Link } from 'react-router-dom'
+import { AppContext } from '../../context/AppContext'
 
 const CallToAction = () => {
+  const { currency } = useContext(AppContext);
   return (
     <div className="w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black py-20">
       <div className="max-w-7xl mx-auto px-4">
@@ -40,7 +42,7 @@ const CallToAction = () => {
                 <div className="text-gray-400">Success Rate</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-pink-400 mb-2">₹2.5Cr+</div>
+                <div className="text-4xl font-bold text-pink-400 mb-2">{currency}2.5Cr+</div>
                 <div className="text-gray-400">Earned by Students</div>
               </div>
               <div className="text-center">

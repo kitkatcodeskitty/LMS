@@ -146,7 +146,7 @@ export const createWithdrawalRequest = async (req, res) => {
         await createNotification(
           userId,
           "Withdrawal Request Submitted 💰",
-          `Your withdrawal request of ₹${amount} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'} has been submitted successfully. We'll process it within 1-3 business days.`,
+          `Your withdrawal request of Rs${amount} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'} has been submitted successfully. We'll process it within 1-3 business days.`,
           "info",
           null,
           "withdrawal_submitted"
@@ -157,7 +157,7 @@ export const createWithdrawalRequest = async (req, res) => {
           await createNotification(
             admin._id,
             "New Withdrawal Request 🔔",
-            `A new withdrawal request of ₹${amount} has been submitted by ${user.firstName} ${user.lastName} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'}.`,
+            `A new withdrawal request of Rs${amount} has been submitted by ${user.firstName} ${user.lastName} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'}.`,
             "info",
             null,
             "admin_new_withdrawal"

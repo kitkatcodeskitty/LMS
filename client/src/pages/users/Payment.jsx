@@ -264,7 +264,7 @@ const PaymentPage = () => {
                       
                       // Show warning if user tries to enter their own referral code
                       if (value.trim() && userData?.affiliateCode && value.trim() === userData.affiliateCode) {
-                        console.warn('You cannot use your own referral code for purchases.');
+                
                       }
                     }}
                     placeholder="Enter referral code (e.g., ABCD1234)"

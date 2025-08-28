@@ -11,7 +11,7 @@ const EnhancedPayment = () => {
   const { courseId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { backendUrl, getToken, currency: appCurrency, userData } = useContext(AppContext);
+  const { backendUrl, getToken, currency: appCurrency, userData, storeAuthData } = useContext(AppContext);
   
   // Get referral code from URL params
   const urlParams = new URLSearchParams(location.search);
@@ -67,7 +67,7 @@ const EnhancedPayment = () => {
   // Check if user is trying to use their own referral code from URL
   useEffect(() => {
     if (userData && referralFromUrl && referralFromUrl === userData.affiliateCode) {
-      console.warn('You cannot use your own referral code for purchases. The referral code has been cleared.');
+      
       setReferralCode(''); // Clear the referral code
     }
   }, [userData, referralFromUrl]);
@@ -159,8 +159,8 @@ const EnhancedPayment = () => {
         setProfileImageFile(null);
         setProfilePreviewImage(null);
         
-        // Refresh page to update user context
-        window.location.reload();
+        // Update user context without page reload
+        storeAuthData(data.token, data.user);
       } else {
         console.error(data.message || 'Registration failed');
       }
@@ -193,8 +193,8 @@ const EnhancedPayment = () => {
         console.log('Login successful! You can now complete your payment.');
         setShowRegistration(false);
         setShowLogin(false);
-        // Refresh page to update user context
-        window.location.reload();
+        // Update user context without page reload
+        storeAuthData(data.token, data.user);
       } else {
         console.error(data.message || 'Login failed');
       }
@@ -230,11 +230,6 @@ const EnhancedPayment = () => {
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
     
-    if (!userData) {
-      console.error('Please register or login first');
-      return;
-    }
-
     setIsSubmitting(true);
 
     if (!transactionId.trim()) {
@@ -249,17 +244,32 @@ const EnhancedPayment = () => {
       return;
     }
 
-    // Prevent users from using their own referral code
-    if (referralCode.trim() && referralCode.trim() === userData.affiliateCode) {
-      console.error('You cannot use your own referral code for purchases.');
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
       const token = await getToken();
       if (!token) {
         console.error('Please login to continue');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Get user data from token if not available in context
+      let currentUserData = userData;
+      if (!currentUserData) {
+        try {
+          const response = await axios.get(`${backendUrl}/api/users/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (response.data.success) {
+            currentUserData = response.data.user;
+          }
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+        }
+      }
+
+      // Prevent users from using their own referral code
+      if (referralCode.trim() && currentUserData?.affiliateCode && referralCode.trim() === currentUserData.affiliateCode) {
+        console.error('You cannot use your own referral code for purchases.');
         setIsSubmitting(false);
         return;
       }
@@ -598,18 +608,18 @@ const EnhancedPayment = () => {
               )}
             </Card>
 
-            {/* Step 2: Payment Preview Section (for non-logged users) */}
+            {/* Step 2: Payment Form for Non-Logged Users */}
             <Card>
               <div className="flex items-center mb-6">
-                <div className="flex items-center justify-center w-8 h-8 bg-gray-400 text-white rounded-full font-semibold mr-3">
+                <div className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full font-semibold mr-3">
                   2
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900">Payment Details Preview</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Complete Your Payment</h2>
               </div>
-              <p className="text-gray-600 mb-6">After registration, you'll complete your payment with these details:</p>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Payment Instructions Preview */}
+              <p className="text-gray-600 mb-6">Fill in your payment details below:</p>
+               
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column: Payment Instructions */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-gray-800">Payment Instructions</h3>
                   <div className="text-center">
@@ -622,53 +632,108 @@ const EnhancedPayment = () => {
                       </p>
                     </div>
                   </div>
-                </div>
-
-                {/* Payment Form Preview */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-800">What You'll Need</h3>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Transaction ID
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Your payment transaction ID"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
-                        disabled
-                      />
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Referral Code {referralFromUrl && <span className="text-green-600">(Pre-applied)</span>}
-                      </label>
-                      <input
-                        type="text"
-                        value={referralFromUrl || 'Optional referral code'}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
-                        disabled
-                      />
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Payment Screenshot
-                      </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <div className="text-2xl text-gray-400 mb-2">📷</div>
-                        <p className="text-sm text-gray-500">Upload payment screenshot</p>
-                      </div>
-                    </div>
+                  
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-yellow-800 mb-2">⚠️ Important Notes:</h3>
+                    <ul className="text-sm text-yellow-700 space-y-1">
+                      <li>• Pay the exact amount shown above</li>
+                      <li>• Higher or lower amounts will not be accepted</li>
+                      <li>• No refunds will be processed</li>
+                      <li>• Keep your transaction receipt safe</li>
+                    </ul>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>Note:</strong> Complete your registration first, then you'll be able to fill out the payment form and submit your course purchase.
-                </p>
+                {/* Right Column: Payment Form */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-800">Payment Details</h3>
+                  
+                  <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                    {/* Transaction ID */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Transaction ID <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={transactionId}
+                        onChange={(e) => setTransactionId(e.target.value)}
+                        placeholder="Enter your transaction ID from payment receipt"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+
+                    {/* Referral Code */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Referral Code {referralFromUrl && <span className="text-green-600">(Pre-filled from link)</span>}
+                      </label>
+                      <input
+                        type="text"
+                        value={referralCode}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setReferralCode(value);
+                        }}
+                        placeholder="Enter referral code (optional)"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {referralFromUrl 
+                          ? 'Referral code pre-filled from your link, but you can change it if needed' 
+                          : 'Use a referral code to help your referrer earn commissions'
+                        }
+                      </p>
+                    </div>
+
+                    {/* Payment Screenshot */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Payment Screenshot <span className="text-red-500">*</span>
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="hidden"
+                          id="screenshot-upload-non-logged"
+                          required
+                        />
+                        <label htmlFor="screenshot-upload-non-logged" className="cursor-pointer">
+                          {previewImage ? (
+                            <div className="space-y-2">
+                              <img
+                                src={previewImage}
+                                alt="Payment screenshot preview"
+                                className="max-w-full max-h-32 mx-auto rounded-lg shadow-sm"
+                              />
+                              <p className="text-sm text-green-600 font-medium">Screenshot uploaded successfully!</p>
+                              <p className="text-xs text-gray-500">Click to change image</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <div className="text-2xl text-gray-400">📷</div>
+                              <p className="text-sm text-gray-500">Upload payment screenshot</p>
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      loading={isSubmitting}
+                      disabled={isSubmitting}
+                      variant="info"
+                      size="lg"
+                      fullWidth
+                    >
+                      Submit Payment Details
+                    </Button>
+                  </form>
+                </div>
               </div>
             </Card>
           </div>
@@ -770,7 +835,7 @@ const EnhancedPayment = () => {
                       
                       // Show warning if user tries to enter their own referral code
                       if (value.trim() && userData?.affiliateCode && value.trim() === userData.affiliateCode) {
-                        console.warn('You cannot use your own referral code for purchases.');
+                
                       }
                     }}
                     placeholder="Enter referral code (optional)"

@@ -71,10 +71,10 @@ export const calculatePackageBasedCommission = (coursePrice, referrerPackage, pu
   // If referrer has a lower package, they get 60% of their own package's earning potential
   // This is a simplified approach - you might want to adjust this logic
   const referrerEarningPotential = {
-    'elite': 1000,    // Rs. 500 - Rs. 1,000
-    'creator': 3000,  // Rs. 1,500 - Rs. 3,000
-    'prime': 4000,    // Rs. 2,000 - Rs. 4,000
-    'master': 6000    // Rs. 3,000 - Rs. 6,000
+    'elite': 1000,    // Rs 500 - Rs 1,000
+    'creator': 3000,  // Rs 1,500 - Rs 3,000
+    'prime': 4000,    // Rs 2,000 - Rs 4,000
+    'master': 6000    // Rs 3,000 - Rs 6,000
   };
 
   const referrerMaxEarning = referrerEarningPotential[referrerPackage] || 1000;
@@ -86,10 +86,10 @@ export const calculatePackageBasedCommission = (coursePrice, referrerPackage, pu
 /**
  * Format price for display
  * @param {number} price - Price to format
- * @param {string} currency - Currency symbol (default: 'Rs.')
+ * @param {string} currency - Currency symbol (default: 'Rs')
  * @returns {string} - Formatted price string
  */
-export const formatPrice = (price, currency = 'Rs.') => {
+export const formatPrice = (price, currency = 'Rs') => {
   if (typeof price !== 'number') return `${currency} 0`;
   return `${currency} ${price.toLocaleString()}`;
 };

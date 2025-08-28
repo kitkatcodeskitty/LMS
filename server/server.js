@@ -26,7 +26,7 @@ try {
   await connectDB();
   await connectCloudinary();
 } catch (error) {
-  console.error('❌ Failed to connect to services:', error.message);
+  // Failed to connect to services: ${error.message}
   process.exit(1);
 }
 
@@ -67,7 +67,7 @@ app.use(globalErrorHandler);
 const PORT = process.env.PORT || 5000
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`)
+    // Server is running on port ${PORT}
 })
 
 

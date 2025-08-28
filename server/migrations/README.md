@@ -139,10 +139,10 @@ import('./migrations/005_update_package_system.js').then(async (migration) => {
 ### New Package Structure
 | Package | Course Limit | Description | Earning Range |
 |---------|--------------|-------------|---------------|
-| Elite | 1 | Perfect for beginners | Rs. 500 - Rs. 1,000 |
-| Creator | 3 | Great for creators | Rs. 1,500 - Rs. 3,000 |
-| Prime | 4 | Premium choice | Rs. 2,000 - Rs. 4,000 |
-| Master | 6 | Ultimate experience | Rs. 3,000 - Rs. 6,000 |
+| Elite | 1 | Perfect for beginners | Rs 500 - Rs 1,000 |
+| Creator | 3 | Great for creators | Rs 1,500 - Rs 3,000 |
+| Prime | 4 | Premium choice | Rs 2,000 - Rs 4,000 |
+| Master | 6 | Ultimate experience | Rs 3,000 - Rs 6,000 |
 
 ### Commission Rate
 - **Old Rate**: 50% (0.5)

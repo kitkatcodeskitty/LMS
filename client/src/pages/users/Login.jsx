@@ -53,11 +53,11 @@ const Login = () => {
         
         try {
           await fetchUserEnrolledCourses();
-          console.log("Welcome back! Login successful");
+    
           navigate("/");
         } catch (fetchErr) {
           console.error("Data fetch error after login:", fetchErr);
-          console.warn("Logged in, but failed to load some data");
+  
           navigate("/");
         }
       } else {
@@ -193,19 +193,7 @@ const Login = () => {
               </button>
 
 
-              {/* Register Link */}
-              <div className="text-center pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  Don't have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate("/register")}
-                    className="text-rose-500 font-semibold hover:text-rose-600 transition-colors"
-                  >
-                    Create one here
-                  </button>
-                </p>
-              </div>
+              
             </form>
           </div>
 

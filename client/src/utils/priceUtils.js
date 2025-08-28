@@ -63,10 +63,10 @@ export const calculateNoOfLectures = (course) => {
 /**
  * Format currency with symbol
  * @param {number} amount - Amount to format
- * @param {string} currency - Currency symbol (default: '₹')
+ * @param {string} currency - Currency symbol (default: 'Rs')
  * @returns {string} - Formatted currency string
  */
-export const formatCurrency = (amount, currency = '₹') => {
+export const formatCurrency = (amount, currency = 'Rs') => {
   if (typeof amount !== 'number') return `${currency}0`;
   return `${currency}${amount.toLocaleString()}`;
 };

@@ -9,7 +9,7 @@ export const notifyWithdrawalSubmitted = async (userId, amount, method) => {
   await createNotification(
     userId,
     "Withdrawal Request Submitted 💰",
-    `Your withdrawal request of ₹${amount} via ${methodName} has been submitted successfully. We'll process it within 1-3 business days.`,
+        `Your withdrawal request of Rs${amount} via ${methodName} has been submitted successfully. We'll process it within 1-3 business days.`,
     "info",
     null,
     "withdrawal_submitted"
@@ -21,8 +21,8 @@ export const notifyWithdrawalSubmitted = async (userId, amount, method) => {
  */
 export const notifyWithdrawalApproved = async (userId, amount, transactionReference = null) => {
   const message = transactionReference 
-    ? `Great news! Your withdrawal request of ₹${amount} has been approved and processed. Transaction reference: ${transactionReference}`
-    : `Great news! Your withdrawal request of ₹${amount} has been approved and processed. You should receive the funds within 1-3 business days.`;
+            ? `Great news! Your withdrawal request of Rs${amount} has been approved and processed. Transaction reference: ${transactionReference}`
+        : `Great news! Your withdrawal request of Rs${amount} has been approved and processed. You should receive the funds within 1-3 business days.`;
 
   await createNotification(
     userId,
@@ -39,8 +39,8 @@ export const notifyWithdrawalApproved = async (userId, amount, transactionRefere
  */
 export const notifyWithdrawalRejected = async (userId, amount, rejectionReason = null) => {
   const message = rejectionReason 
-    ? `Your withdrawal request of ₹${amount} has been rejected. Reason: ${rejectionReason}. Your balance has been restored.`
-    : `Your withdrawal request of ₹${amount} has been rejected. Please contact support for more information. Your balance has been restored.`;
+            ? `Your withdrawal request of Rs${amount} has been rejected. Reason: ${rejectionReason}. Your balance has been restored.`
+        : `Your withdrawal request of Rs${amount} has been rejected. Please contact support for more information. Your balance has been restored.`;
 
   await createNotification(
     userId,
@@ -57,7 +57,7 @@ export const notifyWithdrawalRejected = async (userId, amount, rejectionReason =
  */
 export const notifyWithdrawalEdited = async (userId, changes) => {
   const changesList = Object.keys(changes).map(key => {
-    if (key === 'amount') return `Amount updated to ₹${changes[key]}`;
+          if (key === 'amount') return `Amount updated to Rs${changes[key]}`;
     if (key === 'mobileBankingDetails') return 'Mobile banking details updated';
     if (key === 'bankTransferDetails') return 'Bank transfer details updated';
     return `${key} updated`;
@@ -84,7 +84,7 @@ export const notifyAdminNewWithdrawal = async (adminUsers, userInfo, amount, met
     await createNotification(
       adminUser._id,
       "New Withdrawal Request 🔔",
-      `${userInfo.firstName} ${userInfo.lastName} has submitted a withdrawal request of ₹${amount} via ${methodName}. Please review and process.`,
+      `${userInfo.firstName} ${userInfo.lastName} has submitted a withdrawal request of Rs${amount} via ${methodName}. Please review and process.`,
       "info",
       null,
       "admin_new_withdrawal"

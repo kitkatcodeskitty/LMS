@@ -7,7 +7,7 @@ import { Purchase } from "../models/Purchase.js";
 const migrationName = "003_migrate_existing_user_balances";
 
 export const up = async () => {
-  console.log(`Running migration: ${migrationName}`);
+  // Running migration: ${migrationName}
   
   try {
 
@@ -19,7 +19,7 @@ export const up = async () => {
       ]
     });
 
-    console.log(`Found ${usersWithEarnings.length} users with affiliate earnings to migrate.`);
+    // Found ${usersWithEarnings.length} users with affiliate earnings to migrate.
 
     let migratedCount = 0;
     let totalWithdrawableAmount = 0;
@@ -42,7 +42,7 @@ export const up = async () => {
         totalWithdrawableAmount += withdrawableAmount;
         migratedCount++;
 
-        console.log(`Migrated user ${user.email}: affiliateEarnings=${user.affiliateEarnings}, withdrawableBalance=${withdrawableAmount}`);
+        // Migrated user ${user.email}: affiliateEarnings=${user.affiliateEarnings}, withdrawableBalance=${withdrawableAmount}
       } catch (error) {
         console.error(`Failed to migrate user ${user._id}:`, error);
       }
@@ -71,10 +71,10 @@ export const up = async () => {
       }
     );
 
-    console.log(`Migration ${migrationName} completed successfully.`);
-    console.log(`Migrated ${migratedCount} users with earnings.`);
-    console.log(`Updated ${usersWithoutEarnings.modifiedCount} users without earnings.`);
-    console.log(`Total withdrawable amount set: ${totalWithdrawableAmount}`);
+    // Migration ${migrationName} completed successfully.
+    // Migrated ${migratedCount} users with earnings.
+    // Updated ${usersWithoutEarnings.modifiedCount} users without earnings.
+    // Total withdrawable amount set: ${totalWithdrawableAmount}
     
     return {
       success: true,
@@ -90,7 +90,7 @@ export const up = async () => {
 };
 
 export const down = async () => {
-  console.log(`Rolling back migration: ${migrationName}`);
+  // Rolling back migration: ${migrationName}
   
   try {
     // Reset all withdrawable balances to 0 but keep affiliate earnings
@@ -105,8 +105,8 @@ export const down = async () => {
       }
     );
 
-    console.log(`Rollback ${migrationName} completed successfully.`);
-    console.log(`Reset withdrawal balances for ${result.modifiedCount} users.`);
+    // Rollback ${migrationName} completed successfully.
+    // Reset withdrawal balances for ${result.modifiedCount} users.
     
     return {
       success: true,

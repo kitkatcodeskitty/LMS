@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const migrationName = "002_create_withdrawal_indexes";
 
 export const up = async () => {
-  console.log(`Running migration: ${migrationName}`);
+  // Running migration: ${migrationName}
   
   try {
     const db = mongoose.connection.db;
@@ -36,10 +36,10 @@ export const up = async () => {
     for (const index of withdrawalIndexes) {
       try {
         await withdrawalsCollection.createIndex(index);
-        console.log(`Created withdrawal index:`, index);
+        // Created withdrawal index: ${index}
       } catch (error) {
         if (error.code === 86) { // IndexKeySpecsConflict
-          console.log(`Index already exists (skipping):`, index);
+          // Index already exists (skipping): ${index}
         } else {
           throw error;
         }
@@ -64,18 +64,18 @@ export const up = async () => {
     for (const index of userIndexes) {
       try {
         await usersCollection.createIndex(index);
-        console.log(`Created user index:`, index);
+        // Created user index: ${index}
       } catch (error) {
         if (error.code === 86) { // IndexKeySpecsConflict
-          console.log(`Index already exists (skipping):`, index);
+          // Index already exists (skipping): ${index}
         } else {
           throw error;
         }
       }
     }
 
-    console.log(`Migration ${migrationName} completed successfully.`);
-    console.log(`Created ${withdrawalIndexes.length} withdrawal indexes and ${userIndexes.length} user indexes.`);
+    // Migration ${migrationName} completed successfully.
+    // Created ${withdrawalIndexes.length} withdrawal indexes and ${userIndexes.length} user indexes.
     
     return {
       success: true,
@@ -90,7 +90,7 @@ export const up = async () => {
 };
 
 export const down = async () => {
-  console.log(`Rolling back migration: ${migrationName}`);
+  // Rolling back migration: ${migrationName}
   
   try {
     const db = mongoose.connection.db;
@@ -108,11 +108,11 @@ export const down = async () => {
       if (index.name !== '_id_') {
         try {
           await withdrawalsCollection.dropIndex(index.name);
-          console.log(`Dropped withdrawal index: ${index.name}`);
+          // Dropped withdrawal index: ${index.name}
           droppedCount++;
         } catch (error) {
           // Index might not exist, continue
-          console.log(`Could not drop withdrawal index ${index.name}:`, error.message);
+          // Could not drop withdrawal index ${index.name}: ${error.message}
         }
       }
     }
@@ -129,16 +129,16 @@ export const down = async () => {
     for (const indexName of withdrawalRelatedIndexes) {
       try {
         await usersCollection.dropIndex(indexName);
-        console.log(`Dropped user index: ${indexName}`);
+        // Dropped user index: ${indexName}
         droppedCount++;
       } catch (error) {
         // Index might not exist, continue
-        console.log(`Could not drop user index ${indexName}:`, error.message);
+                  // Could not drop user index ${indexName}: ${error.message}
       }
     }
 
-    console.log(`Rollback ${migrationName} completed successfully.`);
-    console.log(`Dropped ${droppedCount} indexes.`);
+    // Rollback ${migrationName} completed successfully.
+    // Dropped ${droppedCount} indexes.
     
     return {
       success: true,
