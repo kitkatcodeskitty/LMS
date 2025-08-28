@@ -8,7 +8,6 @@ const createTestPopup = async () => {
   try {
     // Connect to MongoDB
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log('Connected to MongoDB');
 
     // Create a test popup
     const testPopup = new Popup({
@@ -23,13 +22,10 @@ const createTestPopup = async () => {
 
     // Save the popup
     await testPopup.save();
-    console.log('Test popup created successfully:', testPopup);
 
     // Close connection
     await mongoose.connection.close();
-    console.log('MongoDB connection closed');
   } catch (error) {
-    console.error('Error creating test popup:', error);
     process.exit(1);
   }
 };

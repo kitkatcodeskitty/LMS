@@ -6,6 +6,7 @@ import WithdrawalEditForm from './WithdrawalEditForm';
 import RejectionReasonModal from './RejectionReasonModal';
 import ApprovalModal from './ApprovalModal';
 
+
 const WithdrawalDetailsModal = ({
   isOpen,
   onClose,

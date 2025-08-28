@@ -339,7 +339,7 @@ export const setAffiliateAmount = async (req, res) => {
             const { updateUserEarningsFields } = await import('../utils/balanceHelpers.js');
             await updateUserEarningsFields(referrer._id, 0); // 0 means just recalculate existing data
           } catch (error) {
-            console.error('Error updating earnings fields:', error);
+            // Silent error handling for earnings update
           }
         }
       }
@@ -422,7 +422,6 @@ export const getPendingWithdrawals = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching pending withdrawals:', error);
     res.status(500).json({
       success: false,
       error: {
@@ -512,7 +511,6 @@ export const getAllWithdrawals = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching withdrawals:', error);
     res.status(500).json({
       success: false,
       error: {
@@ -860,7 +858,6 @@ export const rejectWithdrawal = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Error rejecting withdrawal:', error);
     res.status(500).json({
       success: false,
       error: {
@@ -1054,8 +1051,6 @@ export const editWithdrawal = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Error editing withdrawal:', error);
-    
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message);
@@ -1104,7 +1099,6 @@ export const syncAllUsersEarnings = async (req, res) => {
       results 
     });
   } catch (error) {
-    console.error('Error syncing user earnings:', error);
     res.status(500).json({ 
       success: false, 
       message: error.message 

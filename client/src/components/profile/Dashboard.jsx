@@ -143,13 +143,7 @@ const Dashboard = ({
                 </span>
               </div>
             </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-1 sm:mt-2 w-full bg-white/20 backdrop-blur-sm rounded-xl p-2 text-white hover:bg-white/30 transition-colors text-xs"
-              title="Refresh data after admin updates"
-            >
-              🔄 Refresh
-            </button>
+
           </div>
         </div>
       </div>

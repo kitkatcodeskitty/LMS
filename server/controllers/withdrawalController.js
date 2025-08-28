@@ -164,7 +164,6 @@ export const createWithdrawalRequest = async (req, res) => {
           );
         }
       } catch (notificationError) {
-        console.error('Error sending notifications:', notificationError);
         // Don't fail the request if notifications fail
       }
 
@@ -194,8 +193,6 @@ export const createWithdrawalRequest = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Error creating withdrawal request:', error);
-    
     // Handle specific error types
     if (error.name === 'ValidationError') {
       return res.status(400).json(
@@ -303,7 +300,6 @@ export const getUserWithdrawalHistory = async (req, res) => {
     ));
 
   } catch (error) {
-    console.error('Error fetching withdrawal history:', error);
     res.status(500).json(createErrorResponse(
       VALIDATION_ERRORS.INTERNAL_SERVER_ERROR,
       "An error occurred while fetching withdrawal history"
@@ -316,7 +312,6 @@ export const getAvailableBalance = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      console.error('No userId found in request:', req.user);
       return res.status(401).json(createErrorResponse(
         VALIDATION_ERRORS.USER_NOT_FOUND,
         "User not authenticated"
@@ -325,7 +320,6 @@ export const getAvailableBalance = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      console.error('User not found for id:', userId);
       return res.status(404).json(createErrorResponse(
         VALIDATION_ERRORS.USER_NOT_FOUND,
         "User not found"
@@ -336,7 +330,6 @@ export const getAvailableBalance = async (req, res) => {
     try {
       pendingAmount = await Withdrawal.getUserPendingAmount(userId);
     } catch (err) {
-      console.error('Error calculating pending withdrawals:', err);
       pendingAmount = user.pendingWithdrawals || 0;
     }
 
@@ -346,7 +339,7 @@ export const getAvailableBalance = async (req, res) => {
       try {
         await user.save();
       } catch (err) {
-        console.error('Error saving user pendingWithdrawals:', err);
+        // Silent error handling for pending withdrawals sync
       }
     }
 
@@ -354,7 +347,6 @@ export const getAvailableBalance = async (req, res) => {
     try {
       availableBalance = user.getAvailableBalance();
     } catch (err) {
-      console.error('Error calculating available balance:', err);
       availableBalance = user.withdrawableBalance - user.pendingWithdrawals;
     }
 
@@ -380,10 +372,6 @@ export const getAvailableBalance = async (req, res) => {
     ));
 
   } catch (error) {
-    console.error('Error fetching available balance:', error);
-    if (error && error.stack) {
-      console.error(error.stack);
-    }
     res.status(500).json(createErrorResponse(
       VALIDATION_ERRORS.INTERNAL_SERVER_ERROR,
       error?.message || "An error occurred while fetching available balance"
@@ -458,7 +446,6 @@ export const validateWithdrawalAmount = async (userId, amount) => {
     };
 
   } catch (error) {
-    console.error('Error validating withdrawal amount:', error);
     return {
       valid: false,
       error: {

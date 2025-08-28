@@ -14,14 +14,7 @@ import { createErrorResponse, VALIDATION_ERRORS } from '../utils/withdrawalValid
 export const globalErrorHandler = (err, req, res, next) => {
   // Log error for debugging (in development)
   if (process.env.NODE_ENV === 'development') {
-    console.error('🚨 Global Error Handler:', {
-      message: err.message,
-      stack: err.stack,
-      url: req.url,
-      method: req.method,
-      body: req.body,
-      user: req.user?.id
-    });
+    // Silent error logging in production
   }
 
   // Handle specific error types
@@ -198,28 +191,6 @@ export const securityHeaders = (req, res, next) => {
  * @param {Function} next - Express next function
  */
 export const requestLogger = (req, res, next) => {
-  if (process.env.NODE_ENV === 'development') {
-    const start = Date.now();
-    
-    res.on('finish', () => {
-      const duration = Date.now() - start;
-      const logData = {
-        method: req.method,
-        url: req.url,
-        status: res.statusCode,
-        duration: `${duration}ms`,
-        userAgent: req.get('User-Agent'),
-        ip: req.ip,
-        userId: req.user?.id
-      };
-      
-      // Only log withdrawal-related requests
-      if (req.url.includes('/withdrawal') || req.url.includes('/admin/withdrawal')) {
-        // Log withdrawal request data for debugging
-      }
-    });
-  }
-  
   next();
 };
 
@@ -278,8 +249,7 @@ export const sanitizeInput = (req, res, next) => {
         req.query = sanitizeObject(req.query);
       }
     } catch (err) {
-      // If sanitize fails, log and continue
-      console.error('SanitizeInput error:', err);
+      // If sanitize fails, continue silently
     }
 
   next();
@@ -309,8 +279,6 @@ export const corsErrorHandler = (err, req, res, next) => {
  */
 export const dbErrorHandler = (err, req, res, next) => {
   if (err.name === 'MongoError' || err.name === 'MongooseError') {
-    console.error('Database Error:', err.message);
-    
     return res.status(503).json(createErrorResponse(
       VALIDATION_ERRORS.INTERNAL_SERVER_ERROR,
       'Database service temporarily unavailable'

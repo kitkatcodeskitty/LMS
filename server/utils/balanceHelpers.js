@@ -159,19 +159,22 @@ export const updateUserEarningsFields = async (userId, affiliateAmount) => {
             sumAffiliate(startOfMonth)
         ]);
 
-        // Update user fields
-        user.dailyEarnings = todayEarnings;
-        user.weeklyEarnings = weeklyEarnings;
-        user.monthlyEarnings = monthlyEarnings;
-        user.lifetimeEarnings = user.affiliateEarnings || 0;
+        // Check if admin has recently updated earnings (within last 10 minutes)
+        const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+        const adminRecentlyUpdated = user.lastAdminUpdate && user.lastAdminUpdate > tenMinutesAgo;
+        
+        // Only update earnings fields if admin hasn't recently updated them
+        if (!adminRecentlyUpdated) {
+            user.dailyEarnings = todayEarnings;
+            user.weeklyEarnings = weeklyEarnings;
+            user.monthlyEarnings = monthlyEarnings;
+            user.lifetimeEarnings = user.affiliateEarnings || 0;
+        }
         
         // Only update currentBalance if it wasn't recently set by an admin
-        // Check if lastAdminUpdate exists and is recent (within last 10 minutes)
-        const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
-        if (!user.lastAdminUpdate || user.lastAdminUpdate < tenMinutesAgo) {
+        if (!adminRecentlyUpdated) {
             user.currentBalance = user.withdrawableBalance || 0;
         }
-        // If lastAdminUpdate is recent, preserve the admin-set currentBalance value
 
         await user.save();
     } catch (error) {
@@ -260,23 +263,8 @@ export const getUserEarningsData = async (userId) => {
             };
             if (toDate) query.createdAt.$lt = toDate;
 
-            const docs = await Purchase.find(query).select('affiliateAmount withdrawableAmount createdAt');
-            
-            // Additional validation to ensure we only count valid amounts
-            return docs.reduce((acc, p) => {
-                const affiliateAmount = Number(p.affiliateAmount) || 0;
-                const withdrawableAmount = Number(p.withdrawableAmount) || 0;
-                
-                // Only count positive amounts
-                if (affiliateAmount > 0) {
-                    acc.affiliate += affiliateAmount;
-                }
-                if (withdrawableAmount > 0) {
-                    acc.withdrawable += withdrawableAmount;
-                }
-                
-                return acc;
-            }, { affiliate: 0, withdrawable: 0 });
+            const docs = await Purchase.find(query).select('affiliateAmount');
+            return docs.reduce((acc, p) => acc + (Number(p.affiliateAmount) || 0), 0);
         };
 
         const [today, lastSevenDays, thisMonth] = await Promise.all([
@@ -285,22 +273,35 @@ export const getUserEarningsData = async (userId) => {
             sumAffiliate(startOfMonth)
         ]);
 
+        // Check if admin has recently updated earnings (within last 10 minutes)
+        const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+        const adminRecentlyUpdated = user.lastAdminUpdate && user.lastAdminUpdate > tenMinutesAgo;
+        
+        // If admin recently updated, prioritize admin-set values
+        // Otherwise, use calculated values from Purchase collection
+        const getEarningsValue = (adminValue, calculatedValue) => {
+            if (adminRecentlyUpdated && adminValue !== undefined && adminValue !== null) {
+                return adminValue;
+            }
+            return calculatedValue;
+        };
+        
         return {
             lifetime: {
-                affiliate: user.affiliateEarnings || 0,
+                affiliate: getEarningsValue(user.lifetimeEarnings, user.affiliateEarnings || 0),
                 withdrawable: user.withdrawableBalance || 0
             },
             today: {
-                affiliate: today.affiliate,
-                withdrawable: today.withdrawable
+                affiliate: getEarningsValue(user.dailyEarnings, today),
+                withdrawable: user.withdrawableBalance || 0
             },
             lastSevenDays: {
-                affiliate: lastSevenDays.affiliate,
-                withdrawable: lastSevenDays.withdrawable
+                affiliate: getEarningsValue(user.weeklyEarnings, lastSevenDays),
+                withdrawable: user.withdrawableBalance || 0
             },
             thisMonth: {
-                affiliate: thisMonth.affiliate,
-                withdrawable: thisMonth.withdrawable
+                affiliate: getEarningsValue(user.monthlyEarnings, thisMonth),
+                withdrawable: user.withdrawableBalance || 0
             },
             balance: {
                 withdrawableBalance: user.withdrawableBalance || 0,
@@ -331,8 +332,17 @@ export const syncAllUsersEarningsFields = async () => {
 
         for (const user of users) {
             try {
-                await updateUserEarningsFields(user._id, 0); // 0 means just recalculate existing data
-                results.updatedUsers++;
+                // Check if admin has recently updated this user (within last 10 minutes)
+                const now = new Date();
+                const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+                const adminRecentlyUpdated = user.lastAdminUpdate && user.lastAdminUpdate > tenMinutesAgo;
+                
+                if (!adminRecentlyUpdated) {
+                    await updateUserEarningsFields(user._id, 0); // 0 means just recalculate existing data
+                    results.updatedUsers++;
+                } else {
+                    results.updatedUsers++; // Count as updated since we're preserving admin values
+                }
             } catch (error) {
                 console.error(`Error updating earnings for user ${user._id}:`, error);
                 results.errors++;

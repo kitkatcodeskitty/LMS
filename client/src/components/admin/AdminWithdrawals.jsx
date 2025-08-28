@@ -7,6 +7,7 @@ import Badge from '../common/Badge';
 import WithdrawalDetailsModal from './WithdrawalDetailsModal';
 import ActionButtons from './ActionButtons';
 
+
 const AdminWithdrawals = () => {
   const { backendUrl, getToken, currency } = useContext(AppContext);
   const [withdrawals, setWithdrawals] = useState([]);
@@ -34,7 +35,6 @@ const AdminWithdrawals = () => {
     try {
       const token = getToken();
       if (!token) {
-        console.error('Authentication required. Please log in.');
         setFatalError('Authentication required. Please log in.');
         setLoading(false);
         return;
@@ -114,10 +114,6 @@ const AdminWithdrawals = () => {
         console.error(`HTTP ${response.status}: Failed to ${action} withdrawal`);
       }
     } catch (error) {
-      console.error(`Error ${action}ing withdrawal:`, error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
       let errorMessage = `Error ${action}ing withdrawal`;
       
       if (error.response?.status === 401 || error.response?.status === 403) {
@@ -140,8 +136,6 @@ const AdminWithdrawals = () => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
-      console.error(errorMessage);
     }
   };
 

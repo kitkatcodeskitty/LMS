@@ -290,14 +290,11 @@ export const updateKyc = async (req, res) => {
         );
       }
     } catch (notificationError) {
-      console.error('Notification creation failed:', notificationError);
       // Don't fail the entire update if notification fails
     }
 
     res.status(200).json({ success: true, kyc });
   } catch (error) {
-    console.error('KYC Update Error:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ success: false, message: error.message });
   }
 };

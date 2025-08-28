@@ -76,8 +76,6 @@ class MigrationRunner {
     const { name, up } = migrationModule;
     
     try {
-      console.log(`\n🔄 Running migration: ${name}`);
-      
       const result = await up();
       
       // Record successful migration
@@ -92,11 +90,8 @@ class MigrationRunner {
         { upsert: true }
       );
 
-      console.log(`✅ Migration ${name} completed successfully`);
       return { success: true, result };
     } catch (error) {
-      console.error(`❌ Migration ${name} failed:`, error);
-      
       // Record failed migration
       await Migration.findOneAndUpdate(
         { name },
@@ -120,22 +115,17 @@ class MigrationRunner {
     const { name, down } = migrationModule;
     
     if (!down) {
-      console.log(`⚠️  Migration ${name} has no rollback function`);
       return { success: false, message: 'No rollback function' };
     }
 
     try {
-      console.log(`\n🔄 Rolling back migration: ${name}`);
-      
       const result = await down();
       
       // Remove migration record
       await Migration.deleteOne({ name });
 
-      console.log(`✅ Migration ${name} rolled back successfully`);
       return { success: true, result };
     } catch (error) {
-      console.error(`❌ Rollback ${name} failed:`, error);
       throw error;
     }
   }
@@ -144,14 +134,9 @@ class MigrationRunner {
    * Run all pending migrations
    */
   async runPendingMigrations() {
-    console.log('🚀 Starting migration process...\n');
-
     try {
       const migrationFiles = await this.getMigrationFiles();
       const completedMigrations = await this.getCompletedMigrations();
-
-      console.log(`Found ${migrationFiles.length} migration files`);
-      console.log(`${completedMigrations.length} migrations already completed`);
 
       const pendingMigrations = migrationFiles.filter(file => {
         const migrationName = file.replace('.js', '');
@@ -159,12 +144,8 @@ class MigrationRunner {
       });
 
       if (pendingMigrations.length === 0) {
-        console.log('✅ No pending migrations to run');
         return { success: true, message: 'No pending migrations' };
       }
-
-      console.log(`\n📋 Pending migrations: ${pendingMigrations.length}`);
-      pendingMigrations.forEach(file => console.log(`  - ${file}`));
 
       const results = [];
 
@@ -174,15 +155,12 @@ class MigrationRunner {
           const result = await this.runMigration(migration);
           results.push({ migration: migration.name, ...result });
         } catch (error) {
-          console.error(`\n❌ Migration process stopped due to error in ${filename}`);
           throw error;
         }
       }
 
-      console.log('\n🎉 All migrations completed successfully!');
       return { success: true, results };
     } catch (error) {
-      console.error('\n💥 Migration process failed:', error);
       throw error;
     }
   }
@@ -191,14 +169,11 @@ class MigrationRunner {
    * Rollback the last migration
    */
   async rollbackLastMigration() {
-    console.log('🔄 Rolling back last migration...\n');
-
     try {
       const lastMigration = await Migration.findOne({ status: 'completed' })
         .sort({ executedAt: -1 });
 
       if (!lastMigration) {
-        console.log('ℹ️  No migrations to rollback');
         return { success: true, message: 'No migrations to rollback' };
       }
 
@@ -208,17 +183,14 @@ class MigrationRunner {
       );
 
       if (!filename) {
-        console.error(`❌ Migration file not found for: ${lastMigration.name}`);
         return { success: false, message: 'Migration file not found' };
       }
 
       const migration = await this.loadMigration(filename);
       const result = await this.rollbackMigration(migration);
 
-      console.log('\n✅ Rollback completed successfully!');
       return result;
     } catch (error) {
-      console.error('\n💥 Rollback failed:', error);
       throw error;
     }
   }
@@ -247,7 +219,6 @@ class MigrationRunner {
         migrations: status
       };
     } catch (error) {
-      console.error('Error getting migration status:', error);
       throw error;
     }
   }

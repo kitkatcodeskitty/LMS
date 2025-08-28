@@ -3,6 +3,12 @@ import { AppContext } from '../../context/AppContext';
 import axios from 'axios';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Badge from '../common/Badge';
+import { 
+  maskPhoneNumber, 
+  maskAccountNumber, 
+  maskName, 
+  maskBankName 
+} from '../../utils/dataMasking';
 
 const WithdrawalHistory = () => {
   const { backendUrl, getToken, currency } = useContext(AppContext);
@@ -247,9 +253,7 @@ const WithdrawalHistory = () => {
                       {withdrawal.processedAt && (
                         <p>Processed: {formatDate(withdrawal.processedAt)}</p>
                       )}
-                      {withdrawal.transactionReference && (
-                        <p>Reference: {withdrawal.transactionReference}</p>
-                      )}
+
                     </div>
                   </div>
                 </div>
@@ -259,15 +263,15 @@ const WithdrawalHistory = () => {
                   <div className="text-sm text-gray-600">
                     {withdrawal.method === 'mobile_banking' ? (
                       <div className="space-y-1">
-                        <p><span className="font-medium">Provider:</span> {withdrawal.paymentDetails?.provider}</p>
-                        <p><span className="font-medium">Mobile:</span> {withdrawal.paymentDetails?.mobileNumber}</p>
-                        <p><span className="font-medium">Name:</span> {withdrawal.paymentDetails?.accountHolderName}</p>
+                        <p><span className="font-medium">Provider:</span> {withdrawal.paymentDetails?.provider ? maskBankName(withdrawal.paymentDetails.provider) : '******'}</p>
+                        <p><span className="font-medium">Mobile:</span> {withdrawal.paymentDetails?.mobileNumber ? maskPhoneNumber(withdrawal.paymentDetails.mobileNumber) : '******'}</p>
+                        <p><span className="font-medium">Name:</span> {withdrawal.paymentDetails?.accountHolderName ? maskName(withdrawal.paymentDetails.accountHolderName) : '******'}</p>
                       </div>
                     ) : (
                       <div className="space-y-1">
-                        <p><span className="font-medium">Bank:</span> {withdrawal.paymentDetails?.bankName}</p>
-                        <p><span className="font-medium">Account:</span> {withdrawal.paymentDetails?.accountNumber}</p>
-                        <p><span className="font-medium">Name:</span> {withdrawal.paymentDetails?.accountName}</p>
+                        <p><span className="font-medium">Bank:</span> {withdrawal.paymentDetails?.bankName ? maskBankName(withdrawal.paymentDetails.bankName) : '******'}</p>
+                        <p><span className="font-medium">Account:</span> {withdrawal.paymentDetails?.accountNumber ? maskAccountNumber(withdrawal.paymentDetails.accountNumber) : '******'}</p>
+                        <p><span className="font-medium">Name:</span> {withdrawal.paymentDetails?.accountName ? maskName(withdrawal.paymentDetails.accountName) : '******'}</p>
                       </div>
                     )}
                   </div>

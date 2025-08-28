@@ -47,53 +47,53 @@ const StudentEnrollment = () => {
   const [deleteConfirmModal, setDeleteConfirmModal] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
 
-  useEffect(() => {
-    const fetchPurchasesWithUserData = async () => {
-      try {
-        const token = await getToken()
-        const { data } = await axios.get(`${backendUrl}/api/admin/enrolled-students`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (!data.success) {
-          console.error('Failed to fetch purchases')
+  // Fetch purchases with user data
+  const fetchPurchasesWithUserData = async () => {
+    try {
+      const token = await getToken()
+      const { data } = await axios.get(`${backendUrl}/api/admin/enrolled-students`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+              if (!data.success) {
           setLoading(false)
           return
         }
 
-        const studentsData = data.purchases // This is now grouped student data from backend
+      const studentsData = data.purchases // This is now grouped student data from backend
 
-        // Fetch KYC data for each student
-        const studentsWithKyc = await Promise.all(
-          studentsData.map(async (studentData) => {
-            try {
-              const kycRes = await axios.get(
-                `${backendUrl}/api/kyc/user/${studentData.userDetails._id}`,
-                {
-                  headers: { Authorization: `Bearer ${token}` },
-                }
-              )
-              if (kycRes.data.success) {
-                // Add KYC details to all purchases for this user
-                studentData.purchases = studentData.purchases.map(purchase => ({
-                  ...purchase,
-                  kycDetails: kycRes.data.kyc
-                }))
+      // Fetch KYC data for each student
+      const studentsWithKyc = await Promise.all(
+        studentsData.map(async (studentData) => {
+          try {
+            const kycRes = await axios.get(
+              `${backendUrl}/api/kyc/user/${studentData.userDetails._id}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
               }
-            } catch (kycError) {
-              // KYC data not found or error - that's okay
+            )
+            if (kycRes.data.success) {
+              // Add KYC details to all purchases for this user
+              studentData.purchases = studentData.purchases.map(purchase => ({
+                ...purchase,
+                kycDetails: kycRes.data.kyc
+              }))
             }
-            return studentData
-          })
-        )
+          } catch (kycError) {
+            // KYC data not found or error - that's okay
+          }
+          return studentData
+        })
+      )
 
-        setPurchases(studentsWithKyc)
-      } catch (error) {
-        console.error('Error fetching data')
+      setPurchases(studentsWithKyc)
+          } catch (error) {
+        // Error handling
       } finally {
         setLoading(false)
       }
-    }
+  }
 
+  useEffect(() => {
     fetchPurchasesWithUserData()
   }, [backendUrl, getToken])
 
@@ -236,18 +236,13 @@ const StudentEnrollment = () => {
         }
       )
 
-      if (data.success) {
-        console.log('KYC updated successfully')
-        setEditingKycUserId(null)
-        // Refresh the purchases data to show updated KYC
-        const token2 = await getToken()
-        const { data: purchasesRes } = await axios.get(`${backendUrl}/api/admin/enrolled-students`, {
-          headers: { Authorization: `Bearer ${token2}` }
-        })
-        if (purchasesRes.success) setPurchases(purchasesRes.purchases)
-      } else {
-        console.error(data.message || 'Failed to update KYC')
-      }
+              if (data.success) {
+          setEditingKycUserId(null)
+          // Refresh the purchases data to show updated KYC
+          await fetchPurchasesWithUserData()
+        } else {
+          // KYC update failed
+        }
     } catch (error) {
       console.error(error.response?.data?.message || error.message || 'Error updating KYC')
     } finally {
@@ -287,30 +282,31 @@ const StudentEnrollment = () => {
         }
       )
       
-             if (data.success) {
-        console.log('User updated successfully')
-        
-        // Update the local state with the new data
-        setPurchases((prev) =>
-          prev.map((purchase) =>
-            purchase.userDetails?._id === editingUserId
-              ? { 
-                  ...purchase, 
-                  userDetails: { 
-                    ...purchase.userDetails, 
-                    ...data.data 
-                  } 
-                }
-              : purchase
+                     if (data.success) {
+          // Update the local state with the new data
+          setPurchases((prev) =>
+            prev.map((purchase) =>
+              purchase.userDetails?._id === editingUserId
+                ? { 
+                    ...purchase, 
+                    userDetails: { 
+                      ...purchase.userDetails, 
+                      ...data.data 
+                    } 
+                  }
+                : purchase
+            )
           )
-        )
-        
-        setEditingUserId(null)
-        setCurrentEditingUser(null)
-        setShowPassword(false)
-      } else {
-        console.error(data.message || 'Failed to update user')
-      }
+          
+          // Sync earnings to ensure consistency
+          await syncAllEarnings()
+          
+          setEditingUserId(null)
+          setCurrentEditingUser(null)
+          setShowPassword(false)
+        } else {
+          // User update failed
+        }
          } catch (error) {
        console.error(error.response?.data?.message || error.message || 'Error updating user')
     }
@@ -323,8 +319,6 @@ const StudentEnrollment = () => {
     try {
       const token = await getToken()
       
-      console.info('Syncing earnings data... This may take a moment.')
-      
       const { data } = await axios.post(
         `${backendUrl}/api/admin/sync-earnings`,
         {},
@@ -334,14 +328,17 @@ const StudentEnrollment = () => {
       )
       
       if (data.success) {
-        console.log(`Earnings sync completed! Updated ${data.results.updatedUsers} users.`)
+        // Refresh the purchases data to show updated earnings
+        await fetchPurchasesWithUserData()
         
-
+        // Show success message
+        alert(`Earnings sync completed successfully!\nUpdated ${data.results.updatedUsers} users.`)
       } else {
-        console.error(data.message || 'Failed to sync earnings')
+        alert('Failed to sync earnings: ' + (data.message || 'Unknown error'))
       }
-         } catch (error) {
-       console.error(error.response?.data?.message || error.message || 'Error syncing earnings')
+    } catch (error) {
+      console.error(error.response?.data?.message || error.message || 'Error syncing earnings')
+      alert('Error syncing earnings: ' + (error.response?.data?.message || error.message || 'Unknown error'))
     }
   }
 
@@ -360,23 +357,20 @@ const StudentEnrollment = () => {
         }
       )
       
-      if (data.success) {
-        console.log('User deleted successfully:', data.deletedUser)
-        
-        // Remove user from local state
-        setPurchases(prev => prev.filter(purchase => purchase.userDetails._id !== userToDelete._id))
-        
-        // Close modal and reset state
-        setDeleteConfirmModal(false)
-        setUserToDelete(null)
-        setDeletingUserId(null)
-        
-        // Show success message
-        alert(`User ${data.deletedUser.name} deleted successfully!\n\nDeleted data:\n- ${data.deletedUser.stats.totalPurchases} purchases\n- ${data.deletedUser.stats.totalWithdrawals} withdrawals\n- ${data.deletedUser.stats.hasKyc ? 'KYC data' : 'No KYC data'}\n- Total spent: ${currency}${data.deletedUser.stats.totalSpent}`)
-      } else {
-        console.error(data.message || 'Failed to delete user')
-        alert(data.message || 'Failed to delete user')
-      }
+              if (data.success) {
+          // Remove user from local state
+          setPurchases(prev => prev.filter(purchase => purchase.userDetails._id !== userToDelete._id))
+          
+          // Close modal and reset state
+          setDeleteConfirmModal(false)
+          setUserToDelete(null)
+          setDeletingUserId(null)
+          
+          // Show success message
+          alert(`User ${data.deletedUser.name} deleted successfully!\n\nDeleted data:\n- ${data.deletedUser.stats.totalPurchases} purchases\n- ${data.deletedUser.stats.totalWithdrawals} withdrawals\n- ${data.deletedUser.stats.hasKyc ? 'KYC data' : 'No KYC data'}\n- Total spent: ${currency}${data.deletedUser.stats.totalSpent}`)
+        } else {
+          alert(data.message || 'Failed to delete user')
+        }
     } catch (error) {
       console.error('Error deleting user:', error)
       
@@ -450,6 +444,8 @@ const StudentEnrollment = () => {
             >
               🔄 Sync Earnings
             </button>
+
+
 
             {/* Sort */}
             <select

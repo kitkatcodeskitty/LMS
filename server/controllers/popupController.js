@@ -59,7 +59,6 @@ export const createPopup = async (req, res) => {
       popup
     });
   } catch (error) {
-    console.error('Error creating popup:', error);
     res.status(500).json({
       success: false,
       message: 'Error creating popup',
@@ -80,7 +79,6 @@ export const getAllPopups = async (req, res) => {
       popups
     });
   } catch (error) {
-    console.error('Error fetching popups:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching popups',
@@ -115,7 +113,6 @@ export const getActivePopup = async (req, res) => {
       popup
     });
   } catch (error) {
-    console.error('Error fetching active popup:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching active popup',
@@ -156,7 +153,6 @@ export const updatePopup = async (req, res) => {
       popup
     });
   } catch (error) {
-    console.error('Error updating popup:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating popup',
@@ -184,7 +180,6 @@ export const deletePopup = async (req, res) => {
       message: 'Popup deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting popup:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting popup',
@@ -216,7 +211,6 @@ export const togglePopupStatus = async (req, res) => {
       popup
     });
   } catch (error) {
-    console.error('Error toggling popup status:', error);
     res.status(500).json({
       success: false,
       message: 'Error toggling popup status',

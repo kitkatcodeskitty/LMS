@@ -260,7 +260,7 @@ export const markSuspiciousActivity = (userId, reason = 'Unknown') => {
   rateLimitStore.set(userKey, userActivity);
   
   // Log suspicious activity
-  console.warn(`🚨 Suspicious Activity - User: ${userId}, Reason: ${reason}, Count: ${userActivity.suspiciousActivity}`);
+      // Log suspicious activity silently
 };
 
 /**

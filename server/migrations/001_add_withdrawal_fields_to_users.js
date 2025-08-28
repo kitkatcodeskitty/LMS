@@ -6,8 +6,6 @@ import User from "../models/User.js";
 const migrationName = "001_add_withdrawal_fields_to_users";
 
 export const up = async () => {
-  console.log(`Running migration: ${migrationName}`);
-  
   try {
     // Update all users who don't have the new withdrawal fields
     const result = await User.updateMany(
@@ -26,9 +24,6 @@ export const up = async () => {
         }
       }
     );
-
-    console.log(`Migration ${migrationName} completed successfully.`);
-    console.log(`Updated ${result.modifiedCount} user documents.`);
     
     return {
       success: true,
@@ -36,14 +31,11 @@ export const up = async () => {
       message: `Added withdrawal fields to ${result.modifiedCount} users`
     };
   } catch (error) {
-    console.error(`Migration ${migrationName} failed:`, error);
     throw error;
   }
 };
 
 export const down = async () => {
-  console.log(`Rolling back migration: ${migrationName}`);
-  
   try {
     // Remove the withdrawal fields from all users
     const result = await User.updateMany(
@@ -56,9 +48,6 @@ export const down = async () => {
         }
       }
     );
-
-    console.log(`Rollback ${migrationName} completed successfully.`);
-    console.log(`Removed withdrawal fields from ${result.modifiedCount} user documents.`);
     
     return {
       success: true,
@@ -66,7 +55,6 @@ export const down = async () => {
       message: `Removed withdrawal fields from ${result.modifiedCount} users`
     };
   } catch (error) {
-    console.error(`Rollback ${migrationName} failed:`, error);
     throw error;
   }
 };

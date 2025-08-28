@@ -23,7 +23,6 @@ export const createNotification = async (userId, title, message, type = "info", 
 
     return notification;
   } catch (error) {
-    console.error("Error creating notification:", error);
     throw error;
   }
 };

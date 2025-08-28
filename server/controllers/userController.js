@@ -259,7 +259,6 @@ export const updateUser = async (req, res) => {
 
     res.json({ success: true, data: updatedUser });
   } catch (error) {
-    console.error('Error updating user:', error);
     res.status(500).json({ success: false, message: "Server error", details: error.message });
   }
 };
@@ -325,7 +324,6 @@ export const updateUserProfile = async (req, res) => {
 
     res.json({ success: true, data: updatedUser, message: "Profile updated successfully" });
   } catch (error) {
-    console.error('Error updating user profile:', error);
     res.status(500).json({ success: false, message: "Server error", details: error.message });
   }
 };
@@ -361,7 +359,6 @@ export const updateUserPassword = async (req, res) => {
 
     res.json({ success: true, message: "Password updated successfully" });
   } catch (error) {
-    console.error('Error updating password:', error);
     res.status(500).json({ success: false, message: "Server error", details: error.message });
   }
 };
@@ -420,7 +417,6 @@ export const getAllUsers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching users:', error);
     res.status(500).json({ success: false, message: "Server error", details: error.message });
   }
 };
@@ -453,7 +449,6 @@ export const getUserById = async (req, res) => {
 
     res.json({ success: true, data: userData });
   } catch (error) {
-    console.error('Error fetching user by ID:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
