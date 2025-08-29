@@ -150,153 +150,127 @@ const Dashboard = ({
       </div>
 
       {/* Main Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        {/* Today's Earnings */}
+      <div className="grid grid-cols-1 gap-3 sm:gap-4">
+        {/* Consolidated Earnings Card */}
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 sm:p-6 text-white relative overflow-hidden">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div className="bg-white/20 rounded-lg p-2">
-              <FaCalendarAlt className="w-4 h-4 sm:w-5 sm:h-5" />
+              <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Live</span>
           </div>
-          <div>
-            <h3 className="text-sm sm:text-lg font-semibold mb-1">Today's Earnings</h3>
-            <div className="text-xl sm:text-2xl font-bold mb-1">
-              <AnimatedNumber 
-                value={getEarningsValue('today', getEarningsValue('dailyEarnings', 0))} 
-                currency={currency} 
-                duration={2200} 
-                delay={300} 
-              />
+          
+          {/* Mobile: Stack vertically, Desktop: Grid layout */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {/* Today's Earnings */}
+            <div className="text-center">
+              <h3 className="text-sm sm:text-base font-semibold mb-2 text-white/90">Today</h3>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
+                <AnimatedNumber 
+                  value={getEarningsValue('today', getEarningsValue('dailyEarnings', 0))} 
+                  currency={currency} 
+                  duration={2200} 
+                  delay={300} 
+                />
+              </div>
+              <div className="text-xs sm:text-sm text-white/70">Daily Performance</div>
             </div>
-            <div className="text-xs text-white/80">Daily Performance</div>
+
+            {/* 7 Days Earnings */}
+            <div className="text-center">
+              <h3 className="text-sm sm:text-base font-semibold mb-2 text-white/90">7 Days</h3>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
+                <AnimatedNumber 
+                  value={getEarningsValue('lastSevenDays', getEarningsValue('weeklyEarnings', 0))} 
+                  currency={currency} 
+                  duration={2600} 
+                  delay={600} 
+                />
+              </div>
+              <div className="text-xs sm:text-sm text-white/70">Weekly Growth</div>
+            </div>
+
+            {/* 30 Days Earnings */}
+            <div className="text-center">
+              <h3 className="text-sm sm:text-base font-semibold mb-2 text-white/90">30 Days</h3>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
+                <AnimatedNumber 
+                  value={getEarningsValue('thisMonth', getEarningsValue('monthlyEarnings', 0))} 
+                  currency={currency} 
+                  duration={2800} 
+                  delay={700} 
+                />
+              </div>
+              <div className="text-xs sm:text-sm text-white/70">Monthly Growth</div>
+            </div>
+
+            {/* Current Balance */}
+            <div className="text-center">
+              <h3 className="text-sm sm:text-base font-semibold mb-2 text-white/90">Balance</h3>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
+                <AnimatedNumber 
+                  value={getEarningsValue('availableBalance', getEarningsValue('withdrawableBalance', 0))} 
+                  currency={currency} 
+                  duration={2400} 
+                  delay={400} 
+                />
+              </div>
+              <div className="text-xs sm:text-sm text-white/70">Available Now</div>
+            </div>
           </div>
+          
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
             <div className="h-full bg-white/40 w-3/4"></div>
           </div>
         </div>
 
-        {/* Available Balance */}
-        <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl p-4 sm:p-6 text-white relative overflow-hidden">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <div className="bg-white/20 rounded-lg p-2">
-              <FaWallet className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <button
-              onClick={() => setActiveTab('withdrawal')}
-              className="text-xs bg-white/20 px-2 py-1 rounded-full hover:bg-white/30 transition-colors"
-            >
-              Withdraw
-            </button>
-          </div>
-          <div>
-            <h3 className="text-sm sm:text-lg font-semibold mb-1">Available Balance</h3>
-            <div className="text-xl sm:text-2xl font-bold mb-1">
-              <AnimatedNumber 
-                value={getEarningsValue('availableBalance', getEarningsValue('withdrawableBalance', 0))} 
-                currency={currency} 
-                duration={2400} 
-                delay={400} 
-              />
-            </div>
-            <div className="text-xs text-white/80">Ready to Withdraw</div>
-          </div>
-          <div className="text-xs text-white/80 mt-2">+ Available Now</div>
-        </div>
-
-        {/* Total Referrals */}
-        <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 sm:p-6 text-white relative overflow-hidden sm:col-span-2 lg:col-span-1">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <div className="bg-white/20 rounded-lg p-2">
-              <FaUsers className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <button className="text-xs bg-white/20 px-2 py-1 rounded-full hover:bg-white/30 transition-colors">
-              View All
-            </button>
-          </div>
-          <div>
-            <h3 className="text-sm sm:text-lg font-semibold mb-1">Total Referrals</h3>
-            <div className="text-xl sm:text-2xl font-bold mb-1">
-              <AnimatedNumber 
-                value={referralData.length} 
-                duration={2000} 
-                delay={500} 
-              />
-            </div>
-            <div className="text-xs text-white/80">Active Network</div>
-          </div>
-          <div className="text-xs text-white/80 mt-2">Growing</div>
-        </div>
-      </div>
-
-      {/* Earnings Overview */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
-        <div className="flex items-center mb-4 sm:mb-6">
-          <div className="bg-blue-100 rounded-lg p-2 mr-3">
-            <FaChartBar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-          </div>
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800">Earnings Overview</h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {/* Last Week */}
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-3 sm:p-4 text-white">
-            <div className="flex items-center justify-between mb-2">
+        {/* Additional Stats Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {/* Total Referrals */}
+          <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 sm:p-6 text-white relative overflow-hidden">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="bg-white/20 rounded-lg p-2">
-                <FaCalendarAlt className="w-4 h-4 text-white" />
+                <FaUsers className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <span className="text-xs text-white/80 font-medium">7 Days</span>
+              <button className="text-xs bg-white/20 px-2 py-1 rounded-full hover:bg-white/30 transition-colors">
+                View All
+              </button>
             </div>
-            <div className="text-sm text-white/80 mb-1">Last Week</div>
-            <div className="text-lg sm:text-xl font-bold text-white">
-              <AnimatedNumber 
-                value={getEarningsValue('lastSevenDays', getEarningsValue('weeklyEarnings', 0))} 
-                currency={currency} 
-                duration={2600} 
-                delay={600} 
-              />
+            <div>
+              <h3 className="text-sm sm:text-lg font-semibold mb-1">Total Referrals</h3>
+              <div className="text-xl sm:text-2xl font-bold mb-1">
+                <AnimatedNumber 
+                  value={referralData.length} 
+                  duration={2000} 
+                  delay={500} 
+                />
+              </div>
+              <div className="text-xs text-white/80">Active Network</div>
             </div>
-            <div className="text-xs text-white/70">Weekly performance</div>
+            <div className="text-xs text-white/80 mt-2">Growing</div>
           </div>
 
-          {/* This Month */}
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-3 sm:p-4 text-white">
-            <div className="flex items-center justify-between mb-2">
+          {/* Lifetime Earnings */}
+          <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl p-4 sm:p-6 text-white relative overflow-hidden">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="bg-white/20 rounded-lg p-2">
-                <FaChartLine className="w-4 h-4 text-white" />
+                <FaTrophy className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <span className="text-xs text-white/80 font-medium">30 Days</span>
+              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Total</span>
             </div>
-            <div className="text-sm text-white/80 mb-1">This Month</div>
-            <div className="text-lg sm:text-xl font-bold text-white">
-              <AnimatedNumber 
-                value={getEarningsValue('thisMonth', getEarningsValue('monthlyEarnings', 0))} 
-                currency={currency} 
-                duration={2800} 
-                delay={700} 
-              />
-            </div>
-            <div className="text-xs text-white/70">Monthly growth</div>
-          </div>
-
-          {/* All Time */}
-          <div className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl p-3 sm:p-4 text-white sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center justify-between mb-2">
-              <div className="bg-white/20 rounded-lg p-2">
-                <FaTrophy className="w-4 h-4 text-white" />
+            <div>
+              <h3 className="text-sm sm:text-lg font-semibold mb-1">Lifetime Earnings</h3>
+              <div className="text-xl sm:text-2xl font-bold mb-1">
+                <AnimatedNumber 
+                  value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))} 
+                  currency={currency} 
+                  duration={3000} 
+                  delay={800} 
+                />
               </div>
-              <span className="text-xs text-white/80 font-medium">Lifetime</span>
+              <div className="text-xs text-white/80">All Time Achievement</div>
             </div>
-            <div className="text-sm text-white/80 mb-1">All Time</div>
-            <div className="text-lg sm:text-xl font-bold text-white">
-              <AnimatedNumber 
-                value={getEarningsValue('lifetime', getEarningsValue('affiliateEarnings', 0))} 
-                currency={currency} 
-                duration={3000} 
-                delay={800} 
-              />
-            </div>
-            <div className="text-xs text-white/70">Total achievement</div>
+            <div className="text-xs text-white/80 mt-2">Milestone</div>
           </div>
         </div>
       </div>

@@ -165,34 +165,93 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
         </div>
 
                  {/* Mobile Top 3 */}
-         <div className="lg:hidden space-y-3 px-2">
-           {top3.map((user, index) => (
-             <div key={user._id} className={`p-4 rounded-xl ${getCardStyle(user, index)} border-2`}>
-                               <div className="flex items-start space-x-3">
-                  <div className="relative flex-shrink-0">
-                    <div className="absolute -top-1 -right-1 text-lg">{getRankIcon(index)}</div>
+        <div className="lg:hidden">
+          <div className="relative flex items-end justify-center space-x-8 px-4">
+            {/* 2nd Place - Left */}
+            {top3[1] && (
+              <div className="flex flex-col items-center">
+                <div className="relative mb-3">
+                  <img
+                    src={getProfileImage(top3[1])}
+                    alt={`${top3[1].firstName} ${top3[1].lastName}`}
+                    className="w-16 h-16 rounded-full object-cover border-3 border-gray-300 shadow-lg"
+                  />
+                  <div className="absolute -top-2 -right-2 text-xl">
+                    {getRankIcon(1)}
                   </div>
-                 <img
-                   src={getProfileImage(user)}
-                   alt={`${user.firstName} ${user.lastName}`}
-                   className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg flex-shrink-0"
-                 />
-                 <div className="flex-1 min-w-0">
-                   <div className="space-y-1">
-                                           <p className="font-bold text-gray-900 text-sm flex items-center truncate">
-                        {user.firstName} {user.lastName}
-                        {user._id === userData._id && (
-                          <span className="ml-2 bg-rose-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">YOU</span>
-                        )}
-                      </p>
-                      <p className="text-xs text-gray-400">Champion #{index + 1}</p>
-                      <p className="font-bold text-green-600 text-lg">{currency}{Math.round(user.affiliateEarnings || 0)}</p>
-                   </div>
-                 </div>
-               </div>
-             </div>
-           ))}
-         </div>
+                  {top3[1]._id === userData._id && (
+                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-rose-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">YOU</span>
+                    </div>
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-gray-900 text-sm">#{2}</p>
+                  <p className="text-xs text-gray-600 truncate max-w-16">
+                    {top3[1].firstName} {top3[1].lastName}
+                  </p>
+                  <p className="font-bold text-green-600 text-sm">{currency}{Math.round(top3[1].affiliateEarnings || 0)}</p>
+                </div>
+              </div>
+            )}
+
+            {/* 1st Place - Center (Higher) */}
+            {top3[0] && (
+              <div className="flex flex-col items-center transform -translate-y-4">
+                <div className="relative mb-3">
+                  <img
+                    src={getProfileImage(top3[0])}
+                    alt={`${top3[0].firstName} ${top3[0].lastName}`}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-yellow-400 shadow-xl"
+                  />
+                  <div className="absolute -top-3 -right-3 text-2xl">
+                    {getRankIcon(0)}
+                  </div>
+                  {top3[0]._id === userData._id && (
+                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-rose-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">YOU</span>
+                    </div>
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-gray-900 text-base">#{1}</p>
+                  <p className="text-sm text-gray-600 truncate max-w-20">
+                    {top3[0].firstName} {top3[0].lastName}
+                  </p>
+                  <p className="font-bold text-green-600 text-base">{currency}{Math.round(top3[0].affiliateEarnings || 0)}</p>
+                </div>
+              </div>
+            )}
+
+            {/* 3rd Place - Right */}
+            {top3[2] && (
+              <div className="flex flex-col items-center">
+                <div className="relative mb-3">
+                  <img
+                    src={getProfileImage(top3[2])}
+                    alt={`${top3[2].firstName} ${top3[2].lastName}`}
+                    className="w-16 h-16 rounded-full object-cover border-3 border-orange-300 shadow-lg"
+                  />
+                  <div className="absolute -top-2 -right-2 text-xl">
+                    {getRankIcon(2)}
+                  </div>
+                  {top3[2]._id === userData._id && (
+                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-rose-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">YOU</span>
+                    </div>
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-gray-900 text-sm">#{3}</p>
+                  <p className="text-xs text-gray-600 truncate max-w-16">
+                    {top3[2].firstName} {top3[2].lastName}
+                  </p>
+                  <p className="font-bold text-green-600 text-sm">{currency}{Math.round(top3[2].affiliateEarnings || 0)}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Top 10 Leaderboard */}
