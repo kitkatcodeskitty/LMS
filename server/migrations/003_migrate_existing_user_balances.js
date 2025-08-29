@@ -34,8 +34,8 @@ export const up = async () => {
         await User.findByIdAndUpdate(user._id, {
           $set: {
             withdrawableBalance: withdrawableAmount,
-            totalWithdrawn: 0, // Ensure this is set
-            pendingWithdrawals: 0 // Ensure this is set
+            totalWithdrawn: 0, 
+            pendingWithdrawals: 0 
           }
         });
 
