@@ -12,7 +12,7 @@ import {
   FaPlus
 } from 'react-icons/fa';
 
-const Withdrawal = () => {
+const Withdrawal = ({ setActiveTab }) => {
   const [activeSection, setActiveSection] = useState('request'); // 'request' or 'history'
   const { userData, currency } = useContext(AppContext);
 
@@ -75,10 +75,15 @@ const Withdrawal = () => {
           <div className="flex bg-gradient-to-r from-gray-50 to-rose-50 p-1">
             <button
               onClick={() => setActiveSection('request')}
+              disabled={userData.kycStatus !== 'verified'}
               className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
                 activeSection === 'request'
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg transform scale-105'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-white/60'
+                  ? userData.kycStatus === 'verified'
+                    ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg transform scale-105'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : userData.kycStatus === 'verified'
+                    ? 'text-gray-600 hover:text-gray-800 hover:bg-white/60'
+                    : 'text-gray-400 cursor-not-allowed'
               }`}
             >
               <div className="flex items-center justify-center space-x-2">
@@ -105,21 +110,57 @@ const Withdrawal = () => {
           <div className="p-6">
             {activeSection === 'request' ? (
               <div>
-                <div className="mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center">
-                    <FaPlus className="w-5 h-5 text-rose-500 mr-2" />
-                    Request New Withdrawal
-                  </h2>
-                  <p className="text-gray-600">Choose your preferred withdrawal method and enter the required details</p>
-                </div>
-                
-                <WithdrawalRequest
-                  inline={true}
-                  onClose={() => setActiveSection('history')}
-                  onSuccess={() => {
-                    setActiveSection('history');
-                  }}
-                />
+                {userData.kycStatus !== 'verified' ? (
+                  <div className="text-center py-12">
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-8 max-w-md mx-auto">
+                      <div className="text-6xl mb-4">
+                        <FaWallet className="w-24 h-24 mx-auto text-yellow-500" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-3">KYC Verification Required</h3>
+                      <p className="text-gray-600 mb-6">
+                        You need to complete your KYC (Know Your Customer) verification before you can make withdrawals.
+                      </p>
+                      <div className="space-y-3">
+                        <div className="bg-white rounded-lg p-3 border border-yellow-200">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-700">KYC Status:</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              userData.kycStatus === 'pending' 
+                                ? 'bg-yellow-100 text-yellow-700' 
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {userData.kycStatus === 'pending' ? 'Pending Review' : 'Not Submitted'}
+                            </span>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => setActiveTab('kyc')}
+                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                        >
+                          Complete KYC Verification
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-6">
+                      <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center">
+                        <FaPlus className="w-5 h-5 text-rose-500 mr-2" />
+                        Request New Withdrawal
+                      </h2>
+                      <p className="text-gray-600">Choose your preferred withdrawal method and enter the required details</p>
+                    </div>
+                    
+                    <WithdrawalRequest
+                      inline={true}
+                      onClose={() => setActiveSection('history')}
+                      onSuccess={() => {
+                        setActiveSection('history');
+                      }}
+                    />
+                  </>
+                )}
               </div>
             ) : (
               <div>
