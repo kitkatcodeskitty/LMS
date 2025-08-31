@@ -241,19 +241,6 @@ const AddPackage = () => {
         {/* Package Type Selection */}
         <div className='flex flex-col gap-1'>
           <p>Package Type</p>
-          <div className="mb-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs text-blue-700 mb-2">
-              💡 Select a package type to automatically fill the price and description. You can still edit these values.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-              {packageTypeOptions.map((option) => (
-                <div key={option.value} className="flex items-center justify-between p-2 bg-white rounded border">
-                  <span className="font-medium">{option.label}</span>
-                  <span className="text-blue-600">{currency || 'Rs'} {getPackageDefaultPrice(option.value).toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          </div>
           <select
             value={packageType}
             onChange={(e) => setPackageType(e.target.value)}
@@ -284,58 +271,23 @@ const AddPackage = () => {
               ).join(', ')}
             </p>
           )}
-          {/* Auto-fill indicator */}
-          {packageType && (
-            <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
-              <p className="text-xs text-green-700">
-                ✅ Auto-filled: {getPackageDefaultDescription(packageType)}
-              </p>
-              <div className="mt-2 text-xs text-green-600">
-                <p>💰 Price: {currency || 'Rs'} {getPackageDefaultPrice(packageType).toLocaleString()}</p>
-                <p>📚 Course Limit: {getCourseLimitByPackageType(packageType)} course(s)</p>
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* Course Limit (Auto-filled) */}
         <div className='flex flex-col gap-1'>
           <p>Course Limit</p>
-          <div className="flex items-center gap-2">
-            <input
-              value={getCourseLimitByPackageType(packageType)}
-              type='number'
-              readOnly
-              className='outline-none md:py-2.5 py-2 w-32 px-3 rounded border border-gray-300 bg-gray-50 cursor-not-allowed'
-            />
-            <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded border">
-              Auto-filled from package type
-            </span>
-          </div>
+          <input
+            value={getCourseLimitByPackageType(packageType)}
+            type='number'
+            readOnly
+            className='outline-none md:py-2.5 py-2 w-32 px-3 rounded border border-gray-300 bg-gray-50 cursor-not-allowed'
+          />
         </div>
 
-                 {/* Package Description (Quill editor) */}
-         <div className='flex flex-col gap-1'>
-           <p>Package Description</p>
-           {packageType && (
-             <div className="mb-2 p-3 bg-green-50 rounded border border-green-200">
-               <p className="text-xs text-green-700 mb-2">
-                 💡 Auto-filled description from {packageType} package. You can edit this content below.
-               </p>
-               <div className="text-xs text-green-600">
-                 <p><strong>Preview of auto-filled content:</strong></p>
-                 <div className="mt-2 p-2 bg-white rounded border text-left max-h-32 overflow-y-auto">
-                   <div dangerouslySetInnerHTML={{ 
-                     __html: getPackageDefaultDescription(packageType).substring(0, 300) + '...' 
-                   }} />
-                 </div>
-                 <p className="mt-2 text-xs">
-                   💡 <strong>Tip:</strong> The description supports HTML formatting including headings, lists, bold text, and emojis. 
-                   You can customize this content to match your specific course offering.
-                 </p>
-               </div>
-             </div>
-           )}
+        {/* Package Description (Quill editor) */}
+        <div className='flex flex-col gap-1'>
+          <p>Package Description</p>
           <div ref={editorRef}></div>
         </div>
 
@@ -343,21 +295,14 @@ const AddPackage = () => {
         <div className='flex items-center justify-between flex-wrap'>
           <div className='flex flex-col gap-1'>
                             <p>Package Price ({currency || 'Rs'})</p>
-            <div className="flex items-center gap-2">
-              <input
-                onChange={(e) => setCoursePrice(e.target.value)}
-                value={coursePrice}
-                type='number'
-                placeholder='0'
-                className='outline-none md:py-2.5 py-2 w-32 px-3 rounded border border-gray-500'
-                required
-              />
-              {packageType && (
-                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded border">
-                  Default: {currency || 'Rs'} {getPackageDefaultPrice(packageType).toLocaleString()}
-                </span>
-              )}
-            </div>
+            <input
+              onChange={(e) => setCoursePrice(e.target.value)}
+              value={coursePrice}
+              type='number'
+              placeholder='0'
+              className='outline-none md:py-2.5 py-2 w-32 px-3 rounded border border-gray-500'
+              required
+            />
           </div>
 
           <div className='flex md:flex-row flex-col items-center gap-3'>
