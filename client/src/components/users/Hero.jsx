@@ -96,87 +96,7 @@ const Hero = () => {
   }
 
   return (
-    <>
-      <style>
-        {`
-          .hero-gradient {
-            background: linear-gradient(135deg, #fef2f2 0%, #f3f4f6 50%, #eff6ff 100%);
-          }
-          
-          .hero-button {
-            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
-            transition: all 0.3s ease;
-          }
-          
-          .hero-button:hover {
-            background: linear-gradient(135deg, #db2777 0%, #9333ea 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.3);
-          }
-
-          .image-container {
-            position: relative;
-            overflow: hidden;
-          }
-
-          .hero-image {
-            transition: all 0.8s ease-in-out;
-            opacity: 1;
-            filter: brightness(1) contrast(1);
-          }
-
-          .carousel-container {
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-          }
-
-          .carousel-wrapper {
-            display: flex;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            width: ${heroSlides.length * 100}%;
-          }
-
-          .carousel-slide {
-            width: ${100 / heroSlides.length}%;
-            flex-shrink: 0;
-          }
-
-          .carousel-nav-button {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-          }
-
-          .carousel-nav-button:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: scale(1.1);
-          }
-
-          .carousel-nav-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-          }
-
-          .carousel-indicator {
-            transition: all 0.3s ease;
-            cursor: pointer;
-          }
-
-          .carousel-indicator.active {
-            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
-          }
-
-          .slide-content {
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-          }
-        `}
-      </style>
-      
-      <div className='w-full hero-gradient py-16 relative overflow-hidden'>
+    <div className='w-full py-16 relative overflow-hidden bg-gradient-to-br from-red-50 via-gray-100 to-blue-50'>
         {/* Background decorative elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-[300px] h-[300px] bg-gradient-to-br from-rose-200 to-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-15"></div>
@@ -187,7 +107,7 @@ const Hero = () => {
         <button 
           onClick={prevSlide}
           disabled={isTransitioning}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 carousel-nav-button p-3 rounded-full shadow-lg"
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/90 backdrop-blur-md p-3 rounded-full shadow-lg transition-all duration-300 hover:bg-white hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -197,7 +117,7 @@ const Hero = () => {
         <button 
           onClick={nextSlide}
           disabled={isTransitioning}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 carousel-nav-button p-3 rounded-full shadow-lg"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/90 backdrop-blur-md p-3 rounded-full shadow-lg transition-all duration-300 hover:bg-white hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -205,17 +125,20 @@ const Hero = () => {
         </button>
 
         {/* Carousel Container */}
-        <div className="carousel-container relative z-10">
+        <div className="relative z-10 overflow-hidden w-full">
           <div 
             ref={carouselRef}
-            className="carousel-wrapper"
-            style={{ transform: `translateX(-${currentSlide * (100 / heroSlides.length)}%)` }}
+            className="flex transition-transform duration-500 ease-out"
+            style={{ 
+              width: `${heroSlides.length * 100}%`,
+              transform: `translateX(-${currentSlide * (100 / heroSlides.length)}%)` 
+            }}
           >
             {heroSlides.map((slide, index) => (
-              <div key={slide.id} className="carousel-slide">
+              <div key={slide.id} style={{ width: `${100 / heroSlides.length}%` }} className="flex-shrink-0">
                 <div className='max-w-7xl mx-auto px-4'>
                   {/* Mobile Layout: Heading -> Image -> Description -> Button */}
-                  <div className='lg:hidden space-y-8 slide-content'>
+                  <div className='lg:hidden space-y-8 opacity-100 transform translate-y-0 transition-opacity duration-600 transition-transform duration-600'>
                     {/* Heading - Center Aligned with Inverted Pyramid Structure */}
                     <div className='text-center space-y-4'>
                       <h1 className='text-3xl font-bold text-gray-900 leading-tight'>
@@ -237,13 +160,13 @@ const Hero = () => {
 
                     {/* Image - Mobile First */}
                     <div className='flex justify-center'>
-                      <div className='relative image-container'>
+                      <div className='relative overflow-hidden'>
                         <div className='w-72 h-80 rounded-2xl overflow-hidden shadow-2xl relative'>
                           {/* Main Image */}
                           <img 
                             src={slide.image}
                             alt="Student learning and improving skills"
-                            className="hero-image w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-all duration-800 ease-in-out opacity-100"
                           />
                           
                           {/* Gradient overlay for better text contrast */}
@@ -274,7 +197,7 @@ const Hero = () => {
 
                     {/* Button - Center Aligned */}
                     <div className='flex justify-center'>
-                      <button onClick={handleGetStarted} className='hero-button text-white px-8 py-4 rounded-lg text-lg font-semibold flex items-center gap-3 shadow-lg'>
+                                              <button onClick={handleGetStarted} className='bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold flex items-center gap-3 shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl'>
                         {slide.buttonText}
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -284,7 +207,7 @@ const Hero = () => {
                   </div>
 
                   {/* Desktop Layout: Left Text, Right Image */}
-                  <div className='hidden lg:flex flex-row items-center justify-between gap-12 slide-content'>
+                  <div className='hidden lg:flex flex-row items-center justify-between gap-12 opacity-100 transform translate-y-0 transition-opacity duration-600 transition-transform duration-600'>
                     
                     {/* Left Side - Text Content */}
                     <div className='flex-1 text-left space-y-8 z-10'>
@@ -311,7 +234,7 @@ const Hero = () => {
                       </p>
 
                       <div className='space-y-6'>
-                        <button onClick={handleGetStarted} className='hero-button text-white px-8 py-4 rounded-lg text-lg font-semibold flex items-center gap-3 shadow-lg'>
+                        <button onClick={handleGetStarted} className='bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold flex items-center gap-3 shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl'>
                           {slide.buttonText}
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -321,14 +244,14 @@ const Hero = () => {
                     </div>
 
                     {/* Right Side - Hero Image */}
-                    <div className='flex-1 flex justify-center lg:justify-end'>
-                      <div className='relative image-container'>
+                                          <div className='flex-1 flex justify-center lg:justify-end'>
+                      <div className='relative overflow-hidden'>
                         <div className='w-80 h-96 lg:w-96 lg:h-[480px] rounded-2xl overflow-hidden shadow-2xl relative'>
                           {/* Main Image */}
                           <img 
                             src={slide.image}
                             alt="Student learning and improving skills"
-                            className="hero-image w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-all duration-800 ease-in-out opacity-100"
                           />
                           
                           {/* Gradient overlay for better text contrast */}
@@ -363,9 +286,9 @@ const Hero = () => {
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`carousel-indicator w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
                   index === currentSlide 
-                    ? 'active scale-125' 
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 scale-125' 
                     : 'bg-white/50 hover:bg-white/75'
                 }`}
               />
@@ -373,7 +296,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-    </>
   )
 }
 

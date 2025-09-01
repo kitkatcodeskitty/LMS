@@ -15,7 +15,7 @@ const Footer = ({ variant = 'full' }) => {
               <img className='hidden md:block w-16 h-auto hover:scale-105 transition-transform duration-300' src={assets.logo} alt='logo'/>
               <div className='hidden md:block h-6 w-px bg-gray-300'></div>
               <p className='text-center text-sm text-gray-600 font-medium'>
-                © {currentYear} Learning Management System. All rights reserved.
+                © {currentYear} Growth Nepal. All rights reserved.
               </p>
             </div>
             <div className='flex items-center gap-4 max-md:mb-4'>

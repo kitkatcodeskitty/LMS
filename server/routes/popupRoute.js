@@ -8,7 +8,7 @@ import {
   deletePopup, 
   togglePopupStatus 
 } from '../controllers/popupController.js';
-import { authenticateToken, isAdmin } from '../middleware/auth.js';
+import { authenticateToken, isAdminOrSubAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -58,11 +58,11 @@ const diskUpload = multer({
 // Public route - get active popup for home page
 router.get('/active', getActivePopup);
 
-// Admin routes - require authentication and admin privileges
-router.post('/', authenticateToken, isAdmin, upload.single('image'), createPopup);
-router.get('/', authenticateToken, isAdmin, getAllPopups);
-router.put('/:id', authenticateToken, isAdmin, upload.single('image'), updatePopup);
-router.delete('/:id', authenticateToken, isAdmin, deletePopup);
-router.patch('/:id/toggle', authenticateToken, isAdmin, togglePopupStatus);
+// Admin routes - require authentication and admin or sub-admin privileges
+router.post('/', authenticateToken, isAdminOrSubAdmin, upload.single('image'), createPopup);
+router.get('/', authenticateToken, isAdminOrSubAdmin, getAllPopups);
+router.put('/:id', authenticateToken, isAdminOrSubAdmin, upload.single('image'), updatePopup);
+router.delete('/:id', authenticateToken, isAdminOrSubAdmin, deletePopup);
+router.patch('/:id/toggle', authenticateToken, isAdminOrSubAdmin, togglePopupStatus);
 
 export default router;

@@ -18,7 +18,7 @@ const Dashboard = () => {
   const [showMakeAdminModal, setShowMakeAdminModal] = useState(false)
   const [adminEmail, setAdminEmail] = useState('')
   const [makingAdmin, setMakingAdmin] = useState(false)
-  
+
   const [showMakeSubAdminModal, setShowMakeSubAdminModal] = useState(false)
   const [subAdminEmail, setSubAdminEmail] = useState('')
   const [makingSubAdmin, setMakingSubAdmin] = useState(false)
@@ -312,7 +312,7 @@ const Dashboard = () => {
             </svg>
             Financial Summary
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-600 mb-2">
@@ -336,10 +336,10 @@ const Dashboard = () => {
               <div className="text-xs text-gray-500 mt-1">{dashboardData.affiliatePercentage || '0%'} of revenue</div>
             </div>
           </div>
-          
+
           <div className="mt-4 p-3 bg-blue-100 rounded-lg">
             <p className="text-sm text-blue-800 text-center">
-              <strong>Note:</strong> When users purchase with referral codes, 60% goes to affiliates and 40% is your profit. 
+              <strong>Note:</strong> When users purchase with referral codes, 60% goes to affiliates and 40% is your profit.
               Without referrals, you keep 100% of the revenue.
             </p>
           </div>
@@ -348,7 +348,7 @@ const Dashboard = () => {
         {/* Latest Enrolled Students */}
         <div>
           <h2 className="pb-4 text-lg font-medium">Latest Enrolled Students</h2>
-          
+
           {/* Desktop Table */}
           <div className="hidden md:block">
             <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
@@ -376,7 +376,7 @@ const Dashboard = () => {
                         .slice(0, 5)
                         .map((studentData) => {
                           const latestPurchase = studentData.purchases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
-                          
+
                           return (
                             <tr key={studentData.userDetails._id} className="hover:bg-gray-50">
                               <td className="px-3 py-4">
@@ -596,8 +596,8 @@ const Dashboard = () => {
                       type="submit"
                       disabled={makingAdmin}
                       className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${makingAdmin
-                          ? 'bg-blue-400 cursor-not-allowed'
-                          : 'bg-blue-600 hover:bg-blue-700'
+                        ? 'bg-blue-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700'
                         }`}
                     >
                       {makingAdmin ? 'Making Admin...' : 'Make Full Admin'}
@@ -649,8 +649,8 @@ const Dashboard = () => {
                       type="submit"
                       disabled={makingSubAdmin}
                       className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${makingSubAdmin
-                          ? 'bg-green-400 cursor-not-allowed'
-                          : 'bg-green-600 hover:bg-green-700'
+                        ? 'bg-green-400 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700'
                         }`}
                     >
                       {makingSubAdmin ? 'Making Sub-Admin...' : 'Make Sub-Admin'}
@@ -702,8 +702,8 @@ const Dashboard = () => {
                       type="submit"
                       disabled={resettingRestriction}
                       className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${resettingRestriction
-                          ? 'bg-amber-400 cursor-not-allowed'
-                          : 'bg-amber-600 hover:bg-amber-700'
+                        ? 'bg-amber-400 cursor-not-allowed'
+                        : 'bg-amber-600 hover:bg-amber-700'
                         }`}
                     >
                       {resettingRestriction ? 'Resetting...' : 'Reset Restriction'}

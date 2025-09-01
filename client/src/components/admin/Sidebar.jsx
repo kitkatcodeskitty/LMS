@@ -99,7 +99,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { name: 'Student Enrolled', path: '/educator/student-Enrolled', icon: <FiUsers />, color: 'from-purple-500 to-purple-600' },
     { name: 'Pending Orders', path: '/educator/pending-orders', icon: <FiClipboard />, color: 'from-orange-500 to-orange-600' },
     { name: 'KYC Review', path: '/educator/kyc-review', icon: <FiCheckCircle />, color: 'from-emerald-500 to-emerald-600' },
-    { name: 'Withdrawals', path: '/educator/withdrawal-management', icon: <FiDollarSign />, color: 'from-rose-500 to-pink-500' }
+    { name: 'Withdrawals', path: '/educator/withdrawal-management', icon: <FiDollarSign />, color: 'from-rose-500 to-pink-500' },
+    { name: 'Popup Management', path: '/educator/popup-management', icon: <FiImage />, color: 'from-cyan-500 to-cyan-600' }
   ]
 
   // Determine which menu items to show
