@@ -695,7 +695,7 @@ const Dashboard = ({
               onClick={() => handleTabChange('referrals')}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-6 rounded-2xl font-medium transition-all duration-200 shadow-lg"
             >
-              Referral Details
+              COmming soon 
             </button>
       </div>
 
@@ -805,7 +805,7 @@ const Dashboard = ({
               onClick={() => handleTabChange('referrals')}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-6 rounded-xl font-medium transition-all duration-200"
             >
-              Referral Details
+            Comming soon
             </button>
           </div>
         </div>

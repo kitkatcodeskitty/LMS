@@ -645,11 +645,20 @@ export const getUserReferrals = async (req, res) => {
 export const getLeaderboard = async (req, res) => {
   try {
     const leaderboard = await User.find({ affiliateEarnings: { $gt: 0 } })
-      .select('firstName lastName email affiliateEarnings imageUrl')
+      .select('firstName lastName email affiliateEarnings dailyEarnings weeklyEarnings monthlyEarnings imageUrl')
       .sort({ affiliateEarnings: -1 })
       .limit(50);
 
-    res.status(200).json({ success: true, leaderboard });
+    // Ensure all earnings fields are numbers
+    const formattedLeaderboard = leaderboard.map(user => ({
+      ...user.toObject(),
+      affiliateEarnings: Number(user.affiliateEarnings) || 0,
+      dailyEarnings: Number(user.dailyEarnings) || 0,
+      weeklyEarnings: Number(user.weeklyEarnings) || 0,
+      monthlyEarnings: Number(user.monthlyEarnings) || 0
+    }));
+
+    res.status(200).json({ success: true, leaderboard: formattedLeaderboard });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

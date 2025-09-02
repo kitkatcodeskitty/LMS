@@ -1,9 +1,77 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import ProfileImage from '../common/ProfileImage';
-import { FaTrophy, FaMedal, FaStar, FaGem, FaCrown, FaUsers, FaMoneyBillWave, FaMapMarkerAlt, FaRocket, FaChartBar } from 'react-icons/fa';
+import { FaTrophy, FaMedal, FaStar, FaGem, FaCrown, FaUsers, FaMoneyBillWave, FaMapMarkerAlt, FaRocket, FaChartBar, FaCalendarDay, FaCalendarWeek, FaCalendarAlt } from 'react-icons/fa';
 
 const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
-  if (leaderboard.length === 0) {
+  const [selectedPeriod, setSelectedPeriod] = useState('all'); // 'all', 'daily', 'weekly', 'monthly'
+
+  // Helper function to get the correct earnings amount based on selected period
+  const getEarningsForPeriod = (user, period) => {
+    switch (period) {
+      case 'daily':
+        return user.dailyEarnings || 0;
+      case 'weekly':
+        return user.weeklyEarnings || 0;
+      case 'monthly':
+        return user.monthlyEarnings || 0;
+      default:
+        return user.affiliateEarnings || 0;
+    }
+  };
+
+  // Filter leaderboard based on selected period
+  const filteredLeaderboard = useMemo(() => {
+    if (selectedPeriod === 'all') {
+      return leaderboard;
+    }
+
+    // Filter users based on their time-based earnings
+    return leaderboard.filter(user => {
+      let earnings = 0;
+      
+      switch (selectedPeriod) {
+        case 'daily':
+          earnings = user.dailyEarnings || 0;
+          break;
+        case 'weekly':
+          earnings = user.weeklyEarnings || 0;
+          break;
+        case 'monthly':
+          earnings = user.monthlyEarnings || 0;
+          break;
+        default:
+          earnings = user.affiliateEarnings || 0;
+      }
+      
+      return earnings > 0; // Only include users with earnings in the selected period
+    }).sort((a, b) => {
+      // Sort by the appropriate earnings field
+      let aEarnings = 0;
+      let bEarnings = 0;
+      
+      switch (selectedPeriod) {
+        case 'daily':
+          aEarnings = a.dailyEarnings || 0;
+          bEarnings = b.dailyEarnings || 0;
+          break;
+        case 'weekly':
+          aEarnings = a.weeklyEarnings || 0;
+          bEarnings = b.weeklyEarnings || 0;
+          break;
+        case 'monthly':
+          aEarnings = a.monthlyEarnings || 0;
+          bEarnings = b.monthlyEarnings || 0;
+          break;
+        default:
+          aEarnings = a.affiliateEarnings || 0;
+          bEarnings = b.affiliateEarnings || 0;
+      }
+      
+      return bEarnings - aEarnings; // Sort in descending order
+    });
+  }, [leaderboard, selectedPeriod]);
+
+  if (filteredLeaderboard.length === 0) {
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -12,6 +80,29 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
             Leaderboard
           </h2>
           <p className="text-gray-600">Top performers based on affiliate earnings</p>
+        </div>
+        
+        {/* Period Selection - Keep visible even when empty */}
+        <div className="flex flex-wrap justify-center gap-2 mb-4">
+          {[
+            { key: 'all', label: 'All Time', icon: <FaTrophy className="w-4 h-4" /> },
+            { key: 'daily', label: 'Today', icon: <FaCalendarDay className="w-4 h-4" /> },
+            { key: 'weekly', label: 'This Week', icon: <FaCalendarWeek className="w-4 h-4" /> },
+            { key: 'monthly', label: 'This Month', icon: <FaCalendarAlt className="w-4 h-4" /> }
+          ].map((period) => (
+            <button
+              key={period.key}
+              onClick={() => setSelectedPeriod(period.key)}
+              className={`inline-flex items-center px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                selectedPeriod === period.key
+                  ? 'bg-purple-600 text-white shadow-lg transform scale-105'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+              }`}
+            >
+              {period.icon}
+              <span className="ml-2">{period.label}</span>
+            </button>
+          ))}
         </div>
         
         <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-8 text-center border border-purple-200">
@@ -29,11 +120,13 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
     );
   }
 
-  const userRank = leaderboard.findIndex(user => user._id === userData._id) + 1;
-  // Use the same total earnings calculation as Dashboard for consistency
-  const totalEarnings = earningsData?.lifetime || 0;
-  const top3 = leaderboard.slice(0, 3);
-  const top10 = leaderboard.slice(0, 10);
+  const userRank = filteredLeaderboard.findIndex(user => user._id === userData._id) + 1;
+  // Calculate total earnings based on selected period
+  const totalEarnings = selectedPeriod === 'all' 
+    ? (earningsData?.lifetime || 0)
+    : getEarningsForPeriod(userData, selectedPeriod);
+  const top3 = filteredLeaderboard.slice(0, 3);
+  const top10 = filteredLeaderboard.slice(0, 10);
 
   const getRankIcon = (index) => {
     switch (index) {
@@ -82,6 +175,26 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
     return `https://ui-avatars.com/api/?name=${name}&background=${backgroundColor}&color=fff&size=200&bold=true`;
   };
 
+  const getPeriodLabel = (period) => {
+    switch (period) {
+      case 'all': return 'All Time';
+      case 'daily': return 'Today';
+      case 'weekly': return 'This Week';
+      case 'monthly': return 'This Month';
+      default: return 'All Time';
+    }
+  };
+
+  const getPeriodIcon = (period) => {
+    switch (period) {
+      case 'all': return <FaTrophy className="w-4 h-4" />;
+      case 'daily': return <FaCalendarDay className="w-4 h-4" />;
+      case 'weekly': return <FaCalendarWeek className="w-4 h-4" />;
+      case 'monthly': return <FaCalendarAlt className="w-4 h-4" />;
+      default: return <FaTrophy className="w-4 h-4" />;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -91,10 +204,34 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
           Leaderboard
         </h2>
         <p className="text-sm sm:text-base text-gray-600 mb-4">Top performers based on affiliate earnings</p>
+        
+        {/* Period Selection */}
+        <div className="flex flex-wrap justify-center gap-2 mb-4">
+          {[
+            { key: 'all', label: 'All Time', icon: <FaTrophy className="w-4 h-4" /> },
+            { key: 'daily', label: 'Today', icon: <FaCalendarDay className="w-4 h-4" /> },
+            { key: 'weekly', label: 'This Week', icon: <FaCalendarWeek className="w-4 h-4" /> },
+            { key: 'monthly', label: 'This Month', icon: <FaCalendarAlt className="w-4 h-4" /> }
+          ].map((period) => (
+            <button
+              key={period.key}
+              onClick={() => setSelectedPeriod(period.key)}
+              className={`inline-flex items-center px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                selectedPeriod === period.key
+                  ? 'bg-purple-600 text-white shadow-lg transform scale-105'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+              }`}
+            >
+              {period.icon}
+              <span className="ml-2">{period.label}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
           <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-purple-100 text-purple-700">
             <FaUsers className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-            {leaderboard.length} participants
+            {filteredLeaderboard.length} participants
           </span>
           <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-700">
             <FaMoneyBillWave className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
@@ -103,7 +240,7 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
           {userRank > 0 && (
             <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-rose-100 text-rose-700">
               <FaMapMarkerAlt className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-              Rank: #{userRank}
+              Rank: {userRank}
             </span>
           )}
         </div>
@@ -116,7 +253,9 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
             <FaMedal className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-yellow-600" />
             Champions
           </h3>
-          <p className="text-sm sm:text-base text-gray-600">The elite top 3 performers</p>
+          <p className="text-sm sm:text-base text-gray-600">
+            The elite top 3 performers - {getPeriodLabel(selectedPeriod)}
+          </p>
         </div>
         
         {/* Desktop Podium */}
@@ -148,8 +287,8 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
                 
                 <div className={`bg-gradient-to-t ${getRankColor(position)} ${heights[position === 0 ? 1 : position === 1 ? 0 : 2]} w-20 xl:w-24 rounded-t-2xl flex flex-col justify-end items-center p-3 xl:p-4 shadow-xl`}>
                   <div className="text-white text-center">
-                    <div className="font-bold text-lg xl:text-xl">#{position + 1}</div>
-                    <div className="text-xs xl:text-sm opacity-90">{currency}{Math.round(user.affiliateEarnings || 0)}</div>
+                    <div className="font-bold text-lg xl:text-xl">{position + 1}</div>
+                    <div className="text-xs xl:text-sm opacity-90">{currency}{Math.round(getEarningsForPeriod(user, selectedPeriod))}</div>
                   </div>
                 </div>
                 
@@ -186,11 +325,11 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
                   )}
                 </div>
                 <div className="text-center">
-                  <p className="font-bold text-gray-900 text-sm">#{2}</p>
+                  <p className="font-bold text-gray-900 text-sm">{2}</p>
                   <p className="text-xs text-gray-600 truncate max-w-16">
                     {top3[1].firstName} {top3[1].lastName}
                   </p>
-                  <p className="font-bold text-green-600 text-sm">{currency}{Math.round(top3[1].affiliateEarnings || 0)}</p>
+                  <p className="font-bold text-green-600 text-sm">{currency}{Math.round(getEarningsForPeriod(top3[1], selectedPeriod))}</p>
                 </div>
               </div>
             )}
@@ -214,11 +353,11 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
                   )}
                 </div>
                 <div className="text-center">
-                  <p className="font-bold text-gray-900 text-base">#{1}</p>
+                  <p className="font-bold text-gray-900 text-base">{1}</p>
                   <p className="text-sm text-gray-600 truncate max-w-20">
                     {top3[0].firstName} {top3[0].lastName}
                   </p>
-                  <p className="font-bold text-green-600 text-base">{currency}{Math.round(top3[0].affiliateEarnings || 0)}</p>
+                  <p className="font-bold text-green-600 text-base">{currency}{Math.round(getEarningsForPeriod(top3[0], selectedPeriod))}</p>
                 </div>
               </div>
             )}
@@ -246,7 +385,7 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
                   <p className="text-xs text-gray-600 truncate max-w-16">
                     {top3[2].firstName} {top3[2].lastName}
                   </p>
-                  <p className="font-bold text-green-600 text-sm">{currency}{Math.round(top3[2].affiliateEarnings || 0)}</p>
+                  <p className="font-bold text-green-600 text-sm">{currency}{Math.round(getEarningsForPeriod(top3[2], selectedPeriod))}</p>
                 </div>
               </div>
             )}
@@ -262,7 +401,7 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
               <FaChartBar className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Top 10 Leaderboard
               <span className="ml-2 sm:ml-3 bg-white/20 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
-                Ranks 4-10
+                Ranks 4-10 - {getPeriodLabel(selectedPeriod)}
               </span>
             </h3>
             <p className="text-indigo-100 text-xs sm:text-sm mt-1">Elite performers competing for the top</p>
@@ -288,8 +427,8 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
                               <span className="ml-1 bg-rose-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">YOU</span>
                             )}
                           </p>
-                          <p className="text-xs text-gray-400">Rank #{actualIndex + 1}</p>
-                          <p className="font-bold text-green-600 text-base">{currency}{Math.round(user.affiliateEarnings || 0)}</p>
+                          <p className="text-xs text-gray-400">Rank {actualIndex + 1}</p>
+                          <p className="font-bold text-green-600 text-base">{currency}{Math.round(getEarningsForPeriod(user, selectedPeriod))}</p>
                        </div>
                      </div>
                    </div>
@@ -321,8 +460,8 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
                     </div>
                     
                     <div className="text-right">
-                      <p className="font-bold text-green-600 text-xl lg:text-2xl">{currency}{Math.round(user.affiliateEarnings || 0)}</p>
-                      <p className="text-sm text-gray-500">Total Earnings</p>
+                      <p className="font-bold text-green-600 text-xl lg:text-2xl">{currency}{Math.round(getEarningsForPeriod(user, selectedPeriod))}</p>
+                      <p className="text-sm text-gray-500">{getPeriodLabel(selectedPeriod)} Earnings</p>
                     </div>
                   </div>
                 </div>
@@ -334,12 +473,12 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
           <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm">
               <div className="text-gray-600 mb-2 sm:mb-0">
-                Showing top 10 of {leaderboard.length} participants
+                Showing top 10 of {filteredLeaderboard.length} participants - {getPeriodLabel(selectedPeriod)}
               </div>
               <div className="text-gray-600">
                 {userRank > 10 && (
                   <span className="text-orange-600 font-medium">
-                    You're ranked #{userRank} - Keep climbing!
+                    You're ranked {userRank} - Keep climbing!
                   </span>
                 )}
               </div>
@@ -352,7 +491,7 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
       <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-4 sm:p-6 border border-purple-200 mx-4 sm:mx-0">
         <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 text-center flex items-center justify-center">
           <FaTrophy className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-purple-600" />
-          Achievements
+          Achievements - {getPeriodLabel(selectedPeriod)}
         </h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className={`p-3 sm:p-4 rounded-xl text-center transition-all ${userRank > 0 && userRank <= 10 ? 'bg-green-100 border-2 border-green-300' : 'bg-white border border-gray-200'}`}>
@@ -391,7 +530,7 @@ const Leaderboard = ({ leaderboard, userData, currency, earningsData }) => {
             </div>
             <div className="text-xs sm:text-sm font-medium text-gray-900">Champion</div>
             <div className="text-xs text-gray-500 mt-1">
-              {userRank === 1 ? 'You\'re #1!' : 'Reach #1'}
+              {userRank === 1 ? 'You\'re 1!' : 'Reach 1'}
             </div>
           </div>
         </div>
