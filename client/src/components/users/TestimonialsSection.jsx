@@ -32,7 +32,6 @@ const TestimonialsSection = () => {
                 ))}
               </div>
               <p className='text-gray-600 leading-relaxed'>{testimonial.feedback}</p>
-              <a href='' className='inline-block mt-4 text-rose-600 hover:text-rose-700 font-medium transition-colors duration-200'>Read more →</a>
             </div>
           </div>
         ))}

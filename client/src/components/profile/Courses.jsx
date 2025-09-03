@@ -14,10 +14,10 @@ const Courses = ({ purchasedCourses, currency, navigate }) => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Courses Yet</h3>
           <p className="text-gray-600 mb-4">Start your learning journey today!</p>
           <button
-            onClick={() => navigate('/courses')}
+            onClick={() => navigate('/packages-list')}
             className="bg-rose-500 text-white px-6 py-2 rounded-lg hover:bg-rose-600 transition-colors"
           >
-            Browse Courses
+            Browse Packages
           </button>
         </div>
       ) : (
@@ -45,7 +45,7 @@ const Courses = ({ purchasedCourses, currency, navigate }) => {
                   Price: {course.coursePrice ? `${currency}${course.coursePrice}` : 'Free'}
                 </p>
                 <button
-                  onClick={() => navigate(`/course/${course._id}`)}
+                  onClick={() => navigate(`/package/${course._id}`)}
                   className="w-full bg-rose-500 text-white py-2 rounded-lg hover:bg-rose-600 transition-colors"
                 >
                   Continue Learning

@@ -32,17 +32,17 @@ const CallToAction = () => {
             
             {/* Subtitle */}
             <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Join over <span className="text-rose-400 font-semibold">50,000+</span> successful learners who have unlocked their potential and achieved their dreams with our premium learning packages.
+              Join our growing community of <span className="text-rose-400 font-semibold">500+</span> learners who are unlocking their potential and building successful careers with our premium learning packages.
             </p>
             
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-4xl mx-auto">
               <div className="text-center">
-                <div className="text-4xl font-bold text-rose-400 mb-2">98%</div>
+                <div className="text-4xl font-bold text-rose-400 mb-2">95%</div>
                 <div className="text-gray-400">Success Rate</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-pink-400 mb-2">{currency}2.5Cr+</div>
+                <div className="text-4xl font-bold text-pink-400 mb-2">{currency}5L+</div>
                 <div className="text-gray-400">Earned by Students</div>
               </div>
               <div className="text-center">

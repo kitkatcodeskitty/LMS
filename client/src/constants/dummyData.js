@@ -17,25 +17,25 @@ export const dummyEducatorData = {
 
 export const dummyTestimonial = [
     {
-        name: 'Rajesh Hamal',
-        role: 'SWE 1 @ Amazon',
-        image: assets.profile_img_1,
+        name: 'Sita Thapa',
+        role: 'Software Engineer @ Tech Nepal',
+        image: 'https://images.unsplash.com/photo-1693234923854-f770fa33e587?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         rating: 5,
-        feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
+        feedback: 'GrowthSkill has completely transformed my career! The Elite package gave me the skills I needed to land my dream job at Tech Nepal. The content is practical and the support is amazing.',
     },
     {
-        name: 'Nikhil Upreti',
-        role: 'SWE 2 @ Samsung',
-        image: assets.profile_img_2,
-        rating: 4,
-        feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
+        name: 'Ram Gurung',
+        role: 'Full Stack Developer @ Himalayan Tech',
+        image: 'https://images.unsplash.com/photo-1619349457739-032073840c73?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        rating: 5,
+        feedback: 'As a developer from Pokhara, I never thought I could compete globally. GrowthSkill\'s Creator package changed everything. Now I\'m working with international clients!',
     },
     {
-        name: 'Biraj bhattara',
-        role: 'SWE 2 @ Google',
-        image: assets.profile_img_3,
-        rating: 4.5,
-        feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
+        name: 'Anita Shrestha',
+        role: 'Data Analyst @ Nepal Bank',
+        image: 'https://images.unsplash.com/photo-1660644802556-c66cbe6d447e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        rating: 5,
+        feedback: 'The Prime package helped me transition from traditional banking to modern data analytics. The instructors are world-class and the community support is incredible. Highly recommended!',
     },
 ];
 
