@@ -15,27 +15,33 @@ const Login = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear error when user starts typing
+    if (error) setError("");
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    // Clear previous errors
+    setError("");
+
     // Basic validation
     if (!form.email.trim()) {
-      console.error("Please enter your email address");
+      setError("Please enter your email address");
       return;
     }
 
     if (!form.password.trim()) {
-      console.error("Please enter your password");
+      setError("Please enter your password");
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      console.error("Please enter a valid email address");
+      setError("Please enter a valid email address");
       return;
     }
 
@@ -61,10 +67,11 @@ const Login = () => {
           navigate("/");
         }
       } else {
-        throw new Error(res.data.message || 'Login failed');
+        setError(res.data.message || 'Login failed');
       }
     } catch (err) {
-      console.error("Login failed:", err?.response?.data?.error || err?.response?.data?.message || err.message);
+      const errorMessage = err?.response?.data?.message || err?.response?.data?.error || err.message || 'Login failed';
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -87,6 +94,18 @@ const Login = () => {
 
           {/* Login Form */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-red-700 font-medium">{error}</p>
+                </div>
+              </div>
+            )}
+            
             <form onSubmit={handleLogin} className="space-y-6">
               {/* Email Field */}
               <div>

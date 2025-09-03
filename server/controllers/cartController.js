@@ -47,7 +47,7 @@ export const addToCart = async (req, res) => {
     }
 
     const course = await Course.findById(courseId).select(
-      "courseTitle courseDescription coursePrice courseThumbnail discount discountType"
+      "courseTitle courseDescription coursePrice courseThumbnail discount discountType packageType"
     );
     if (!course) {
       return res.status(404).json({ success: false, message: "Course not found" });
@@ -64,6 +64,7 @@ export const addToCart = async (req, res) => {
         courseDescription: course.courseDescription,
         coursePrice: discountedPrice, // Use discounted price instead of original price
         courseThumbnail: course.courseThumbnail,
+        packageType: course.packageType, // Include package type for commission calculation
       },
       isValidated: false, // Explicitly set to false
       referralCode: referralCode || null,

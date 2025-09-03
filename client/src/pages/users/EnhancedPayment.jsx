@@ -51,6 +51,7 @@ const EnhancedPayment = () => {
     password: ''
   });
   const [loggingIn, setLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   useEffect(() => {
     if (courseId) {
@@ -97,6 +98,8 @@ const EnhancedPayment = () => {
   const handleLoginChange = (e) => {
     const { name, value } = e.target;
     setLoginData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (loginError) setLoginError('');
   };
 
   const handleProfileImageChange = (e) => {
@@ -174,8 +177,11 @@ const EnhancedPayment = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setLoginError('');
+    
     if (!loginData.email || !loginData.password) {
-      console.error('Please fill in all fields');
+      setLoginError('Please fill in all fields');
       return;
     }
 
@@ -196,10 +202,11 @@ const EnhancedPayment = () => {
         // Update user context without page reload
         storeAuthData(data.token, data.user);
       } else {
-        console.error(data.message || 'Login failed');
+        setLoginError(data.message || 'Login failed');
       }
     } catch (error) {
-      console.error(error.response?.data?.message || 'Login failed');
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Login failed';
+      setLoginError(errorMessage);
     } finally {
       setLoggingIn(false);
     }
@@ -372,15 +379,45 @@ const EnhancedPayment = () => {
               )}
               <div>
                 <h3 className="text-xl font-medium text-gray-900">{course.courseTitle}</h3>
-                <p className="text-sm text-gray-500 mt-1">Package ID: {courseId}</p>
                 {course.courseDescription && (
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{course.courseDescription}</p>
+                  <div 
+                    className="text-sm text-gray-600 mt-1 line-clamp-2 rich-text"
+                    dangerouslySetInnerHTML={{ __html: course.courseDescription }}
+                  ></div>
                 )}
               </div>
             </div>
             <div className="mt-4 sm:mt-0">
               <div className="text-3xl font-bold text-green-600">
                 {appCurrency}{Math.round(course.coursePrice) || '0'}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Warning Card */}
+        <Card className="mb-8 border-orange-200 bg-orange-50">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-orange-800 mb-2">⚠️ Important Payment Warning</h3>
+              <div className="text-sm text-orange-700 space-y-2">
+                <p><strong>Before proceeding with payment, please note:</strong></p>
+                <ul className="list-disc list-inside space-y-1 ml-4">
+                  <li>Pay the <strong>exact amount</strong> shown above - no more, no less</li>
+                  <li>Double-check the package details before making payment</li>
+                  <li>Keep your payment receipt and transaction ID safe</li>
+                  <li>Upload a clear screenshot of your payment confirmation</li>
+                  <li>Payment verification may take up to 24 hours</li>
+                  <li>No refunds will be processed for incorrect amounts</li>
+                </ul>
+                <p className="mt-3 font-medium">If you have any questions, contact support before making payment.</p>
               </div>
             </div>
           </div>
@@ -430,6 +467,18 @@ const EnhancedPayment = () => {
                 /* Login Form */
                 <div>
                   <p className="text-gray-600 mb-6">Login to your existing account to proceed with the payment</p>
+                  
+                  {/* Login Error Message */}
+                  {loginError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-red-700 text-sm font-medium">{loginError}</p>
+                      </div>
+                    </div>
+                  )}
                   
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div>
@@ -696,6 +745,7 @@ const EnhancedPayment = () => {
                         <input
                           type="file"
                           accept="image/*"
+                          name="paymentScreenshot"
                           onChange={handleFileChange}
                           className="hidden"
                           id="screenshot-upload-non-logged"
@@ -869,6 +919,7 @@ const EnhancedPayment = () => {
                     <input
                       type="file"
                       accept="image/*"
+                      name="paymentScreenshot"
                       onChange={handleFileChange}
                       className="hidden"
                       id="screenshot-upload"

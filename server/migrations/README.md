@@ -157,19 +157,17 @@ import('./migrations/005_update_package_system.js').then(async (migration) => {
 ## New Commission System (Migration 007)
 
 ### Package Hierarchy Commission Logic
-The new system implements intelligent commission calculation based on package hierarchy:
+The new system implements intelligent commission calculation based on **price comparison**:
 
-1. **Higher Package Referrer**: If a user with a higher package refers someone buying a lower package, they get 60% of the purchased package price.
+1. **Higher Price Purchase**: If the purchased course price is **higher** than the referrer's course price, the referrer gets commission of **their own course price** (60% of their course price).
 
-2. **Lower Package Referrer**: If a user with a lower package refers someone buying a higher package, they get 60% of their own package's earning potential.
-
-3. **Equal Package Referrer**: If both referrer and purchaser have the same package level, the referrer gets 60% of the purchased package price.
+2. **Lower Price Purchase**: If the purchased course price is **lower** than the referrer's course price, the referrer gets **60% of the purchased course price**.
 
 ### Example Scenarios
-- **Prime user refers Master purchase**: Gets 60% of Master package price
-- **Master user refers Prime purchase**: Gets 60% of Prime package price  
-- **Elite user refers Master purchase**: Gets 60% of Elite package earning potential
-- **Creator user refers Elite purchase**: Gets 60% of Elite package price
+- **Elite user (₹1000) refers Master purchase (₹5500)**: Gets 60% of ₹1000 = ₹600 (their own course price)
+- **Master user (₹5500) refers Elite purchase (₹1000)**: Gets 60% of ₹1000 = ₹600 (purchased course price)
+- **Creator user (₹2000) refers Prime purchase (₹3000)**: Gets 60% of ₹2000 = ₹1200 (their own course price)
+- **Prime user (₹3000) refers Creator purchase (₹2000)**: Gets 60% of ₹2000 = ₹1200 (purchased course price)
 
 ### Database Changes
 - `User.highestPackage`: New field tracking user's highest purchased package
@@ -177,6 +175,7 @@ The new system implements intelligent commission calculation based on package hi
 - Existing users automatically updated based on their enrolled courses
 
 ### Benefits
-- Encourages users to upgrade to higher packages for better earning potential
-- Fair commission distribution based on investment level
-- Maintains 60% commission rate while adding intelligence to the system
+- **Fair Commission Distribution**: Referrers get appropriate commission based on price comparison
+- **Encourages Higher Package Purchases**: Users with higher packages get better commission when referring lower-priced courses
+- **Maintains 60% Commission Rate**: Consistent commission percentage across all scenarios
+- **Price-Based Logic**: Simple and transparent commission calculation based on actual course prices

@@ -37,50 +37,42 @@ export const calculateCommission = (coursePrice, commissionRate = 10) => {
 };
 
 /**
- * Calculate commission based on package hierarchy system
- * @param {number} coursePrice - Course price
+ * Calculate commission based on price comparison system
+ * @param {number} purchasedCoursePrice - Price of the course being purchased
  * @param {string} referrerPackage - Referrer's highest package
  * @param {string} purchasedPackage - Package being purchased
  * @param {number} baseCommissionRate - Base commission rate (default: 0.6 for 60%)
  * @returns {number} - Commission amount
  */
-export const calculatePackageBasedCommission = (coursePrice, referrerPackage, purchasedPackage, baseCommissionRate = 0.6) => {
-  if (typeof coursePrice !== 'number' || coursePrice <= 0) {
+export const calculatePackageBasedCommission = (purchasedCoursePrice, referrerPackage, purchasedPackage, baseCommissionRate = 0.6) => {
+  if (typeof purchasedCoursePrice !== 'number' || purchasedCoursePrice <= 0) {
     return 0;
   }
 
   if (!referrerPackage || !purchasedPackage) {
-    return coursePrice * baseCommissionRate;
+    return purchasedCoursePrice * baseCommissionRate;
   }
 
-  const packageHierarchy = {
-    'elite': 1,
-    'creator': 2,
-    'prime': 3,
-    'master': 4
+  // Get default prices for packages
+  const packagePrices = {
+    'elite': 1000,
+    'creator': 2000,
+    'prime': 3000,
+    'master': 5500
   };
 
-  const referrerValue = packageHierarchy[referrerPackage] || 0;
-  const purchasedValue = packageHierarchy[purchasedPackage] || 0;
+  const referrerCoursePrice = packagePrices[referrerPackage] || 1000;
+  const purchasedCoursePriceValue = packagePrices[purchasedPackage] || purchasedCoursePrice;
 
-  // If referrer has a higher or equal package, they get 60% of the purchased package
-  if (referrerValue >= purchasedValue) {
-    return coursePrice * baseCommissionRate;
+  // If purchased course price is higher than referrer's course price
+  // Referrer gets commission of their own course price
+  if (purchasedCoursePriceValue > referrerCoursePrice) {
+    return referrerCoursePrice * baseCommissionRate;
   }
   
-  // If referrer has a lower package, they get 60% of their own package's earning potential
-  // This is a simplified approach - you might want to adjust this logic
-  const referrerEarningPotential = {
-    'elite': 1000,    // Rs 500 - Rs 1,000
-    'creator': 3000,  // Rs 1,500 - Rs 3,000
-    'prime': 4000,    // Rs 2,000 - Rs 4,000
-    'master': 6000    // Rs 3,000 - Rs 6,000
-  };
-
-  const referrerMaxEarning = referrerEarningPotential[referrerPackage] || 1000;
-  const commissionAmount = Math.min(coursePrice * baseCommissionRate, referrerMaxEarning * baseCommissionRate);
-  
-  return commissionAmount;
+  // If purchased course price is lower than or equal to referrer's course price
+  // Referrer gets 60% of the purchased course price
+  return purchasedCoursePriceValue * baseCommissionRate;
 };
 
 /**

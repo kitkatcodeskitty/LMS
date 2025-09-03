@@ -16,6 +16,7 @@ const cartSchema = new mongoose.Schema(
           courseDescription: String,
           coursePrice: Number,
           courseThumbnail: String,
+          packageType: { type: String, enum: ['elite', 'creator', 'prime', 'master'] },
         },
         isValidated: { type: Boolean, default: false, required: true },
         referralCode: { type: String, default: null },

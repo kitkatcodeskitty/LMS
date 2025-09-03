@@ -53,21 +53,21 @@ const Home = () => {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[i], shuffled[j]];
     }
-    // Filter out Prime package and only show 3 packages
+    // Filter out Elite package (lowest price) and only show 3 packages
     return shuffled
-      .filter(course => course.packageType !== 'prime')
+      .filter(course => course.packageType !== 'elite')
       .slice(0, 3);
   }, [allCourses]);
 
   const sortedPackages = useMemo(() => {
     // Sort courses to ensure Master is in the middle (position 2)
     const sorted = [...randomCourses].sort((a, b) => {
-      // Define order: Elite (1st), Master (2nd - middle), Creator (3rd)
+      // Define order: Creator (1st), Master (2nd - middle), Prime (3rd)
       const getOrder = (packageType) => {
         switch (packageType) {
-          case 'elite': return 1;
-          case 'master': return 2; // Master in the middle like Supreme used to be
-          case 'creator': return 3;
+          case 'creator': return 1;
+          case 'master': return 2; // Master in the middle
+          case 'prime': return 3;
           default: return 4;
         }
       };
@@ -304,7 +304,7 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
+
             <div className="text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -159,7 +159,6 @@ const PaymentPage = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-xl font-medium text-gray-900">{courseTitle}</h3>
-              <p className="text-sm text-gray-500 mt-1">Package ID: {courseId}</p>
             </div>
             <div className="mt-4 sm:mt-0">
               <div className="text-3xl font-bold text-green-600">
