@@ -5,7 +5,16 @@ import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfil
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // Force cache busting
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }
+  },
   optimizeDeps: {
+    force: true, // Force re-optimization
     esbuildOptions: {
       define: {
         global: 'globalThis', // polyfill for global

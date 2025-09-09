@@ -51,7 +51,7 @@ const App = () => {
   return (
     <div className="text-default min-h-screen bg-white">
 
-      <ScrollToTop /> {/* Scrolls to top on route change */}
+      <ScrollToTop /> 
 
       {showNavbar && <Navbar />}
 

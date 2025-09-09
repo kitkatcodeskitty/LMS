@@ -521,19 +521,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Show More Button */}
-          {purchasesData.purchases && purchasesData.purchases.length > 5 && (
-            <div className="text-center mt-6">
-              <button
-                onClick={() => {
-                  console.info(`Showing latest 5 students out of ${purchasesData.purchases.length} total students`)
-                }}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-md transition-colors"
-              >
-                View All Students ({purchasesData.purchases.length})
-              </button>
-            </div>
-          )}
         </div>
       </div>
 

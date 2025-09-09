@@ -32,6 +32,8 @@ export const AppContextProvider = (props) => {
     setIsEducator(user.isAdmin || false);
     setIsSubAdmin(user.isSubAdmin || user.role === 'subadmin' || false);
   };
+  console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
+
 
   // Clear all authentication data
   const clearAuthData = () => {
