@@ -141,7 +141,7 @@ const PaymentPage = () => {
   // Close modal handler
   const closeModal = () => {
     setShowModal(false);
-    navigate('/my-enrollments');
+    navigate('/profile');
   };
 
   return (
@@ -373,7 +373,7 @@ const PaymentPage = () => {
               variant="info"
               fullWidth
             >
-              View My Enrollments
+              Go to Profile Dashboard
             </Button>
           </div>
         </div>

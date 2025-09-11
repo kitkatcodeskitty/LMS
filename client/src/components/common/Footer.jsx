@@ -63,7 +63,7 @@ const Footer = ({ variant = 'full' }) => {
                 <svg className='w-5 h-5 text-rose-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' />
                 </svg>
-                <span>support@Growthnepal.com</span>
+                <span>growthnepal90@gmail.com</span>
               </div>
               <div className='flex items-center space-x-3 text-white/70'>
                 <svg className='w-5 h-5 text-rose-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -229,8 +229,8 @@ const Footer = ({ variant = 'full' }) => {
         <div className='py-8 border-t border-white/10 '>
           <div className='flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0'>
             <div className='text-white/60 text-sm text-center lg:text-left order-2 lg:order-1'>
-              <p className='mb-2'>© {currentYear} Growth Skill Nepal. All rights reserved.</p>
-              <p className='text-xs text-white/40'>Designed with ❤️ Growth Skill Nepal Dev Teams!</p>
+              <p className='mb-2'>© {currentYear} Growth Nepal. All rights reserved.</p>
+              <p className='text-xs text-white/40'>Designed with ❤️ Growth Nepal Dev Teams!</p>
             </div>
           </div>
         </div>

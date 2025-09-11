@@ -25,7 +25,7 @@ const PrivacyPolicy = () => {
     {
       icon: FaShieldAlt,
       title: "Introduction",
-      content: "At Growth Skill, we respect your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard your information when you use our services.",
+      content: "At Growth Nepal, we respect your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard your information when you use our services.",
       color: "from-blue-500 to-blue-600",
       delay: 100
     },
@@ -60,7 +60,7 @@ const PrivacyPolicy = () => {
     {
       icon: FaUserCheck,
       title: "Your Rights",
-      content: "You have the right to access, correct, or delete your personal information. To exercise these rights, please contact us at support@growthskill.com.",
+      content: "You have the right to access, correct, or delete your personal information. To exercise these rights, please contact us at growthnepal90@gmail.com.",
       color: "from-indigo-500 to-indigo-600",
       delay: 600
     },
@@ -97,7 +97,7 @@ const PrivacyPolicy = () => {
               </span>
               <span className="flex items-center">
                 <FaEnvelope className="w-4 h-4 mr-2" />
-                support@growthskill.com
+                growthnepal90@gmail.com
               </span>
             </div>
           </div>
@@ -152,7 +152,7 @@ const PrivacyPolicy = () => {
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
                 <a
-                  href="mailto:support@growthskill.com"
+                  href="mailto:growthnepal90@gmail.com"
                   className="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors duration-200 shadow-lg hover:shadow-xl"
                 >
                   <FaEnvelope className="w-4 h-4 mr-2" />

@@ -21,14 +21,14 @@ export const dummyTestimonial = [
         role: 'Software Engineer @ Tech Nepal',
         image: 'https://images.unsplash.com/photo-1693234923854-f770fa33e587?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         rating: 5,
-        feedback: 'GrowthSkill has completely transformed my career! The Elite package gave me the skills I needed to land my dream job at Tech Nepal. The content is practical and the support is amazing.',
+        feedback: 'GrowthNepal has completely transformed my career! The Elite package gave me the skills I needed to land my dream job at Tech Nepal. The content is practical and the support is amazing.',
     },
     {
         name: 'Ram Gurung',
         role: 'Full Stack Developer @ Himalayan Tech',
         image: 'https://images.unsplash.com/photo-1619349457739-032073840c73?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         rating: 5,
-        feedback: 'As a developer from Pokhara, I never thought I could compete globally. GrowthSkill\'s Creator package changed everything. Now I\'m working with international clients!',
+        feedback: 'As a developer from Pokhara, I never thought I could compete globally. GrowthNepal\'s Creator package changed everything. Now I\'m working with international clients!',
     },
     {
         name: 'Anita Shrestha',

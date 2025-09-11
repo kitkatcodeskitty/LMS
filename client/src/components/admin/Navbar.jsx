@@ -40,21 +40,13 @@ const Navbar = () => {
           )}
         </div>
 
-        {userData ? (
+        {userData && (
           <button
             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
             onClick={handleLogout}
           >
             Logout
           </button>
-        ) : (
-          <Link to="/login">
-            <img
-              className='w-8 h-8 rounded-full'
-              src={assets.profile_img}
-              alt='Default profile'
-            />
-          </Link>
         )}
       </div>
     </div>

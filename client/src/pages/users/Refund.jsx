@@ -119,7 +119,7 @@ const Refund = () => {
                   Contact Support
                 </a>
                 <button 
-                  onClick={() => window.open('mailto:support@lms.com?subject=Refund Request', '_blank')}
+                  onClick={() => window.open('mailto:growthnepal90@gmail.com?subject=Refund Request', '_blank')}
                   className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 >
                   Email Us

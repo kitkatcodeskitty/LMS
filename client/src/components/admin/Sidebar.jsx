@@ -12,24 +12,12 @@ import {
   FiImage,
   FiShield
 } from 'react-icons/fi'
-import { FaUserCircle } from 'react-icons/fa'
 import axios from 'axios'
 
 const ProfileHeader = ({ onCloseMobile, isMobile, userData, isEducator }) => (
   <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600">
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-3">
-        <div className="text-white text-3xl">
-          {userData?.imageUrl ? (
-            <img
-              src={userData.imageUrl}
-              alt="Profile"
-              className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
-            />
-          ) : (
-            <FaUserCircle />
-          )}
-        </div>
         <div>
           <h2 className="text-white font-medium">Admin Panel</h2>
           <p className="text-white/80 text-sm">{isEducator ? 'Full Access' : 'Limited Access'}</p>

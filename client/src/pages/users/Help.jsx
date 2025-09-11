@@ -112,7 +112,7 @@ const Help = () => {
               Contact Support
             </a>
             <button 
-              onClick={() => window.open('mailto:support@lms.com', '_blank')}
+              onClick={() => window.open('mailto:growthnepal90@gmail.com', '_blank')}
               className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             >
               Email Us
@@ -125,7 +125,7 @@ const Help = () => {
               <div>
                 <div className="text-rose-600 text-2xl mb-2">📧</div>
                 <h3 className="font-semibold text-gray-900">Email Support</h3>
-                <p className="text-gray-600">support@lms.com</p>
+                <p className="text-gray-600">growthnepal90@gmail.com</p>
                 <p className="text-gray-500">24-hour response time</p>
               </div>
               <div>

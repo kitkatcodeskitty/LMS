@@ -23,7 +23,7 @@ const AboutUs = () => {
           data-aos="zoom-in"
         >
           <h2 className="text-3xl md:text-5xl font-extrabold leading-tight md:leading-snug max-w-3xl mx-auto tracking-tight">
-            About <span className="text-rose-600">Growth Skill</span>
+            About <span className="text-rose-600">Growth Nepal</span>
           </h2>
 
           <p 
@@ -31,7 +31,7 @@ const AboutUs = () => {
             data-aos="fade-down" 
             data-aos-delay="200"
           >
-            At Growth Skill, we believe learning is the bridge between potential and achievement.
+            At Growth Nepal, we believe learning is the bridge between potential and achievement.
             We provide industry-relevant packages in leadership, communication, personal productivity,
             and more — designed to help you thrive in an ever-changing world.
           </p>
@@ -60,7 +60,7 @@ const AboutUs = () => {
               starting a business, or simply eager to learn, we are here to guide your journey.
             </p>
             <p className="mt-4">
-              With expert instructors, hands-on learning methods, and a supportive community, Growth Skill 
+              With expert instructors, hands-on learning methods, and a supportive community, Growth Nepal 
               transforms education into real-world results.
             </p>
           </div>

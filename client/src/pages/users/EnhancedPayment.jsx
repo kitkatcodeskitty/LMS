@@ -318,7 +318,7 @@ const EnhancedPayment = () => {
 
   const closeModal = () => {
     setShowModal(false);
-    navigate('/my-enrollments');
+    navigate('/profile');
   };
 
   if (loadingCourse) {
@@ -1000,7 +1000,7 @@ const EnhancedPayment = () => {
               variant="info"
               fullWidth
             >
-              View My Enrollments
+              Go to Profile Dashboard
             </Button>
           </div>
         </div>
