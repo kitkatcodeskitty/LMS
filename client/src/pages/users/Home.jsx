@@ -17,6 +17,18 @@ import {
   getPackageFeatures, 
   getPackageEarningRange 
 } from '../../constants/packages'
+import { 
+  FaCrown, 
+  FaRocket, 
+  FaGem, 
+  FaStar, 
+  FaCheckCircle, 
+  FaBookOpen, 
+  FaGraduationCap,
+  FaUsers,
+  FaLightbulb,
+  FaChartLine
+} from 'react-icons/fa'
 
 // Custom CSS for floating animations
 const floatingStyles = `
@@ -192,7 +204,7 @@ const Home = () => {
           </div>
           
           {/* Packages Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-9 mb-16">
             {sortedPackages.map((course, index) => {
               const isMaster = course.packageType === 'master';
               return (
@@ -220,35 +232,53 @@ const Home = () => {
                     <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-orange-500/10 to-red-500/10 rounded-2xl"></div>
                   )}
 
-                  {/* Package Image */}
-                  <div className={`relative overflow-hidden ${isMaster ? 'h-56' : 'h-48'}`}>
-                    {course.courseThumbnail ? (
-                      <img
-                        src={course.courseThumbnail}
-                        alt={course.courseTitle}
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                      />
-                    ) : (
-                      <div className={`w-full h-full bg-gradient-to-br ${
-                        isMaster 
+                  {/* Package Icon Header */}
+                  <div className={`relative overflow-hidden ${isMaster ? 'h-56' : 'h-48'} flex items-center justify-center`}>
+                    <div className={`w-full h-full bg-gradient-to-br flex items-center justify-center relative ${
+                      course.packageType === 'master' 
                           ? 'from-yellow-400 via-orange-500 to-red-500' 
-                          : 'from-blue-400 to-purple-600'
-                      } flex items-center justify-center`}>
-                        <span className="text-white text-4xl font-bold">
-                          {isMaster ? '👑' : '📚'}
-                        </span>
+                        : course.packageType === 'prime'
+                        ? 'from-purple-500 via-indigo-600 to-blue-700'
+                        : course.packageType === 'creator'
+                        ? 'from-green-500 via-emerald-600 to-teal-700'
+                        : 'from-blue-500 via-cyan-600 to-indigo-700'
+                    }`}>
+                      {/* Background Pattern */}
+                      <div className="absolute inset-0 opacity-20">
+                        <div className="absolute top-4 left-4 w-8 h-8 border-2 border-white/30 rounded-full"></div>
+                        <div className="absolute top-8 right-8 w-6 h-6 border-2 border-white/20 rounded-full"></div>
+                        <div className="absolute bottom-8 left-8 w-4 h-4 border-2 border-white/25 rounded-full"></div>
+                        <div className="absolute bottom-4 right-4 w-10 h-10 border-2 border-white/15 rounded-full"></div>
                       </div>
-                    )}
-                    
-                    {/* Package Type Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <h3 className={`font-bold mb-1 ${
-                        isMaster ? 'text-xl' : 'text-lg'
+                      
+                      {/* Main Icon */}
+                      <div className="relative z-10 text-center">
+                        <div className="text-white text-6xl mb-4">
+                          {course.packageType === 'master' ? (
+                            <FaCrown className="mx-auto drop-shadow-lg" />
+                          ) : course.packageType === 'prime' ? (
+                            <FaGem className="mx-auto drop-shadow-lg" />
+                          ) : course.packageType === 'creator' ? (
+                            <FaRocket className="mx-auto drop-shadow-lg" />
+                          ) : (
+                            <FaStar className="mx-auto drop-shadow-lg" />
+                          )}
+                        </div>
+                        <h3 className={`font-bold text-white mb-2 ${
+                          isMaster ? 'text-2xl' : 'text-xl'
                       }`}>
                         {getPackageTitle(course.packageType)}
                       </h3>
-                      <p className="text-sm opacity-90">{getPackageCourseCount(course.packageType)}</p>
+                        <p className="text-white/90 text-sm font-medium">
+                          {getPackageCourseCount(course.packageType)}
+                        </p>
+                      </div>
+                      
+                      {/* Decorative Elements */}
+                      <div className="absolute top-4 left-4 w-3 h-3 bg-white/30 rounded-full animate-pulse"></div>
+                      <div className="absolute top-6 right-6 w-2 h-2 bg-white/40 rounded-full animate-pulse delay-1000"></div>
+                      <div className="absolute bottom-6 left-6 w-2 h-2 bg-white/35 rounded-full animate-pulse delay-500"></div>
+                      <div className="absolute bottom-4 right-4 w-3 h-3 bg-white/25 rounded-full animate-pulse delay-1500"></div>
                     </div>
                   </div>
 
@@ -271,7 +301,11 @@ const Home = () => {
                           <span className={`mt-0.5 ${
                             isMaster ? 'text-yellow-500' : 'text-green-500'
                           }`}>
-                            {isMaster ? '👑' : '✓'}
+                            {isMaster ? (
+                              <FaCrown className="w-4 h-4" />
+                            ) : (
+                              <FaCheckCircle className="w-4 h-4" />
+                            )}
                           </span>
                           <span className="text-sm text-gray-700">{feature}</span>
                         </li>
@@ -418,13 +452,28 @@ const Home = () => {
               </Link>
             </div>
             <div className="relative">
-              <div className="w-full h-80 rounded-2xl overflow-hidden shadow-xl">
-                <img 
-                  src="https://images.unsplash.com/photo-1565598621680-94ac0c22b148?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  alt="Modern learning environment with students collaborating"
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+              <div className="w-full h-80 rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="text-6xl mb-4">
+                    <FaGraduationCap className="mx-auto drop-shadow-lg" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">Modern Learning</h3>
+                  <p className="text-white/90 text-sm">Interactive & Engaging Education</p>
+                  
+                  {/* Decorative Icons */}
+                  <div className="absolute top-4 left-4 text-white/30">
+                    <FaBookOpen className="w-6 h-6" />
+                  </div>
+                  <div className="absolute top-4 right-4 text-white/30">
+                    <FaUsers className="w-6 h-6" />
+                  </div>
+                  <div className="absolute bottom-4 left-4 text-white/30">
+                    <FaLightbulb className="w-6 h-6" />
+                  </div>
+                  <div className="absolute bottom-4 right-4 text-white/30">
+                    <FaChartLine className="w-6 h-6" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

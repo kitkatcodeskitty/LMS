@@ -41,6 +41,19 @@ import ScrollToTop from './components/common/ScrollToTop'; // ScrollToTop import
 
 import { AppContext } from './context/AppContext';
 
+// Conditional Home Component - redirects based on auth status
+const ConditionalHome = () => {
+  const { userData } = useContext(AppContext);
+  
+  // If user is logged in, redirect to profile dashboard
+  if (userData) {
+    return <Navigate to="/profile" replace />;
+  }
+  
+  // If user is not logged in, show homepage
+  return <Home />;
+};
+
 const App = () => {
   const { userData } = useContext(AppContext);
   const location = useLocation();
@@ -57,7 +70,7 @@ const App = () => {
 
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<ConditionalHome />} />
         <Route path="/packages-list" element={<CoursesList />} />
         <Route path="/packages-list/:input" element={<CoursesList />} />
         <Route path="/package/:id" element={<CourseDetails />} />

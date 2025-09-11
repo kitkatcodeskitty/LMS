@@ -19,6 +19,7 @@ const PaymentPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   if (!courseId || !courseTitle || coursePrice == null) {
     return (
@@ -41,6 +42,7 @@ const PaymentPage = () => {
     setTransactionId('');
     setPaymentScreenshot(null);
     setPreviewImage(null);
+    setAcceptTerms(false);
   };
 
   const handleFileChange = (e) => {
@@ -77,6 +79,12 @@ const PaymentPage = () => {
 
     if (!paymentScreenshot) {
       console.error('Please upload a payment screenshot.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!acceptTerms) {
+      console.error('Please accept the terms and conditions to continue.');
       setIsSubmitting(false);
       return;
     }
@@ -324,11 +332,44 @@ const PaymentPage = () => {
                 </div>
               </div>
 
+              {/* Terms and Conditions Checkbox */}
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  id="accept-terms"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  required
+                />
+                <label htmlFor="accept-terms" className="text-sm text-gray-700">
+                  I agree to the{' '}
+                  <a 
+                    href="/terms" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Terms and Conditions
+                  </a>
+                  {' '}and{' '}
+                  <a 
+                    href="/policy" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Privacy Policy
+                  </a>
+                  . I understand that payments are non-refundable and package access will be activated after admin verification.
+                </label>
+              </div>
+
               {/* Submit Button */}
               <Button
                 type="submit"
                 loading={isSubmitting}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !acceptTerms}
                 variant="info"
                 size="lg"
                 fullWidth

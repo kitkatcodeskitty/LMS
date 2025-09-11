@@ -155,8 +155,7 @@ const EnhancedPayment = () => {
       if (data.success) {
         // Store token and update user data
         localStorage.setItem('token', data.token);
-        console.log('Registration successful! You can now complete your payment.');
-        setShowRegistration(false);
+        console.log('Registration successful! Redirecting to payment...');
         
         // Reset profile image states
         setProfileImageFile(null);
@@ -164,6 +163,17 @@ const EnhancedPayment = () => {
         
         // Update user context without page reload
         storeAuthData(data.token, data.user);
+        
+        // Redirect to payment page with course data
+        navigate(`/payment/${courseId}`, { 
+          state: { 
+            courseId, 
+            courseTitle: course?.courseTitle, 
+            coursePrice: course?.coursePrice,
+            currency: appCurrency,
+            referralCode: referralCode
+          } 
+        });
       } else {
         console.error(data.message || 'Registration failed');
       }
