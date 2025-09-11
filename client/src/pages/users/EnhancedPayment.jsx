@@ -206,11 +206,21 @@ const EnhancedPayment = () => {
       if (data.success) {
         // Store token and update user data
         localStorage.setItem('token', data.token);
-        console.log('Login successful! You can now complete your payment.');
-        setShowRegistration(false);
-        setShowLogin(false);
+        console.log('Login successful! Redirecting to payment...');
+        
         // Update user context without page reload
         storeAuthData(data.token, data.user);
+        
+        // Redirect to payment page with course data
+        navigate(`/payment/${courseId}`, { 
+          state: { 
+            courseId, 
+            courseTitle: course?.courseTitle, 
+            coursePrice: course?.coursePrice,
+            currency: appCurrency,
+            referralCode: referralCode
+          } 
+        });
       } else {
         setLoginError(data.message || 'Login failed');
       }
@@ -363,7 +373,7 @@ const EnhancedPayment = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {showRegistration ? 'Register & Pay for Package' : 'Complete Your Payment'}
+            {showRegistration ? 'Create Account to Continue' : 'Login to Continue'}
           </h1>
           <p className="text-gray-600">
             {referralFromUrl && (
@@ -371,7 +381,7 @@ const EnhancedPayment = () => {
                 🎯 Referral Applied: {referralFromUrl}
               </span>
             )}
-            Secure payment for your package enrollment
+            Please login or create an account to proceed with payment
           </p>
         </div>
 
@@ -527,7 +537,7 @@ const EnhancedPayment = () => {
                       size="lg"
                       fullWidth
                     >
-                      Login & Continue to Payment
+                      Login & Continue
                     </Button>
                   </form>
                 </div>
@@ -660,141 +670,11 @@ const EnhancedPayment = () => {
                     size="lg"
                     fullWidth
                   >
-                    Create Account & Continue to Payment
+                    Create Account & Continue
                   </Button>
                 </form>
                 </div>
               )}
-            </Card>
-
-            {/* Step 2: Payment Form for Non-Logged Users */}
-            <Card>
-              <div className="flex items-center mb-6">
-                <div className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full font-semibold mr-3">
-                  2
-                </div>
-                <h2 className="text-xl font-semibold text-gray-900">Complete Your Payment</h2>
-              </div>
-              <p className="text-gray-600 mb-6">Fill in your payment details below:</p>
-               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Left Column: Payment Instructions */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-800">Payment Instructions</h3>
-                  <div className="text-center">
-                    <div className="inline-block p-3 bg-gray-50 rounded-lg">
-                      <img src="/qr.jpg" alt="Payment QR Code" className="w-32 h-32 mx-auto rounded-lg shadow-sm" />
-                    </div>
-                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-lg font-bold text-red-700">
-                        Pay Exactly: {appCurrency}{Math.round(course.coursePrice) || '0'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-yellow-800 mb-2">⚠️ Important Notes:</h3>
-                    <ul className="text-sm text-yellow-700 space-y-1">
-                      <li>• Pay the exact amount shown above</li>
-                      <li>• Higher or lower amounts will not be accepted</li>
-                      <li>• No refunds will be processed</li>
-                      <li>• Keep your transaction receipt safe</li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Right Column: Payment Form */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-800">Payment Details</h3>
-                  
-                  <form onSubmit={handlePaymentSubmit} className="space-y-4">
-                    {/* Transaction ID */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Transaction ID <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={transactionId}
-                        onChange={(e) => setTransactionId(e.target.value)}
-                        placeholder="Enter your transaction ID from payment receipt"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        required
-                      />
-                    </div>
-
-                    {/* Referral Code */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Referral Code {referralFromUrl && <span className="text-green-600">(Pre-filled from link)</span>}
-                      </label>
-                      <input
-                        type="text"
-                        value={referralCode}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setReferralCode(value);
-                        }}
-                        placeholder="Enter referral code (optional)"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        {referralFromUrl 
-                          ? 'Referral code pre-filled from your link, but you can change it if needed' 
-                          : 'Use a referral code to help your referrer earn commissions'
-                        }
-                      </p>
-                    </div>
-
-                    {/* Payment Screenshot */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Payment Screenshot <span className="text-red-500">*</span>
-                      </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          name="paymentScreenshot"
-                          onChange={handleFileChange}
-                          className="hidden"
-                          id="screenshot-upload-non-logged"
-                          required
-                        />
-                        <label htmlFor="screenshot-upload-non-logged" className="cursor-pointer">
-                          {previewImage ? (
-                            <div className="space-y-2">
-                              <img
-                                src={previewImage}
-                                alt="Payment screenshot preview"
-                                className="max-w-full max-h-32 mx-auto rounded-lg shadow-sm"
-                              />
-                              <p className="text-sm text-green-600 font-medium">Screenshot uploaded successfully!</p>
-                              <p className="text-xs text-gray-500">Click to change image</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-2">
-                              <div className="text-2xl text-gray-400">📷</div>
-                              <p className="text-sm text-gray-500">Upload payment screenshot</p>
-                            </div>
-                          )}
-                        </label>
-                      </div>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      loading={isSubmitting}
-                      disabled={isSubmitting}
-                      variant="info"
-                      size="lg"
-                      fullWidth
-                    >
-                      Submit Payment Details
-                    </Button>
-                  </form>
-                </div>
-              </div>
             </Card>
           </div>
         ) : (
