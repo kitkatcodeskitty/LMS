@@ -8,10 +8,10 @@ import Modal from '../../components/common/Modal';
 import axios from 'axios';
 import { 
   FaExclamationTriangle, 
-  FaTarget, 
+  FaBullseye, 
   FaMobileAlt, 
   FaCamera, 
-  FaHandsClapping, 
+  FaHands, 
   FaCheckCircle,
   FaUserPlus,
   FaSignInAlt
@@ -388,7 +388,7 @@ const EnhancedPayment = () => {
           <p className="text-gray-600">
             {referralFromUrl && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mr-2">
-                🎯 Referral Applied: {referralFromUrl}
+                <FaBullseye className="mr-1" /> Referral Applied: {referralFromUrl}
               </span>
             )}
             Please login or create an account to proceed with payment
