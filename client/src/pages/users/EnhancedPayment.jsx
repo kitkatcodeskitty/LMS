@@ -6,6 +6,16 @@ import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Modal from '../../components/common/Modal';
 import axios from 'axios';
+import { 
+  FaExclamationTriangle, 
+  FaTarget, 
+  FaMobileAlt, 
+  FaCamera, 
+  FaHandsClapping, 
+  FaCheckCircle,
+  FaUserPlus,
+  FaSignInAlt
+} from 'react-icons/fa';
 
 const EnhancedPayment = () => {
   const { courseId } = useParams();
