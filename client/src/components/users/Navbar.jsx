@@ -256,8 +256,8 @@ const Navbar = () => {
           <div className="flex-shrink-0">
             <img
               onClick={() => navigate('/')}
-              src={assets.logo}
-              alt="logo"
+              src="/logo.png"
+              alt="Growth Nepal Logo"
               className="w-24 sm:w-28 md:w-32 lg:w-40 cursor-pointer hover:opacity-80 transition-opacity duration-200"
             />
           </div>

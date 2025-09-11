@@ -19,8 +19,8 @@ const Navbar = () => {
     <div className='flex items-center justify-between px-4 md:px-8 border-b border-gray-500 py-3 '>
       <Link to="/">
         <img
-          src={assets.logo}
-          alt="Logo"
+          src="/logo.png"
+          alt="Growth Nepal Logo"
           className="w-24 cursor-pointer" 
         />
       </Link>

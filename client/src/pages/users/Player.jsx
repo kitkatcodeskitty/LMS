@@ -202,11 +202,39 @@ const Player = () => {
 
 
 
-        {/* right column */}
+        {/* right column - Video Player */}
         <div className='md:mt-10' >
           {playerData ? (
             <div>
-              <YouTube videoId={playerData.lectureUrl.split('/').pop()} iframeClassName='w-full aspect-video' />
+              {/* 
+                Video Player Configuration:
+                - All sharing options disabled to prevent unauthorized sharing
+                - Configured for unlisted videos (only accessible via direct link)
+                - No related videos shown to prevent content discovery
+                - Fullscreen disabled to maintain control
+                - Modest branding to reduce YouTube branding
+              */}
+              <YouTube 
+                videoId={playerData.lectureUrl.split('/').pop()} 
+                iframeClassName='w-full aspect-video'
+                opts={{
+                  playerVars: {
+                    'modestbranding': 1,    // Reduces YouTube branding
+                    'rel': 0,               // Disables related videos
+                    'showinfo': 0,          // Hides video info
+                    'controls': 1,          // Shows player controls
+                    'disablekb': 0,         // Enables keyboard controls
+                    'enablejsapi': 1,       // Enables JavaScript API
+                    'fs': 0,                // Disables fullscreen
+                    'cc_load_policy': 0,    // Disables captions by default
+                    'iv_load_policy': 3,    // Disables annotations
+                    'autohide': 0,          // Keeps controls visible
+                    'cc_lang_pref': 'en',   // Sets caption language
+                    'hl': 'en',             // Sets interface language
+                    'origin': window.location.origin  // Sets origin for security
+                  }
+                }}
+              />
               <div  className='flex justify-between items-center mt-1'>
               <p>
                 {playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}

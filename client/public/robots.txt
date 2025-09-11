@@ -1,0 +1,51 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://growthnepal.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Disallow admin and private areas
+Disallow: /educator/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+Disallow: /profile/
+Disallow: /my-enrollments/
+Disallow: /player/
+Disallow: /payment/
+Disallow: /kyc/
+
+# Allow important pages
+Allow: /
+Allow: /packages-list
+Allow: /package/
+Allow: /about-us
+Allow: /contact
+Allow: /help
+Allow: /faq
+Allow: /terms
+Allow: /policy
+Allow: /refund
+
+# Block specific file types
+Disallow: /*.json$
+Disallow: /*.xml$
+Disallow: /*.txt$
+Disallow: /*.log$
+Disallow: /*.sql$
+
+# Allow images and assets
+Allow: /images/
+Allow: /assets/
+Allow: /public/
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.gif$
+Allow: /*.svg$
+Allow: /*.webp$
+Allow: /*.css$
+Allow: /*.js$

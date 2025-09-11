@@ -6,6 +6,7 @@ import TestimonialsSection from '../../components/users/TestimonialsSection'
 import CallToAction from '../../components/users/CallToAction'
 import Footer from '../../components/users/Footer'
 import Popup from '../../components/common/Popup'
+import SEOHead from '../../components/common/SEOHead'
 import axios from 'axios'
 import { 
   getPackageStyling, 
@@ -116,6 +117,16 @@ const Home = () => {
 
   return (
     <div className='relative flex flex-col items-center text-center overflow-hidden'>
+      {/* SEO Head Component */}
+      <SEOHead 
+        title="Growth Nepal - Online Learning Platform | Professional Development Courses | Web Development Training"
+        description="Master in-demand skills with Growth Nepal - the premier online learning platform. Expert-led courses in web development, data science, digital marketing, programming & more. Start your tech career today!"
+        keywords="online learning platform, professional development courses, web development training, data science courses, digital marketing courses, programming bootcamp, online education Nepal, tech education Nepal, programming courses Nepal, digital skills training, career advancement, tech courses, coding bootcamp, software development, full stack development, frontend development, backend development, python programming, javascript courses, react training, node.js courses, database management, cloud computing, cybersecurity training, UI/UX design, mobile app development, growthnepal, growthnepal.com"
+        url="https://growthnepal.com"
+        image="https://growthnepal.com/og-image.jpg"
+        type="website"
+      />
+      
       {/* Inject custom CSS for floating animations */}
       <style>{floatingStyles}</style>
       
