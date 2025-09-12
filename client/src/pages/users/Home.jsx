@@ -9,15 +9,6 @@ import Popup from '../../components/common/Popup'
 import SEOHead from '../../components/common/SEOHead'
 import axios from 'axios'
 import { 
-  getPackageStyling, 
-  getPackageBadge, 
-  getPackageBadgeColor, 
-  getPackageTitle, 
-  getPackageCourseCount, 
-  getPackageFeatures, 
-  getPackageEarningRange 
-} from '../../constants/packages'
-import { 
   FaCrown, 
   FaRocket, 
   FaGem, 
@@ -29,6 +20,15 @@ import {
   FaLightbulb,
   FaChartLine
 } from 'react-icons/fa'
+import { 
+  getPackageStyling, 
+  getPackageBadge, 
+  getPackageBadgeColor, 
+  getPackageTitle, 
+  getPackageCourseCount, 
+  getPackageFeatures, 
+  getPackageEarningRange 
+} from '../../constants/packages'
 
 // Custom CSS for floating animations
 const floatingStyles = `
@@ -178,6 +178,7 @@ const Home = () => {
       </div>
 
         <Hero />
+      
       
       {/* Featured Learning Packages Section */}
       <div className="w-full bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 py-24 relative overflow-hidden">
@@ -452,27 +453,19 @@ const Home = () => {
               </Link>
             </div>
             <div className="relative">
-              <div className="w-full h-80 rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <div className="text-6xl mb-4">
-                    <FaGraduationCap className="mx-auto drop-shadow-lg" />
-                  </div>
+              <div className="w-full h-80 rounded-2xl overflow-hidden shadow-xl">
+                <img 
+                  src="https://images.unsplash.com/photo-1565598621680-94ac0c22b148?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  alt="Modern Learning Platform"
+                  className="w-full h-full object-cover"
+                />
+                {/* Overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                
+                {/* Text overlay */}
+                <div className="absolute bottom-6 left-6 right-6 text-white">
                   <h3 className="text-2xl font-bold mb-2">Modern Learning</h3>
                   <p className="text-white/90 text-sm">Interactive & Engaging Education</p>
-                  
-                  {/* Decorative Icons */}
-                  <div className="absolute top-4 left-4 text-white/30">
-                    <FaBookOpen className="w-6 h-6" />
-                  </div>
-                  <div className="absolute top-4 right-4 text-white/30">
-                    <FaUsers className="w-6 h-6" />
-                  </div>
-                  <div className="absolute bottom-4 left-4 text-white/30">
-                    <FaLightbulb className="w-6 h-6" />
-                  </div>
-                  <div className="absolute bottom-4 right-4 text-white/30">
-                    <FaChartLine className="w-6 h-6" />
-                  </div>
                 </div>
               </div>
             </div>
@@ -538,8 +531,9 @@ const Home = () => {
         <CallToAction />
         <TestimonialsSection /> 
         <Footer />
+
     </div>
   )
 }
 
-export default Home
+export default Home   

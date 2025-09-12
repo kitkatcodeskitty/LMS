@@ -1,12 +1,6 @@
 import mongoose from "mongoose";
 import Withdrawal from "../models/Withdrawal.js";
 import User from "../models/User.js";
-import { createNotification } from "./notificationController.js";
-import { 
-  notifyWithdrawalSubmitted, 
-  notifyAdminNewWithdrawal,
-  sendWithdrawalEmailNotification 
-} from "../utils/withdrawalNotifications.js";
 import {
   validateWithdrawalRequest,
   validateUserPermissions,
@@ -122,50 +116,6 @@ export const createWithdrawalRequest = async (req, res) => {
       // Commit transaction
       await session.commitTransaction();
 
-      // Send notifications (outside transaction to avoid blocking)
-      try {
-        await notifyWithdrawalSubmitted(userId, amount, method);
-        
-        // Notify admin users about new withdrawal request
-        const adminUsers = await User.find({ 
-          $or: [{ isAdmin: true }, { isSubAdmin: true }, { role: { $in: ['admin', 'subadmin'] } }] 
-        });
-        
-        if (adminUsers.length > 0) {
-          await notifyAdminNewWithdrawal(adminUsers, user, amount, method);
-        }
-
-        // Send email notification if email service is available
-        await sendWithdrawalEmailNotification(user.email, 'submitted', {
-          amount,
-          method,
-          withdrawalId: withdrawal._id
-        });
-
-        // Create in-app notification for user
-        await createNotification(
-          userId,
-          "Withdrawal Request Submitted 💰",
-          `Your withdrawal request of Rs${amount} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'} has been submitted successfully. We'll process it within 1-3 business days.`,
-          "info",
-          null,
-          "withdrawal_submitted"
-        );
-
-        // Create notifications for admin users
-        for (const admin of adminUsers) {
-          await createNotification(
-            admin._id,
-            "New Withdrawal Request 🔔",
-            `A new withdrawal request of Rs${amount} has been submitted by ${user.firstName} ${user.lastName} via ${method === 'mobile_banking' ? 'Mobile Banking' : 'Bank Transfer'}.`,
-            "info",
-            null,
-            "admin_new_withdrawal"
-          );
-        }
-      } catch (notificationError) {
-        // Don't fail the request if notifications fail
-      }
 
       // Return success response
       res.status(201).json({

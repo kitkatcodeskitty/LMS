@@ -27,7 +27,6 @@ const userSchema = new mongoose.Schema(
     currentBalance: { type: Number, default: 0 },
     // Track admin updates
     lastAdminUpdate: { type: Date, default: null },
-    notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
     kycStatus: { type: String, enum: ["unsubmitted", "pending", "verified", "rejected"], default: "unsubmitted" },
     phone: { type: String, default: "" },
     bio: { type: String, default: "", maxlength: 500 },

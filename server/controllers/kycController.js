@@ -1,7 +1,6 @@
 import Kyc from "../models/Kyc.js";
 import User from "../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
-import { createNotification } from "./notificationController.js";
 
 export const submitKyc = async (req, res) => {
   try {
@@ -21,7 +20,15 @@ export const submitKyc = async (req, res) => {
 
     const uploadIfPresent = async (fileArray) => {
       if (!fileArray || fileArray.length === 0) return undefined;
-      const uploaded = await cloudinary.uploader.upload(fileArray[0].path);
+      const uploaded = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "kyc_documents" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(fileArray[0].buffer);
+      });
       return uploaded.secure_url;
     };
 
@@ -57,15 +64,6 @@ export const submitKyc = async (req, res) => {
 
     await User.findByIdAndUpdate(userId, { kycStatus: "pending" });
 
-    // Notify user of submission
-    await createNotification(
-      userId,
-      "KYC submitted",
-      "Your KYC has been submitted and is pending review.",
-      "info",
-      null,
-      "kyc_submitted"
-    );
 
     res.status(200).json({ success: true, kyc });
   } catch (error) {
@@ -110,15 +108,6 @@ export const verifyKyc = async (req, res) => {
     if (!kyc) return res.status(404).json({ success: false, message: "KYC not found" });
     await User.findByIdAndUpdate(kyc.user, { kycStatus: "verified" });
 
-    // Notify user of verification
-    await createNotification(
-      kyc.user,
-      "KYC verified",
-      "Your KYC has been approved.",
-      "success",
-      null,
-      "kyc_verified"
-    );
     res.status(200).json({ success: true, kyc });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -137,15 +126,6 @@ export const rejectKyc = async (req, res) => {
     if (!kyc) return res.status(404).json({ success: false, message: "KYC not found" });
     await User.findByIdAndUpdate(kyc.user, { kycStatus: "rejected" });
 
-    // Notify user of rejection
-    await createNotification(
-      kyc.user,
-      "KYC rejected",
-      remarks || "Your KYC has been rejected. Please review remarks and resubmit.",
-      "error",
-      null,
-      "kyc_rejected"
-    );
     res.status(200).json({ success: true, kyc });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -212,7 +192,15 @@ export const updateKyc = async (req, res) => {
 
     const uploadIfPresent = async (fileArray) => {
       if (!fileArray || fileArray.length === 0) return undefined;
-      const uploaded = await cloudinary.uploader.upload(fileArray[0].path);
+      const uploaded = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "kyc_documents" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(fileArray[0].buffer);
+      });
       return uploaded.secure_url;
     };
 
@@ -259,39 +247,6 @@ export const updateKyc = async (req, res) => {
       await User.findByIdAndUpdate(kyc.user._id, { kycStatus: status });
     }
 
-    // Send notification based on status change
-    try {
-      if (status === 'verified') {
-        await createNotification(
-          kyc.user._id,
-          "KYC Updated & Verified",
-          "Your KYC information has been updated and verified by admin.",
-          "success",
-          null,
-          "kyc_updated_verified"
-        );
-      } else if (status === 'rejected') {
-        await createNotification(
-          kyc.user._id,
-          "KYC Updated & Rejected",
-          remarks || "Your KYC information has been updated but rejected. Please review remarks.",
-          "error",
-          null,
-          "kyc_updated_rejected"
-        );
-      } else {
-        await createNotification(
-          kyc.user._id,
-          "KYC Information Updated",
-          "Your KYC information has been updated by admin.",
-          "info",
-          null,
-          "kyc_updated"
-        );
-      }
-    } catch (notificationError) {
-      // Don't fail the entire update if notification fails
-    }
 
     res.status(200).json({ success: true, kyc });
   } catch (error) {
@@ -309,7 +264,15 @@ export const updateKycByUserId = async (req, res) => {
 
     const uploadIfPresent = async (fileArray) => {
       if (!fileArray || fileArray.length === 0) return undefined;
-      const uploaded = await cloudinary.uploader.upload(fileArray[0].path);
+      const uploaded = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "kyc_documents" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(fileArray[0].buffer);
+      });
       return uploaded.secure_url;
     };
 
@@ -343,35 +306,6 @@ export const updateKycByUserId = async (req, res) => {
       await User.findByIdAndUpdate(userId, { kycStatus: updateData.status });
     }
 
-    // Send notification
-    if (updateData.status === 'verified') {
-      await createNotification(
-        userId,
-        "KYC Updated & Verified",
-        "Your KYC information has been updated and verified by admin.",
-        "success",
-        null,
-        "kyc_updated_verified"
-      );
-    } else if (updateData.status === 'rejected') {
-      await createNotification(
-        userId,
-        "KYC Updated & Rejected",
-        updateData.remarks || "Your KYC information has been updated but rejected. Please review remarks.",
-        "error",
-        null,
-        "kyc_updated_rejected"
-      );
-    } else {
-      await createNotification(
-        userId,
-        "KYC Information Updated",
-        "Your KYC information has been updated by admin.",
-        "info",
-        null,
-        "kyc_updated"
-      );
-    }
 
     res.status(200).json({ success: true, kyc });
   } catch (error) {

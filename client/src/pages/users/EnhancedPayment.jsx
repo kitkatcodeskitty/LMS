@@ -17,15 +17,18 @@ import {
   FaSignInAlt
 } from 'react-icons/fa';
 
-const EnhancedPayment = () => {
-  const { courseId } = useParams();
+const EnhancedPayment = ({ courseData }) => {
+  const { courseId: paramCourseId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { backendUrl, getToken, currency: appCurrency, userData, storeAuthData } = useContext(AppContext);
   
-  // Get referral code from URL params
+  // Use courseId from props if available, otherwise from URL params
+  const courseId = courseData?.courseId || paramCourseId;
+  
+  // Get referral code from URL params or courseData
   const urlParams = new URLSearchParams(location.search);
-  const referralFromUrl = urlParams.get('ref') || '';
+  const referralFromUrl = urlParams.get('ref') || courseData?.referralCode || '';
 
   // Course and user states
   const [course, setCourse] = useState(null);
@@ -96,6 +99,21 @@ const EnhancedPayment = () => {
 
   const fetchCourse = async () => {
     try {
+      // If courseData is provided as prop, use it directly
+      if (courseData && courseData.courseId) {
+        console.log('Using course data from props:', courseData);
+        setCourse({
+          _id: courseData.courseId,
+          courseTitle: courseData.courseTitle,
+          coursePrice: courseData.coursePrice,
+          courseThumbnail: '', // Will be fetched if needed
+          courseDescription: '', // Will be fetched if needed
+        });
+        setLoadingCourse(false);
+        return;
+      }
+
+      // Otherwise, fetch from API
       const { data } = await axios.get(`${backendUrl}/api/courses/${courseId}`);
       if (data.success && data.course) {
         console.log('Course data loaded:', data.course);
@@ -105,8 +123,8 @@ const EnhancedPayment = () => {
         navigate('/packages-list');
       }
     } catch (error) {
-              console.error(error.response?.data?.message || 'Error loading package details');
-        navigate('/packages-list');
+      console.error(error.response?.data?.message || 'Error loading package details');
+      navigate('/packages-list');
     } finally {
       setLoadingCourse(false);
     }
@@ -208,7 +226,7 @@ const EnhancedPayment = () => {
       if (data.success) {
         // Store token and update user data
         localStorage.setItem('token', data.token);
-        console.log('Registration successful! Redirecting to payment...');
+        console.log('Registration successful! Switching to payment form...');
         
         // Reset profile image states
         setProfileImageFile(null);
@@ -217,15 +235,17 @@ const EnhancedPayment = () => {
         // Update user context without page reload
         storeAuthData(data.token, data.user);
         
-        // Redirect to payment page with course data
-        navigate(`/payment/${courseId}`, { 
-          state: { 
-            courseId, 
-            courseTitle: course?.courseTitle, 
-            coursePrice: course?.coursePrice,
-            currency: appCurrency,
-            referralCode: referralCode
-          } 
+        // Switch to payment form instead of redirecting
+        setShowRegistration(false);
+        setShowLogin(false);
+        
+        // Reset registration form
+        setRegistrationData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          password: '',
+          confirmPassword: ''
         });
       } else {
         console.error(data.message || 'Registration failed');
@@ -259,20 +279,19 @@ const EnhancedPayment = () => {
       if (data.success) {
         // Store token and update user data
         localStorage.setItem('token', data.token);
-        console.log('Login successful! Redirecting to payment...');
+        console.log('Login successful! Switching to payment form...');
         
         // Update user context without page reload
         storeAuthData(data.token, data.user);
         
-        // Redirect to payment page with course data
-        navigate(`/payment/${courseId}`, { 
-          state: { 
-            courseId, 
-            courseTitle: course?.courseTitle, 
-            coursePrice: course?.coursePrice,
-            currency: appCurrency,
-            referralCode: referralCode
-          } 
+        // Switch to payment form instead of redirecting
+        setShowRegistration(false);
+        setShowLogin(false);
+        
+        // Reset login form
+        setLoginData({
+          email: '',
+          password: ''
         });
       } else {
         setLoginError(data.message || 'Login failed');
@@ -590,8 +609,8 @@ const EnhancedPayment = () => {
           </div>
         </Card>
 
-        {/* Layout for non-logged users: Registration/Login + Payment sections */}
-        {showRegistration || (userData && purchasedCourses.length === 0) ? (
+        {/* Show registration/login form for non-logged users */}
+        {!userData ? (
           <div className="space-y-8">
             {/* Step 1: Authentication Section */}
             <Card className="overflow-hidden border-0 shadow-xl bg-white/80 backdrop-blur-sm">
@@ -1097,8 +1116,8 @@ const EnhancedPayment = () => {
                 Payment Submitted Successfully!
               </h3>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Your payment details have been submitted successfully. Our admin team will validate your payment within 24 hours.
-              </p>
+            Your payment details have been submitted successfully. Our admin team will validate your payment within 24 hours.
+          </p>
             </div>
 
             {/* What's Next Section */}
@@ -1112,37 +1131,24 @@ const EnhancedPayment = () => {
                 <h4 className="text-lg font-semibold text-blue-800">What's Next?</h4>
               </div>
               <p className="text-blue-700 leading-relaxed">
-                You'll receive an email confirmation once your payment is verified and your package access is activated. 
+              You'll receive an email confirmation once your payment is verified and your package access is activated.
                 Check your email for updates and login to your dashboard to track your progress.
-              </p>
-            </div>
+            </p>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                onClick={() => navigate('/packages-list')}
-                variant="secondary"
+            {/* Action Button */}
+            <div className="flex justify-center">
+            <Button
+                onClick={() => navigate('/')}
+              variant="info"
                 size="lg"
-                fullWidth
-                className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 border border-gray-300 shadow-lg hover:shadow-xl transition-all duration-200"
-              >
+                className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 px-8 py-3"
+            >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Browse More Packages
-              </Button>
-              <Button
-                onClick={closeModal}
-                variant="info"
-                size="lg"
-                fullWidth
-                className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Go to Profile Dashboard
-              </Button>
+                Back to Home
+            </Button>
             </div>
           </div>
         </div>

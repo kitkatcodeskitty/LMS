@@ -14,11 +14,12 @@ const MyPackages = () => {
   const fetchCourses = async () => {
     try {
       const token = await getToken()
-      const { data } = await axios.get(`${backendUrl}/api/courses/all`, {
+      const { data } = await axios.get(`${backendUrl}/api/courses/admin/all`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
       if (data.success) {
+        console.log('Fetched courses with courseContent:', data.courses);
         setCourses(data.courses)
       } else {
         console.error(data.message || "Failed to fetch courses");
@@ -65,6 +66,9 @@ const MyPackages = () => {
   }
 
   const handleUpdateClick = (course) => {
+    console.log('Course selected for update:', course);
+    console.log('Course content:', course.courseContent);
+    console.log('Course content length:', course.courseContent?.length || 0);
     setCourseToUpdate(course)
     setShowUpdatePopup(true)
   }
@@ -75,9 +79,12 @@ const MyPackages = () => {
   }
 
   const handleCourseUpdate = (updatedCourse) => {
+    console.log('Course updated:', updatedCourse);
     setCourses((prev) =>
       prev.map((course) => (course._id === updatedCourse._id ? updatedCourse : course))
     )
+    // Refresh the course list to ensure all changes are reflected
+    fetchCourses();
   }
 
   if (!courses) {

@@ -1,6 +1,5 @@
 import Popup from '../models/Popup.js';
-import { uploadPopupImage } from '../configs/cloudinary.js';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 
 // Create a new popup
 export const createPopup = async (req, res) => {
@@ -12,34 +11,20 @@ export const createPopup = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Image is required' });
     }
 
-    let uploadResult;
-    
-    // Handle memory storage (faster for small files)
-    if (imageFile.buffer) {
-      // Convert buffer to temporary file for Cloudinary
-      const tempPath = `uploads/temp-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-      
-      // Ensure uploads directory exists
-      if (!fs.existsSync('uploads/')) {
-        fs.mkdirSync('uploads/', { recursive: true });
-      }
-      
-      // Write buffer to temporary file
-      fs.writeFileSync(tempPath, imageFile.buffer);
-      
-      try {
-        // Upload to Cloudinary using optimized function
-        uploadResult = await uploadPopupImage(tempPath);
-      } finally {
-        // Clean up temp file
-        if (fs.existsSync(tempPath)) {
-          fs.unlinkSync(tempPath);
+    // Upload image directly from buffer to Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          folder: "popup_images",
+          quality: "auto",
+          fetch_format: "auto"
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
         }
-      }
-    } else {
-      // Handle disk storage (fallback)
-      uploadResult = await uploadPopupImage(imageFile.path);
-    }
+      ).end(imageFile.buffer);
+    });
     
     const popup = new Popup({
       title,
@@ -130,7 +115,19 @@ export const updatePopup = async (req, res) => {
 
     if (imageFile) {
       // Upload new image to Cloudinary
-      const uploadResult = await uploadPopupImage(imageFile.path);
+      const uploadResult = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            folder: "popup_images",
+            quality: "auto",
+            fetch_format: "auto"
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(imageFile.buffer);
+      });
       updateData.imageUrl = uploadResult.secure_url;
     }
 

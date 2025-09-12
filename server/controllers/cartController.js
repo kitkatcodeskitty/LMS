@@ -4,7 +4,6 @@ import { Purchase } from '../models/Purchase.js';
 import User from '../models/User.js';
 import Course from '../models/Course.js';
 import { v2 as cloudinary } from 'cloudinary';
-import { createNotification } from './notificationController.js';
 import { calculateDiscountedPrice, calculatePackageBasedCommission } from '../utils/priceHelpers.js';
 
 export const addToCart = async (req, res) => {
@@ -24,12 +23,15 @@ export const addToCart = async (req, res) => {
     }
 
     // Upload payment screenshot to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "payment_screenshots", // optional: organize uploads
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: "payment_screenshots" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(req.file.buffer);
     });
-
-    // Remove the local file after upload
-    fs.unlinkSync(req.file.path);
 
     const paymentScreenshot = result.secure_url; // Cloudinary URL
 
@@ -226,15 +228,6 @@ export const validatePurchase = async (req, res) => {
       }
     }
 
-    // Send success notification to user
-    await createNotification(
-      userId,
-      "Course Purchase Validated! 🎉",
-      `Your purchase for "${courseItem.course.courseTitle}" has been validated successfully. You can now access the course content.`,
-      "success",
-      courseId,
-      "course_validated"
-    );
 
     userCart.courses = userCart.courses.filter(
       (item) => item.course._id.toString() !== courseId
@@ -358,20 +351,11 @@ export const rejectPurchase = async (req, res) => {
       });
     }
 
-    // Get course details for notification
+    // Get course details
     const courseItem = userCart.courses.find(
       (item) => item.course._id.toString() === courseId.toString()
     );
 
-    // Send rejection notification to user
-    await createNotification(
-      userId,
-      "Course Purchase Rejected ❌",
-      `Your purchase for "${courseItem.course.courseTitle}" has been rejected. Please contact support for more information.`,
-      "error",
-      courseId,
-      "course_rejected"
-    );
 
     // Remove the course from cart
     userCart.courses = userCart.courses.filter(
@@ -400,10 +384,15 @@ export const updateCartItem = async (req, res) => {
 
     // Handle file upload if provided
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "payment_screenshots",
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "payment_screenshots" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(req.file.buffer);
       });
-      fs.unlinkSync(req.file.path);
       paymentScreenshot = result.secure_url;
     }
 

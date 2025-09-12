@@ -197,25 +197,19 @@ const EditProfile = ({
                 accept="image/*"
                 onChange={handleProfileImageChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                disabled={profileEditStatus?.hasEditedProfile}
               />
-              {!profileEditStatus?.hasEditedProfile && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                </div>
-              )}
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+              </div>
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Photo</h3>
               <p className="text-sm text-gray-600 mb-3">
-                {profileEditStatus?.hasEditedProfile 
-                  ? 'Photo cannot be changed after profile edit restriction is active.'
-                  : 'Upload a new profile photo. JPG, PNG or GIF. Max 5MB.'
-                }
+                Upload a new profile photo. JPG, PNG or GIF. Max 5MB.
               </p>
-              {profileImageFile && !profileEditStatus?.hasEditedProfile && (
+              {profileImageFile && (
                 <button
                   type="button"
                   onClick={handleRemoveProfileImage}

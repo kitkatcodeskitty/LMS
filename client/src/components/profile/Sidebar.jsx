@@ -63,7 +63,7 @@ const Sidebar = ({
     { id: 'withdrawal', label: 'Withdrawal', icon: <FaMoneyBillWave />, color: 'from-rose-500 to-pink-500' },
     { id: 'referrals', label: 'My Team', icon: <FaUsers />, color: 'from-purple-500 to-purple-600' },
     { id: 'kyc', label: 'KYC Verification', icon: <FaShieldAlt />, color: 'from-emerald-500 to-emerald-600' },
-    { id: 'courses', label: 'My Packages', icon: <FaBook />, color: 'from-indigo-500 to-indigo-600' },
+    { id: 'courses', label: 'My courses ', icon: <FaBook />, color: 'from-indigo-500 to-indigo-600' },
     { id: 'statements', label: 'Referral Earning', icon: <FaFileAlt />, color: 'from-orange-500 to-orange-600' },
     { id: 'purchase-history', label: 'Purchase History', icon: <FaShoppingCart />, color: 'from-teal-500 to-teal-600' },
     { id: 'leaderboard', label: 'Leaderboard', icon: <FaTrophy />, color: 'from-yellow-500 to-yellow-600' },

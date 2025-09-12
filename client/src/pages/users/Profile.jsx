@@ -200,8 +200,8 @@ const Profile = () => {
   const handleEditProfile = async (e) => {
     e.preventDefault();
     
-    // Check if user has already edited profile once
-    if (profileEditStatus.hasEditedProfile) {
+    // Check if user has already edited profile once (only for text fields, not profile picture)
+    if (profileEditStatus.hasEditedProfile && !editForm.profileImageFile) {
       return;
     }
     
@@ -210,11 +210,15 @@ const Profile = () => {
       
       // Create FormData to handle both text fields and file upload
       const formData = new FormData();
-      formData.append('firstName', editForm.firstName);
-      formData.append('lastName', editForm.lastName);
-      formData.append('email', editForm.email);
       
-      // Add profile image if selected
+      // Only add text fields if user hasn't edited profile before
+      if (!profileEditStatus.hasEditedProfile) {
+        formData.append('firstName', editForm.firstName);
+        formData.append('lastName', editForm.lastName);
+        formData.append('email', editForm.email);
+      }
+      
+      // Always allow profile image updates
       if (editForm.profileImageFile) {
         formData.append('image', editForm.profileImageFile);
       }
@@ -237,11 +241,13 @@ const Profile = () => {
       );
 
       if (response.data.success) {
-        // Update local state to reflect the restriction
-        setProfileEditStatus({
-          hasEditedProfile: true,
-          profileEditDate: new Date()
-        });
+        // Only update the restriction status if this is the first time editing text fields
+        if (!profileEditStatus.hasEditedProfile) {
+          setProfileEditStatus({
+            hasEditedProfile: true,
+            profileEditDate: new Date()
+          });
+        }
         // Refresh user data
         window.location.reload();
       }

@@ -12,7 +12,7 @@ const Footer = ({ variant = 'full' }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex md:flex-row flex-col-reverse items-center justify-between py-6">
             <div className='flex items-center gap-4'>
-              <img className='hidden md:block w-16 h-auto hover:scale-105 transition-transform duration-300' src="/logo.png" alt='Growth Nepal Logo'/>
+              <img className='hidden md:block w-16 h-auto hover:scale-105 transition-transform duration-300' src="/footer.png" alt='Growth Nepal Logo'/>
               <div className='hidden md:block h-6 w-px bg-gray-300'></div>
               <p className='text-center text-sm text-gray-600 font-medium'>
                 © {currentYear} Growth Nepal. All rights reserved.
@@ -51,7 +51,7 @@ const Footer = ({ variant = 'full' }) => {
           {/* Company Info */}
           <div className='lg:col-span-2 space-y-6'>
             <div className="group">
-              <img className='h-14 w-auto hover:scale-105 transition-transform duration-300' src="/logo.png" alt='Growth Nepal Logo' />
+              <img className='h-14 w-auto hover:scale-105 transition-transform duration-300' src="/footer.png" alt='Growth Nepal Logo' />
             </div>
             <p className='text-white/80 text-base leading-relaxed max-w-md'>
               Empowering learners worldwide with cutting-edge online education. Transform your career with our comprehensive learning platform designed for the future.

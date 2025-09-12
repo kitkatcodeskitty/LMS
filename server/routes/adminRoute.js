@@ -22,7 +22,10 @@ import { verify, verifyAdmin, verifyAdminOrSubAdmin } from "../auth.js";
 const adminRouter = express.Router();
 
 
-adminRouter.post('/add-course', verify, verifyAdmin, upload.single('image'), addCourse);
+adminRouter.post('/add-course', verify, verifyAdmin, upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'lectureThumbnails', maxCount: 50 }
+]), addCourse);
 adminRouter.get('/dashboard', verify, verifyAdminOrSubAdmin, adminDashboardData);
 adminRouter.get('/purchased-users', verify, verifyAdminOrSubAdmin, getAllPurchasesWithUserAndCourse);
 adminRouter.get('/enrolled-students', verify, verifyAdminOrSubAdmin, getAllEnrolledStudents);

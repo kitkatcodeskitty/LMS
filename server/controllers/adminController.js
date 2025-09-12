@@ -6,21 +6,40 @@ import Cart from '../models/Cart.js';
 import { Purchase } from '../models/Purchase.js';
 import Withdrawal from '../models/Withdrawal.js';
 import mongoose from 'mongoose';
-import { createNotification } from './notificationController.js';
-import { 
-  notifyWithdrawalApproved, 
-  notifyWithdrawalRejected, 
-  notifyWithdrawalEdited,
-  sendWithdrawalEmailNotification 
-} from '../utils/withdrawalNotifications.js';
+import fs from 'fs';
 
+// Function to convert YouTube URLs to embed format
+const convertYouTubeToEmbed = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  
+  // Regular YouTube watch URL: https://www.youtube.com/watch?v=VIDEO_ID
+  const watchMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+  if (watchMatch) {
+    return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  }
+  
+  // Already embed format
+  if (url.includes('youtube.com/embed/')) {
+    return url;
+  }
+  
+  // Return original URL if not YouTube
+  return url;
+};
 
+  
 // naya course admin leh halni 
 export const addCourse = async (req, res) => {
   try {
-    const imageFile = req.file;
+    const imageFile = req.files?.image?.[0];
+    const lectureThumbnails = req.files?.lectureThumbnails || [];
     const userId = req.user.id;
     const body = req.body;
+
+    // Debug: Log what we're receiving
+    console.log('req.files:', req.files);
+    console.log('imageFile:', imageFile);
+    console.log('lectureThumbnails:', lectureThumbnails);
 
     if (!imageFile) {
       return res.json({ success: false, message: 'Thumbnail not Attached' });
@@ -38,19 +57,138 @@ export const addCourse = async (req, res) => {
       parsedCourseData.isPublished = false;
     }
 
-    const newCourse = await Course.create(parsedCourseData);
+    // Convert YouTube URLs to embed format for all lectures
+    if (parsedCourseData.courseContent && Array.isArray(parsedCourseData.courseContent)) {
+      parsedCourseData.courseContent.forEach(chapter => {
+        if (chapter.chapterContent && Array.isArray(chapter.chapterContent)) {
+          chapter.chapterContent.forEach(lecture => {
+            if (lecture.lectureUrl) {
+              const originalUrl = lecture.lectureUrl;
+              lecture.lectureUrl = convertYouTubeToEmbed(lecture.lectureUrl);
+              if (originalUrl !== lecture.lectureUrl) {
+                console.log(`Converted YouTube URL: ${originalUrl} -> ${lecture.lectureUrl}`);
+              }
+            }
+          });
+        }
+      });
+    }
 
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
-      folder: "course_thumbnails",
-      quality: "auto",
-      fetch_format: "auto",
-      flags: "preserve_transparency"
+    // Upload course thumbnail
+    console.log('Uploading course thumbnail...');
+    const imageUpload = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          folder: "course_thumbnails",
+          quality: "auto",
+          fetch_format: "auto",
+          flags: "preserve_transparency"
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(imageFile.buffer);
     });
-    newCourse.courseThumbnail = imageUpload.secure_url;
-    await newCourse.save();
+    parsedCourseData.courseThumbnail = imageUpload.secure_url;
+    console.log('Course thumbnail uploaded successfully');
 
-    res.json({ success: true, message: 'Course Added' });
+    // Upload lecture thumbnails and update course content
+    if (lectureThumbnails.length > 0) {
+      console.log(`Uploading ${lectureThumbnails.length} lecture thumbnails...`);
+      let thumbnailIndex = 0;
+      
+      // Process each chapter and its lectures
+      for (let chapterIndex = 0; chapterIndex < parsedCourseData.courseContent.length; chapterIndex++) {
+        const chapter = parsedCourseData.courseContent[chapterIndex];
+        
+        for (let lectureIndex = 0; lectureIndex < chapter.chapterContent.length; lectureIndex++) {
+          const lecture = chapter.chapterContent[lectureIndex];
+          
+          // Check if this lecture should have a thumbnail (based on the original data)
+          // The frontend sends thumbnails in order, so we match them by order
+          if (lecture.lectureThumbnail && thumbnailIndex < lectureThumbnails.length) {
+            const thumbnailFile = lectureThumbnails[thumbnailIndex];
+            
+            try {
+              console.log(`Uploading lecture thumbnail ${thumbnailIndex + 1}/${lectureThumbnails.length}...`);
+              const thumbnailUpload = await new Promise((resolve, reject) => {
+                cloudinary.uploader.upload_stream(
+                  {
+                    folder: "lecture_thumbnails",
+                    quality: "auto",
+                    fetch_format: "auto",
+                    flags: "preserve_transparency"
+                  },
+                  (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                  }
+                ).end(thumbnailFile.buffer);
+              });
+              
+              // Update the lecture with the uploaded thumbnail URL
+              parsedCourseData.courseContent[chapterIndex].chapterContent[lectureIndex].lectureThumbnail = thumbnailUpload.secure_url;
+              
+              thumbnailIndex++;
+              console.log(`Lecture thumbnail ${thumbnailIndex} uploaded successfully`);
+            } catch (uploadError) {
+              console.error('Error uploading lecture thumbnail:', uploadError);
+              // Continue with other thumbnails even if one fails
+            }
+          }
+        }
+      }
+      console.log('All lecture thumbnails processed');
+    }
+
+    console.log('Creating course in database...');
+    const newCourse = await Course.create(parsedCourseData);
+    console.log('Course created successfully with ID:', newCourse._id);
+
+    // Clean up uploaded files
+    try {
+      if (imageFile && imageFile.path) {
+        fs.unlinkSync(imageFile.path);
+        console.log('Course thumbnail file cleaned up');
+      }
+      
+      if (lectureThumbnails && lectureThumbnails.length > 0) {
+        lectureThumbnails.forEach(file => {
+          if (file.path) {
+            fs.unlinkSync(file.path);
+          }
+        });
+        console.log('Lecture thumbnail files cleaned up');
+      }
+    } catch (cleanupError) {
+      console.error('Error cleaning up files:', cleanupError);
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Course Added Successfully',
+      courseId: newCourse._id,
+      courseTitle: newCourse.courseTitle
+    });
   } catch (error) {
+    // Clean up files on error
+    try {
+      if (imageFile && imageFile.path) {
+        fs.unlinkSync(imageFile.path);
+      }
+      
+      if (lectureThumbnails && lectureThumbnails.length > 0) {
+        lectureThumbnails.forEach(file => {
+          if (file.path) {
+            fs.unlinkSync(file.path);
+          }
+        });
+      }
+    } catch (cleanupError) {
+      console.error('Error cleaning up files after error:', cleanupError);
+    }
+    
     res.json({ success: false, message: error.message });
   }
 };

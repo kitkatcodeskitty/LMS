@@ -197,7 +197,7 @@ const Hero = () => {
 
                     {/* Button - Center Aligned */}
                     <div className='flex justify-center'>
-                                              <button onClick={handleGetStarted} className='bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold flex items-center gap-3 shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl'>
+                      <button onClick={handleGetStarted} className='bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold flex items-center gap-3 shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl'>
                         {slide.buttonText}
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />

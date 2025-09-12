@@ -7,6 +7,7 @@ const lectureSchema = new mongoose.Schema({
   lectureUrl: { type: String, required: true },
   isPreviewFree: { type: Boolean, required: true },
   lectureOrder: { type: Number, required: true },
+  lectureThumbnail: { type: String }, // Optional thumbnail URL
 }, { _id: false });
 
 const chapterSchema = new mongoose.Schema({

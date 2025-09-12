@@ -2,7 +2,6 @@ import React, { useContext, useState, useRef, useEffect } from 'react';
 import { assets } from '../../assets/assets';
 import { useLocation } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
-import NotificationBell from './NotificationBell';
 import SpikyVerificationBadge from '../common/SpikyVerificationBadge';
 import axios from 'axios';
 
@@ -294,8 +293,6 @@ const Navbar = () => {
                   </button>
                 )}
 
-                {/* Notification Bell */}
-                <NotificationBell />
 
                 {/* User Profile Dropdown */}
                 <div className="relative" ref={desktopDropdownRef}>
@@ -612,8 +609,6 @@ const Navbar = () => {
           <div className="md:hidden flex items-center space-x-2">
             {userData ? (
               <>
-                {/* Notification Bell for Mobile */}
-                <NotificationBell />
 
                 <div className="relative ml-1" ref={mobileDropdownRef}>
                   <button

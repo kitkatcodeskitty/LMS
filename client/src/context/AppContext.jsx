@@ -16,8 +16,6 @@ export const AppContextProvider = (props) => {
   const [isSubAdmin, setIsSubAdmin] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [userData, setUserData] = useState(null);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
   // Get token from localStorage or sessionStorage
@@ -43,129 +41,11 @@ export const AppContextProvider = (props) => {
     setUserData(null);
     setIsEducator(false);
     setIsSubAdmin(false);
-    setNotifications([]);
-    setUnreadNotificationCount(0);
     setPendingOrdersCount(0);
     setEnrolledCourses([]);
   };
   
 
-  // Fetch notifications
-  const fetchNotifications = async () => {
-    try {
-      const token = getToken();
-      if (!token) return;
-
-      const { data } = await axios.get(`${backendUrl}/api/notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (data.success) {
-        setNotifications(data.notifications || []);
-      } else {
-        setNotifications([]);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      setNotifications([]);
-    }
-  };
-
-  // Fetch unread notification count
-  const fetchUnreadNotificationCount = async () => {
-    try {
-      const token = getToken();
-      if (!token) return;
-
-      const { data } = await axios.get(`${backendUrl}/api/notifications/unread-count`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (data.success) {
-        setUnreadNotificationCount(data.count || 0);
-      } else {
-        setUnreadNotificationCount(0);
-      }
-    } catch (error) {
-      console.error('Error fetching unread notification count:', error);
-      setUnreadNotificationCount(0);
-    }
-  };
-
-  // Mark notification as read
-  const markNotificationAsRead = async (notificationId) => {
-    try {
-      const token = getToken();
-      if (!token) return;
-
-      const { data } = await axios.put(
-        `${backendUrl}/api/notifications/${notificationId}/read`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (data.success) {
-        setNotifications(prev => 
-          prev.map(notification => 
-            notification._id === notificationId 
-              ? { ...notification, isRead: true }
-              : notification
-          )
-        );
-        setUnreadNotificationCount(prev => Math.max(0, prev - 1));
-      }
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  // Mark all notifications as read
-  const markAllNotificationsAsRead = async () => {
-    try {
-      const token = getToken();
-      if (!token) return;
-
-      const { data } = await axios.put(
-        `${backendUrl}/api/notifications/mark-all-read`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (data.success) {
-        setNotifications(prev => 
-          prev.map(notification => ({ ...notification, isRead: true }))
-        );
-        setUnreadNotificationCount(0);
-      }
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  // Delete notification
-  const deleteNotification = async (notificationId) => {
-    try {
-      const token = getToken();
-      if (!token) return;
-
-      const { data } = await axios.delete(
-        `${backendUrl}/api/notifications/${notificationId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (data.success) {
-        setNotifications(prev => 
-          prev.filter(notification => notification._id !== notificationId)
-        );
-        const deletedNotification = notifications.find(n => n._id === notificationId);
-        if (deletedNotification && !deletedNotification.isRead) {
-          setUnreadNotificationCount(prev => Math.max(0, prev - 1));
-        }
-      }
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-    }
-  };
 
   // Fetch pending orders count
   const fetchPendingOrdersCount = async () => {
@@ -333,23 +213,20 @@ export const AppContextProvider = (props) => {
     }
   }, []);
 
-  // Load notifications when user data is available
+  // Load data when user data is available
   useEffect(() => {
     if (userData) {
-      fetchNotifications();
-      fetchUnreadNotificationCount();
       if (userData.isAdmin || userData.isSubAdmin || userData.role === 'subadmin') {
         fetchPendingOrdersCount();
       }
     }
   }, [userData]);
 
-  // Set up polling for notifications every 30 seconds when user is logged in
+  // Set up polling for data every 30 seconds when user is logged in
   useEffect(() => {
     if (!userData) return;
 
     const interval = setInterval(() => {
-      fetchUnreadNotificationCount();
       if (userData.isAdmin || userData.isSubAdmin || userData.role === 'subadmin') {
         fetchPendingOrdersCount();
       }
@@ -388,12 +265,6 @@ export const AppContextProvider = (props) => {
     calculateChapterTime,
     calculateCourseDuration,
     calculateNoOfLectures,
-    notifications,
-    unreadNotificationCount,
-    fetchNotifications,
-    markNotificationAsRead,
-    markAllNotificationsAsRead,
-    deleteNotification,
     pendingOrdersCount,
     fetchPendingOrdersCount,
   };

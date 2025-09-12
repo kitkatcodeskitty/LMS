@@ -6,7 +6,6 @@ import connectCloudinary from './configs/cloudinary.js'
 import courseRouter from './routes/courseRoute.js'
 import userRouter from './routes/userRoute.js'
 import cartRouter from './routes/cartRoute.js';
-import notificationRouter from './routes/notificationRoute.js';
 import kycRouter from './routes/kycRoute.js';
 import withdrawalRouter from './routes/withdrawalRoute.js';
 import popupRouter from './routes/popupRoute.js';
@@ -51,7 +50,6 @@ app.use('/api/admin', adminRoute)
 app.use('/api/courses', courseRouter)
 app.use('/api/users', userRouter)
 app.use('/api/cart', cartRouter);
-app.use('/api/notifications', notificationRouter);
 app.use('/api/kyc', kycRouter);
 app.use('/api/withdrawals', withdrawalRouter);
 app.use('/api/popups', popupRouter);

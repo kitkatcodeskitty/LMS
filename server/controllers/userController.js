@@ -29,7 +29,15 @@ export const register = async (req, res) => {
 
     let imageUrl = "";
     if (imageFile) {
-      const uploadedImage = await cloudinary.uploader.upload(imageFile.path);
+      const uploadedImage = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "user_profiles" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(imageFile.buffer);
+      });
       imageUrl = uploadedImage.secure_url;
     }
 
@@ -301,10 +309,18 @@ export const updateUserProfile = async (req, res) => {
     // Handle image upload if provided
     if (imageFile) {
       try {
-        const uploadedImage = await cloudinary.uploader.upload(imageFile.path, {
-          folder: "user_profiles",
-          quality: "auto",
-          fetch_format: "auto"
+        const uploadedImage = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            {
+              folder: "user_profiles",
+              quality: "auto",
+              fetch_format: "auto"
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(imageFile.buffer);
         });
         updateData.imageUrl = uploadedImage.secure_url;
       } catch (uploadError) {
@@ -702,11 +718,11 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // If user has already edited profile once, prevent further edits
-    if (user.hasEditedProfile) {
+    // If user has already edited profile once, only allow profile picture updates
+    if (user.hasEditedProfile && !req.file) {
       return res.status(403).json({ 
         success: false, 
-        message: "Profile can only be edited once. Please contact an administrator for any further changes.",
+        message: "Profile can only be edited once. You can only update your profile picture now.",
         hasEditedProfile: true,
         profileEditDate: user.profileEditDate
       });
@@ -715,20 +731,22 @@ export const updateProfile = async (req, res) => {
     // Handle both text fields and file uploads
     const updateData = {};
     
-    // Handle text fields if they exist and are not empty
-    if (req.body.firstName && req.body.firstName.trim() !== '') updateData.firstName = req.body.firstName.trim();
-    if (req.body.lastName && req.body.lastName.trim() !== '') updateData.lastName = req.body.lastName.trim();
-    if (req.body.email && req.body.email.trim() !== '') {
-      // Check if email is already used by another user
-      const existingUser = await User.findOne({ email: req.body.email.trim(), _id: { $ne: userId } });
-      if (existingUser) {
-        return res.status(400).json({ success: false, message: "Email already in use by another user" });
+    // Handle text fields only if user hasn't edited profile before
+    if (!user.hasEditedProfile) {
+      if (req.body.firstName && req.body.firstName.trim() !== '') updateData.firstName = req.body.firstName.trim();
+      if (req.body.lastName && req.body.lastName.trim() !== '') updateData.lastName = req.body.lastName.trim();
+      if (req.body.email && req.body.email.trim() !== '') {
+        // Check if email is already used by another user
+        const existingUser = await User.findOne({ email: req.body.email.trim(), _id: { $ne: userId } });
+        if (existingUser) {
+          return res.status(400).json({ success: false, message: "Email already in use by another user" });
+        }
+        updateData.email = req.body.email.trim();
       }
-      updateData.email = req.body.email.trim();
     }
     
-    // Handle password update if provided
-    if (req.body.currentPassword && req.body.newPassword) {
+    // Handle password update only if user hasn't edited profile before
+    if (!user.hasEditedProfile && req.body.currentPassword && req.body.newPassword) {
       // Verify current password
       const isPasswordValid = await user.comparePassword(req.body.currentPassword);
       if (!isPasswordValid) {
@@ -742,7 +760,15 @@ export const updateProfile = async (req, res) => {
     // Handle profile image upload if provided
     if (req.file) {
       try {
-        const uploadedImage = await cloudinary.uploader.upload(req.file.path);
+        const uploadedImage = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { folder: "user_profiles" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(req.file.buffer);
+        });
         updateData.imageUrl = uploadedImage.secure_url;
       } catch (uploadError) {
         return res.status(500).json({ success: false, message: "Failed to upload image" });
@@ -754,9 +780,11 @@ export const updateProfile = async (req, res) => {
       return res.status(400).json({ success: false, message: "No fields to update" });
     }
 
-    // Mark that profile has been edited and set the edit date
-    updateData.hasEditedProfile = true;
-    updateData.profileEditDate = new Date();
+    // Mark that profile has been edited and set the edit date only if text fields were updated
+    if (!user.hasEditedProfile && (updateData.firstName || updateData.lastName || updateData.email || updateData.password)) {
+      updateData.hasEditedProfile = true;
+      updateData.profileEditDate = new Date();
+    }
 
     // Apply updates to user object
     Object.assign(user, updateData);
@@ -768,10 +796,14 @@ export const updateProfile = async (req, res) => {
     const userResponse = updatedUser.toObject();
     delete userResponse.password;
 
+    const message = user.hasEditedProfile 
+      ? "Profile picture updated successfully." 
+      : "Profile updated successfully. Note: Profile text fields can only be edited once. You can always update your profile picture.";
+    
     res.json({ 
       success: true, 
       data: userResponse, 
-      message: "Profile updated successfully. Note: Profile can only be edited once. Contact an administrator for any further changes." 
+      message 
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

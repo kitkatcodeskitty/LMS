@@ -22,6 +22,10 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
   const [chapters, setChapters] = useState([])
   const [editingChapterId, setEditingChapterId] = useState(null) // chapter being edited inline
   const [chapterEditTitle, setChapterEditTitle] = useState('')
+  
+  // Description collapse state
+  const [isDescriptionCollapsed, setIsDescriptionCollapsed] = useState(false)
+  const [isContentCollapsed, setIsContentCollapsed] = useState(false)
 
   // Lecture popup controls
   const [showLecturePopup, setShowLecturePopup] = useState(false)
@@ -34,16 +38,24 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
     lectureDuration: '',
     lectureUrl: '',
     isPreviewFree: false,
+    lectureThumbnail: null,
   })
 
   // Load initial course data when course prop changes
   useEffect(() => {
     if (!course) return
+    
     setCourseTitle(course.courseTitle || '')
     setCoursePrice(course.coursePrice || 0)
     setDiscount(course.discount || 0)
     setDiscountType(course.discountType || 'percentage')
-    setChapters(course.courseContent || [])
+    
+    // Load chapters and ensure they're expanded by default
+    const loadedChapters = (course.courseContent || []).map(chapter => ({
+      ...chapter,
+      collapsed: false // Make sure chapters are expanded by default
+    }))
+    setChapters(loadedChapters)
     setImagePreview(course.courseThumbnail || '')
 
     // Initialize Quill editor with description
@@ -124,6 +136,7 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
         lectureDuration: '',
         lectureUrl: '',
         isPreviewFree: false,
+        lectureThumbnail: null,
       })
       setShowLecturePopup(true)
     } else if (action === 'edit') {
@@ -205,6 +218,7 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
       lectureDuration: '',
       lectureUrl: '',
       isPreviewFree: false,
+      lectureThumbnail: null,
     })
     setEditingLecture(null)
   }
@@ -232,6 +246,12 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
         discountType,
         courseContent: chapters,
       }
+
+      console.log('Sending course data:', courseData);
+      console.log('Chapters count:', chapters.length);
+      chapters.forEach((chapter, index) => {
+        console.log(`Chapter ${index + 1}: ${chapter.chapterTitle} (${chapter.chapterContent.length} lectures)`);
+      });
 
       const formData = new FormData()
       formData.append('courseData', JSON.stringify(courseData))
@@ -295,12 +315,31 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
 
           {/* Course Description */}
           <div className="flex flex-col gap-1">
-            <label className="font-medium">Course Description</label>
-            <div
-              ref={editorRef}
-              className="border border-gray-300 rounded min-h-[120px]"
-              style={{ backgroundColor: 'white' }}
-            ></div>
+            <div className="flex items-center justify-between">
+              <label className="font-medium">Course Description</label>
+              <button
+                type="button"
+                onClick={() => setIsDescriptionCollapsed(!isDescriptionCollapsed)}
+                className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+              >
+                <span>{isDescriptionCollapsed ? 'Show' : 'Hide'}</span>
+                <span className={`transform transition-transform ${isDescriptionCollapsed ? 'rotate-0' : 'rotate-180'}`}>
+                  ▼
+                </span>
+              </button>
+            </div>
+            {!isDescriptionCollapsed && (
+              <div
+                ref={editorRef}
+                className="border border-gray-300 rounded min-h-[120px]"
+                style={{ backgroundColor: 'white' }}
+              ></div>
+            )}
+            {isDescriptionCollapsed && (
+              <div className="text-sm text-gray-500 italic p-2 bg-gray-50 rounded border">
+                Description editor is collapsed. Click "Show" to edit.
+              </div>
+            )}
           </div>
 
           {/* Course Price and Thumbnail */}
@@ -372,18 +411,50 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
             />
           </div>
 
+
           {/* Chapters List */}
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-xl font-semibold">Chapters</h3>
-              <button
-                type="button"
-                onClick={() => handleChapter('add')}
-                className="bg-blue-500 text-white rounded px-3 py-1"
-              >
-                + Add Chapter
-              </button>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-blue-800 mb-2">
+                    📚 Course Content Management
+                  </h3>
+                  <p className="text-blue-700 text-sm">
+                    Edit existing chapters and lectures, or add new ones. All changes will be saved when you click "Update Course".
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsContentCollapsed(!isContentCollapsed)}
+                  className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 rounded transition-colors"
+                >
+                  <span>{isContentCollapsed ? 'Show' : 'Hide'}</span>
+                  <span className={`transform transition-transform ${isContentCollapsed ? 'rotate-0' : 'rotate-180'}`}>
+                    ▼
+                  </span>
+                </button>
+              </div>
             </div>
+            
+            {!isContentCollapsed && (
+              <>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold">Chapters ({chapters.length})</h3>
+                  <button
+                    type="button"
+                    onClick={() => handleChapter('add')}
+                    className="bg-blue-500 text-white rounded px-4 py-2 hover:bg-blue-600 transition-colors font-medium"
+                  >
+                    ➕ Add New Chapter
+                  </button>
+                </div>
+            
+            {chapters.length === 0 && (
+              <div className="text-gray-500 text-center py-4 border border-dashed border-gray-300 rounded-lg">
+                No chapters yet. Click "Add Chapter" to get started.
+              </div>
+            )}
 
             {chapters.map((chapter, index) => (
               <div key={chapter.chapterId} className="bg-white border rounded-lg mb-4">
@@ -431,9 +502,9 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
                         <button
                           type="button"
                           onClick={() => handleChapter('edit', chapter.chapterId)}
-                          className="ml-2 text-sm px-2 py-1 bg-yellow-300 rounded"
+                          className="ml-2 text-sm px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors font-medium"
                         >
-                          Edit
+                          ✏️ Edit
                         </button>
                       </>
                     )}
@@ -444,65 +515,119 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
                     <button
                       type="button"
                       onClick={() => handleChapter('remove', chapter.chapterId)}
-                      className="text-red-500 font-bold"
+                      className="text-red-500 font-bold text-xl hover:bg-red-100 rounded px-2 py-1 transition-colors"
+                      title="Delete Chapter"
                     >
-                      &times;
+                      🗑️
                     </button>
                   </div>
                 </div>
 
                 {!chapter.collapsed && (
                   <div className="p-4">
-                    {chapter.chapterContent.map((lecture, lectureIndex) => (
-                      <div
-                        key={lecture.lectureId}
-                        className="flex justify-between items-center mb-2"
-                      >
-                        <span>
-                          {lectureIndex + 1}. {lecture.lectureTitle} - {lecture.lectureDuration} mins -{' '}
-                          <a
-                            href={lecture.lectureUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-blue-500"
-                          >
-                            Link
-                          </a>{' '}
-                          - {lecture.isPreviewFree ? 'Free Preview' : 'Paid'}
-                        </span>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleLecture('edit', chapter.chapterId, lectureIndex)
-                            }
-                            className="text-sm px-2 py-1 bg-yellow-300 rounded"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleLecture('remove', chapter.chapterId, lectureIndex)
-                            }
-                            className="text-red-500 font-bold"
-                          >
-                            &times;
-                          </button>
-                        </div>
+                    {chapter.chapterContent.length === 0 ? (
+                      <div className="text-gray-500 text-center py-4 border border-dashed border-gray-300 rounded-lg mb-4">
+                        No lectures yet. Click "Add Lecture" to get started.
                       </div>
-                    ))}
+                    ) : (
+                      <div className="space-y-2 mb-4">
+                        {chapter.chapterContent.map((lecture, lectureIndex) => (
+                          <div
+                            key={lecture.lectureId}
+                            className="flex justify-between items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start gap-3 flex-1">
+                              {/* Lecture Thumbnail */}
+                              <div className="flex-shrink-0">
+                                {lecture.lectureThumbnail ? (
+                                  <img 
+                                    src={lecture.lectureThumbnail} 
+                                    alt={lecture.lectureTitle}
+                                    className="w-16 h-12 object-cover rounded border"
+                                  />
+                                ) : (
+                                  <div className="w-16 h-12 bg-gray-200 rounded border flex items-center justify-center">
+                                    <span className="text-gray-400 text-xs">No Image</span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Lecture Details */}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-gray-900 mb-1">
+                                  {lectureIndex + 1}. {lecture.lectureTitle}
+                                </div>
+                                <div className="text-sm text-gray-600 space-y-1">
+                                  <div className="flex items-center gap-4">
+                                    <span>⏱️ {lecture.lectureDuration} mins</span>
+                                    {lecture.isPreviewFree ? (
+                                      <span className="text-green-600 font-medium">🆓 Free Preview</span>
+                                    ) : (
+                                      <span className="text-blue-600 font-medium">💰 Paid Content</span>
+                                    )}
+                                  </div>
+                                  {lecture.lectureUrl && (
+                                    <div>
+                                      <a
+                                        href={lecture.lectureUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-blue-500 hover:underline text-sm"
+                                      >
+                                        🔗 View Video
+                                      </a>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex gap-2 ml-4 flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleLecture('edit', chapter.chapterId, lectureIndex)
+                                }
+                                className="text-sm px-3 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors font-medium flex items-center gap-1"
+                                title="Edit Lecture"
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleLecture('remove', chapter.chapterId, lectureIndex)
+                                }
+                                className="text-sm px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors font-medium flex items-center gap-1"
+                                title="Delete Lecture"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <button
                       type="button"
-                      className="inline-flex bg-gray-100 p-2 rounded cursor-pointer mt-2"
+                      className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium"
                       onClick={() => handleLecture('add', chapter.chapterId)}
                     >
-                      + Add Lecture
+                      + Add Lecture to this Chapter
                     </button>
                   </div>
                 )}
               </div>
             ))}
+                </>
+            )}
+            
+            {isContentCollapsed && (
+              <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded border text-center">
+                Course content management is collapsed. Click "Show" to edit chapters and lectures.
+              </div>
+            )}
           </div>
 
           <button
@@ -555,6 +680,28 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
                     setLectureDetails({ ...lectureDetails, lectureUrl: e.target.value })
                   }
                 />
+              </div>
+
+              <div className="mb-2">
+                <label className="block mb-1">Lecture Thumbnail</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="mt-1 block w-full border rounded py-1 px-2"
+                  onChange={(e) =>
+                    setLectureDetails({ ...lectureDetails, lectureThumbnail: e.target.files[0] })
+                  }
+                />
+                {editingLecture && editingLecture.lectureThumbnail && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600">Current thumbnail:</p>
+                    <img 
+                      src={editingLecture.lectureThumbnail} 
+                      alt="Current thumbnail" 
+                      className="w-20 h-12 object-cover rounded border"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="mb-2 flex items-center gap-2">
