@@ -171,6 +171,8 @@ const Navbar = () => {
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [latestCourse, setLatestCourse] = useState(null);
+  const [purchasedCourses, setPurchasedCourses] = useState([]);
+  const [hasApprovedCourses, setHasApprovedCourses] = useState(false);
 
   const desktopDropdownRef = useRef(null);
   const mobileDropdownRef = useRef(null);
@@ -193,10 +195,19 @@ const Navbar = () => {
       });
 
       if (data.success && data.purchasedCourses && data.purchasedCourses.length > 0) {
+        setPurchasedCourses(data.purchasedCourses);
         setLatestCourse(data.purchasedCourses[0]);
+        setHasApprovedCourses(true);
+      } else {
+        setPurchasedCourses([]);
+        setLatestCourse(null);
+        setHasApprovedCourses(false);
       }
     } catch (error) {
       console.error('Error fetching latest course:', error);
+      setPurchasedCourses([]);
+      setLatestCourse(null);
+      setHasApprovedCourses(false);
     }
   };
 
@@ -525,19 +536,22 @@ const Navbar = () => {
                         {/* Divider */}
                         <div className="border-t border-gray-100 my-1"></div>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDesktopDropdownOpen(false);
-                            navigate('/profile');
-                          }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          Profile
-                        </button>
+                        {/* Only show Profile link for users with approved courses or admins */}
+                        {(hasApprovedCourses || userData.isAdmin || userData.isSubAdmin) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDesktopDropdownOpen(false);
+                              navigate('/profile');
+                            }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Profile
+                          </button>
+                        )}
                       </div>
 
                       {/* Logout */}
@@ -808,19 +822,22 @@ const Navbar = () => {
                         {/* Divider */}
                         <div className="border-t border-gray-100 my-1"></div>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMobileDropdownOpen(false);
-                            navigate('/profile');
-                          }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 hover:translate-x-1 transform"
-                        >
-                          <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          Profile
-                        </button>
+                        {/* Only show Profile link for users with approved courses or admins */}
+                        {(hasApprovedCourses || userData.isAdmin || userData.isSubAdmin) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMobileDropdownOpen(false);
+                              navigate('/profile');
+                            }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-200 hover:translate-x-1 transform"
+                          >
+                            <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Profile
+                          </button>
+                        )}
                       </div>
 
                       {/* Mobile Logout */}

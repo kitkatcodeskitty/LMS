@@ -1,5 +1,6 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 import Home from './pages/users/Home';
 import CoursesList from './pages/users/CourseList';
@@ -41,9 +42,170 @@ import ScrollToTop from './components/common/ScrollToTop'; // ScrollToTop import
 
 import { AppContext } from './context/AppContext';
 
-// Conditional Home Component - always shows homepage
+// Protected Profile Route - only allows users with approved courses
+const ProtectedProfileRoute = () => {
+  const { userData, backendUrl, getToken } = useContext(AppContext);
+  const [hasApprovedCourses, setHasApprovedCourses] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    checkUserCourses();
+  }, [userData]);
+
+  const checkUserCourses = async () => {
+    if (!userData) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (userData.isAdmin || userData.isSubAdmin) {
+      // Admins and sub-admins always have access
+      setHasApprovedCourses(true);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const token = await getToken();
+      if (!token) {
+        setHasApprovedCourses(false);
+        setIsLoading(false);
+        return;
+      }
+
+      const { data } = await axios.get(`${backendUrl}/api/users/user-purchase`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success && data.purchasedCourses && data.purchasedCourses.length > 0) {
+        setHasApprovedCourses(true);
+      } else {
+        setHasApprovedCourses(false);
+      }
+    } catch (error) {
+      console.error('Error checking user courses:', error);
+      setHasApprovedCourses(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (hasApprovedCourses === false) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Profile />;
+};
+
+// Conditional Home Component - redirects based on user type
 const ConditionalHome = () => {
-  // Always show homepage - users can navigate to profile from there
+  const { userData, backendUrl, getToken } = useContext(AppContext);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasApprovedCourses, setHasApprovedCourses] = useState(false);
+  const [checkingCourses, setCheckingCourses] = useState(false);
+
+  useEffect(() => {
+    // Check if there's a token (user is logged in)
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    
+    if (token && userData) {
+      // User is logged in and data is loaded
+      // Check if this is a direct URL entry (not from navigation)
+      const isDirectEntry = !sessionStorage.getItem('navigated');
+      
+      if (isDirectEntry) {
+        // Check if user has approved courses before redirecting
+        checkUserCourses();
+      } else {
+        setShouldRedirect(false);
+        setIsLoading(false);
+      }
+    } else if (!token) {
+      // No token, user is not logged in
+      setIsLoading(false);
+    }
+    // If there's a token but no userData yet, keep loading
+  }, [userData]);
+
+  const checkUserCourses = async () => {
+    if (!userData || userData.isAdmin || userData.isSubAdmin) {
+      // Admins and sub-admins always have access to profile
+      setHasApprovedCourses(true);
+      setShouldRedirect(true);
+      setIsLoading(false);
+      return;
+    }
+
+    setCheckingCourses(true);
+    try {
+      const token = await getToken();
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data } = await axios.get(`${backendUrl}/api/users/user-purchase`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success && data.purchasedCourses && data.purchasedCourses.length > 0) {
+        setHasApprovedCourses(true);
+        setShouldRedirect(true);
+      } else {
+        setHasApprovedCourses(false);
+        setShouldRedirect(false);
+      }
+    } catch (error) {
+      console.error('Error checking user courses:', error);
+      setHasApprovedCourses(false);
+      setShouldRedirect(false);
+    } finally {
+      setCheckingCourses(false);
+      setIsLoading(false);
+    }
+  };
+
+  // Debug logging
+  console.log('ConditionalHome Debug:', {
+    userData: !!userData,
+    shouldRedirect,
+    isLoading,
+    checkingCourses,
+    hasApprovedCourses,
+    token: !!(localStorage.getItem('token') || sessionStorage.getItem('token')),
+    navigated: !!sessionStorage.getItem('navigated')
+  });
+
+  if (isLoading || checkingCourses) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // If user is logged in, has approved courses, and this is a direct entry, redirect to profile dashboard
+  if (userData && shouldRedirect && hasApprovedCourses) {
+    console.log('Redirecting to profile dashboard - user has approved courses');
+    sessionStorage.setItem('navigated', 'true');
+    return <Navigate to="/profile" replace />;
+  }
+
+  // For non-logged in users, users without approved courses, and navigation within app - show homepage
+  console.log('Showing homepage');
   return <Home />;
 };
 
@@ -83,7 +245,7 @@ const App = () => {
         <Route path="/terms" element={<Terms />} />
         <Route path="/refund" element={<Refund />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={<ProtectedProfileRoute />} />
 
         {/* Admin-only routes */}
         <Route

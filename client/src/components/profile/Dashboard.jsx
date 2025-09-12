@@ -659,45 +659,7 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* Mobile Free Trip Target */}
-      <div className="lg:hidden bg-white rounded-3xl p-6 shadow-lg border border-blue-100/50">
-        <div className="flex items-center mb-6">
-          <div className="w-2 h-6 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full mr-3"></div>
-          <h3 className="text-xl font-bold text-gray-800">Your free trip achieved target</h3>
-        </div>
-        
-        <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 rounded-2xl p-4 mb-6 border border-blue-100/50">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm text-gray-600 font-medium">Achieved: {referralData.length}</span>
-            <span className="text-sm text-gray-600 font-medium">Target: 25</span>
-          </div>
-          
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-            <div 
-              className="bg-gradient-to-r from-blue-500 to-indigo-500 h-3 rounded-full transition-all duration-1000"
-              style={{ width: `${Math.min((referralData.length / 25) * 100, 100)}%` }}
-            ></div>
-          </div>
-        </div>
 
-        <div className="text-center mb-6">
-          <div className="text-4xl font-bold text-blue-600 mb-2">
-            <AnimatedNumber 
-              value={referralData.length} 
-              duration={2000} 
-              delay={1700} 
-            />
-          </div>
-          <div className="text-sm text-gray-600 font-medium">No Of Referral</div>
-        </div>
-        
-                    <button 
-              onClick={() => handleTabChange('referrals')}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-6 rounded-2xl font-medium transition-all duration-200 shadow-lg"
-            >
-              COmming soon 
-            </button>
-      </div>
 
       {/* Desktop Withdrawal Section */}
       <div className="hidden bg-white rounded-2xl p-6 shadow-lg border border-gray-200 mb-6">
@@ -781,33 +743,7 @@ const Dashboard = ({
             </div>
           </div>
 
-          {/* Free Trip Target */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Your free trip achieved target</h3>
-            
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-sm text-gray-600 font-medium">Achieved: {referralData.length}</span>
-              <span className="text-sm text-gray-600 font-medium">Target: 25</span>
-            </div>
 
-            <div className="text-center mb-4">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
-                <AnimatedNumber 
-                  value={referralData.length} 
-                  duration={2000} 
-                  delay={1700} 
-                />
-              </div>
-              <div className="text-sm text-gray-600 font-medium">No Of Referral</div>
-            </div>
-            
-            <button 
-              onClick={() => handleTabChange('referrals')}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-6 rounded-xl font-medium transition-all duration-200"
-            >
-            Comming soon
-            </button>
-          </div>
         </div>
 
         {/* Recent Activity */}

@@ -39,6 +39,7 @@ export const AppContextProvider = (props) => {
   const clearAuthData = () => {
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
+    sessionStorage.removeItem('navigated'); // Clear navigation status on logout
     setUserData(null);
     setIsEducator(false);
     setIsSubAdmin(false);
