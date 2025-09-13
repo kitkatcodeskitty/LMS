@@ -31,7 +31,6 @@ const AddPackage = () => {
     lectureDuration: '',
     lectureUrl: '',
     isPreviewFree: false,
-    lectureThumbnail: null,
   });
 
   // Auto-fill price and description when package type changes
@@ -86,6 +85,7 @@ const AddPackage = () => {
         const newChapter = {
           chapterId: nanoid(),
           chapterTitle: title,
+          chapterBanner: null,
           chapterContent: [],
           collapsed: false,
           chapterOrder: chapters.length > 0 ? chapters.slice(-1)[0].chapterOrder + 1 : 1,
@@ -149,7 +149,6 @@ const AddPackage = () => {
       lectureDuration: '',
       lectureUrl: '',
       isPreviewFree: false,
-      lectureThumbnail: null,
     });
   };
 
@@ -208,13 +207,11 @@ const AddPackage = () => {
       console.log('Image being sent:', image);
       console.log('FormData image:', formData.get('image'));
 
-      // Add lecture thumbnails
+      // Add chapter banners
       chapters.forEach((chapter, chapterIndex) => {
-        chapter.chapterContent.forEach((lecture, lectureIndex) => {
-          if (lecture.lectureThumbnail) {
-            formData.append(`lectureThumbnails`, lecture.lectureThumbnail);
-          }
-        });
+        if (chapter.chapterBanner) {
+          formData.append(`chapterBanners`, chapter.chapterBanner);
+        }
       });
 
       setUploadStatus('Uploading course to server...');
@@ -430,17 +427,51 @@ const AddPackage = () => {
                     {index + 1}. {chapter.chapterTitle}
                   </span>
                 </div>
-                <span className='text-gray-500'>{chapter.chapterContent.length}</span>
-                <img
-                  src={assets.cross_icon}
-                  onClick={() => handleChapter('remove', chapter.chapterId)}
-                  alt='Remove Chapter'
-                  className='cursor-pointer'
-                />
+                <div className='flex items-center gap-3'>
+                  <span className='text-gray-500'>{chapter.chapterContent.length}</span>
+                  <label htmlFor={`chapterBanner-${chapter.chapterId}`} className='flex items-center gap-2 cursor-pointer text-sm text-blue-600 hover:text-blue-800'>
+                    <img src={assets.file_upload_icon} alt='' className='w-4 h-4' />
+                    {chapter.chapterBanner ? 'Change Banner' : 'Add Banner'}
+                    <input
+                      type='file'
+                      id={`chapterBanner-${chapter.chapterId}`}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setChapters(chapters.map(ch => 
+                            ch.chapterId === chapter.chapterId 
+                              ? { ...ch, chapterBanner: file }
+                              : ch
+                          ));
+                        }
+                      }}
+                      accept='image/*'
+                      hidden
+                    />
+                  </label>
+                  <img
+                    src={assets.cross_icon}
+                    onClick={() => handleChapter('remove', chapter.chapterId)}
+                    alt='Remove Chapter'
+                    className='cursor-pointer'
+                  />
+                </div>
               </div>
 
               {!chapter.collapsed && (
                 <div className='p-4'>
+                  {/* Chapter Banner Preview */}
+                  {chapter.chapterBanner && (
+                    <div className='mb-4'>
+                      <p className='text-sm text-gray-600 mb-2'>Chapter Banner:</p>
+                      <img
+                        src={URL.createObjectURL(chapter.chapterBanner)}
+                        alt='Chapter banner preview'
+                        className='max-h-32 w-full object-cover rounded-lg border'
+                      />
+                    </div>
+                  )}
+                  
                   {chapter.chapterContent.map((lecture, lectureIndex) => (
                     <div
                       key={lecture.lectureId}
@@ -538,25 +569,6 @@ const AddPackage = () => {
                   />
                 </div>
 
-                <div className='mb-2'>
-                  <p>Lecture Thumbnail</p>
-                  <input
-                    type='file'
-                    accept='image/*'
-                    className='mt-1 block w-full border rounded py-2 px-3'
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        setLectureDetails({ ...lectureDetails, lectureThumbnail: file });
-                      }
-                    }}
-                  />
-                  {lectureDetails.lectureThumbnail && (
-                    <div className='mt-2'>
-                      <p className='text-sm text-gray-600'>Selected: {lectureDetails.lectureThumbnail.name}</p>
-                    </div>
-                  )}
-                </div>
 
                 <button
                   onClick={addLecture}

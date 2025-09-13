@@ -38,8 +38,12 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
     lectureDuration: '',
     lectureUrl: '',
     isPreviewFree: false,
-    lectureThumbnail: null,
   })
+
+  // Loading states
+  const [loading, setLoading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadStatus, setUploadStatus] = useState('')
 
   // Load initial course data when course prop changes
   useEffect(() => {
@@ -75,6 +79,7 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
         const newChapter = {
           chapterId: nanoid(),
           chapterTitle: newChapterTitle,
+          chapterBanner: null,
           chapterContent: [],
           collapsed: false,
           chapterOrder:
@@ -136,7 +141,6 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
         lectureDuration: '',
         lectureUrl: '',
         isPreviewFree: false,
-        lectureThumbnail: null,
       })
       setShowLecturePopup(true)
     } else if (action === 'edit') {
@@ -182,7 +186,12 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
           if (chapter.chapterId === currentChapterId) {
             const updatedContent = chapter.chapterContent.map((lecture) =>
               lecture.lectureId === editingLecture.lectureId
-                ? { ...lectureDetails, lectureId: editingLecture.lectureId, lectureOrder: lecture.lectureOrder }
+                ? { 
+                    ...lectureDetails, 
+                    lectureDuration: parseInt(lectureDetails.lectureDuration) || 0, // Convert to number
+                    lectureId: editingLecture.lectureId, 
+                    lectureOrder: lecture.lectureOrder 
+                  }
                 : lecture
             )
             return { ...chapter, chapterContent: updatedContent }
@@ -197,6 +206,7 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
           if (chapter.chapterId === currentChapterId) {
             const newLecture = {
               ...lectureDetails,
+              lectureDuration: parseInt(lectureDetails.lectureDuration) || 0, // Convert to number
               lectureOrder:
                 chapter.chapterContent.length > 0
                   ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1
@@ -218,7 +228,6 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
       lectureDuration: '',
       lectureUrl: '',
       isPreviewFree: false,
-      lectureThumbnail: null,
     })
     setEditingLecture(null)
   }
@@ -232,26 +241,93 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
   // Submit handler for updating course
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    setLoading(true)
+    setUploadProgress(0)
+    setUploadStatus('Preparing course data...')
+    
     try {
       if (!courseTitle.trim()) {
         console.error('Course title cannot be empty')
+        setLoading(false)
+        setUploadStatus('')
         return
       }
 
+      setUploadStatus('Validating course data...')
+      setUploadProgress(20)
+
+      // Validate and clean chapters data
+      const cleanedChapters = chapters.map(chapter => {
+        const cleanedChapter = {
+          ...chapter,
+          chapterOrder: parseInt(chapter.chapterOrder) || 1,
+          chapterContent: chapter.chapterContent.map(lecture => ({
+            ...lecture,
+            lectureDuration: parseInt(lecture.lectureDuration) || 0,
+            lectureOrder: parseInt(lecture.lectureOrder) || 1,
+            isPreviewFree: Boolean(lecture.isPreviewFree)
+          }))
+        }
+        
+        // Handle chapterBanner - only include if it's a string (URL), not a File object
+        if (chapter.chapterBanner && typeof chapter.chapterBanner === 'string') {
+          cleanedChapter.chapterBanner = chapter.chapterBanner
+        } else {
+          // Remove chapterBanner if it's not a string (File objects will be handled separately)
+          delete cleanedChapter.chapterBanner
+        }
+        
+        return cleanedChapter
+      })
+
       const courseData = {
-        courseTitle,
+        courseTitle: courseTitle.trim(),
         courseDescription: quillRef.current.root.innerHTML,
-        coursePrice: parseFloat(coursePrice),
-        discount: parseInt(discount),
+        coursePrice: parseFloat(coursePrice) || 0,
+        discount: parseInt(discount) || 0,
         discountType,
-        courseContent: chapters,
+        courseContent: cleanedChapters,
+        // Include required fields from original course
+        packageType: course.packageType || 'elite',
+        courseLimit: parseInt(course.courseLimit) || 1,
+        isPublished: Boolean(course.isPublished),
+      }
+
+      // Validate required fields
+      if (!courseData.courseTitle) {
+        console.error('Course title is required');
+        setLoading(false);
+        setUploadStatus('Course title is required');
+        setUploadProgress(0);
+        return;
+      }
+
+      if (!courseData.packageType || !['elite', 'creator', 'prime', 'master'].includes(courseData.packageType)) {
+        console.error('Invalid package type:', courseData.packageType);
+        setLoading(false);
+        setUploadStatus('Invalid package type');
+        setUploadProgress(0);
+        return;
       }
 
       console.log('Sending course data:', courseData);
-      console.log('Chapters count:', chapters.length);
-      chapters.forEach((chapter, index) => {
+      console.log('Chapters count:', cleanedChapters.length);
+      console.log('Full chapters data:', cleanedChapters);
+      cleanedChapters.forEach((chapter, index) => {
         console.log(`Chapter ${index + 1}: ${chapter.chapterTitle} (${chapter.chapterContent.length} lectures)`);
+        console.log(`  Chapter ID: ${chapter.chapterId}`);
+        console.log(`  Chapter Order: ${chapter.chapterOrder}`);
+        console.log(`  Chapter Banner: ${chapter.chapterBanner ? 'Has banner' : 'No banner'}`);
+        chapter.chapterContent.forEach((lecture, lectureIndex) => {
+          console.log(`    Lecture ${lectureIndex + 1}: ${lecture.lectureTitle} (ID: ${lecture.lectureId})`);
+          console.log(`      Duration: ${lecture.lectureDuration} (type: ${typeof lecture.lectureDuration})`);
+          console.log(`      Order: ${lecture.lectureOrder} (type: ${typeof lecture.lectureOrder})`);
+        });
       });
+
+      setUploadStatus('Preparing files for upload...')
+      setUploadProgress(40)
 
       const formData = new FormData()
       formData.append('courseData', JSON.stringify(courseData))
@@ -259,6 +335,16 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
       if (image) {
         formData.append('image', image)
       }
+
+      // Add chapter banners
+      chapters.forEach((chapter) => {
+        if (chapter.chapterBanner && typeof chapter.chapterBanner !== 'string') {
+          formData.append('chapterBanners', chapter.chapterBanner);
+        }
+      });
+
+      setUploadStatus('Uploading course to server...')
+      setUploadProgress(60)
 
       const token = await getToken()
       const { data } = await axios.put(
@@ -269,18 +355,50 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
           },
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(60 + (progress * 0.3)); // 60-90% for upload
+          }
         }
       )
 
+      setUploadStatus('Processing course data...')
+      setUploadProgress(90)
+
       if (data.success) {
-        console.log('Course updated successfully')
-        onUpdate(data.data)
-        onClose()
+        setUploadStatus('Course updated successfully!')
+        setUploadProgress(100)
+        
+        setTimeout(() => {
+          console.log('Course updated successfully')
+          onUpdate(data.data)
+          onClose()
+          setLoading(false)
+          setUploadStatus('')
+          setUploadProgress(0)
+        }, 1000)
       } else {
-        console.error(data.message || 'Failed to update course')
+        console.error('Update failed:', data.message || 'Unknown error')
+        setLoading(false)
+        setUploadStatus('Update failed: ' + (data.message || 'Unknown error'))
+        setUploadProgress(0)
       }
     } catch (error) {
-      console.error(error.message || 'An error occurred while updating the course')
+      console.error('Update error:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Network error'
+      console.error('Error details:', error.response?.data)
+      
+      // Log specific validation errors if they exist
+      if (error.response?.data?.errors) {
+        console.error('Validation errors:', error.response.data.errors)
+        Object.keys(error.response.data.errors).forEach(field => {
+          console.error(`  ${field}:`, error.response.data.errors[field].message)
+        })
+      }
+      
+      setLoading(false)
+      setUploadStatus('Update failed: ' + errorMessage)
+      setUploadProgress(0)
     }
   }
 
@@ -512,6 +630,26 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
 
                   <div className="flex items-center gap-3">
                     <span className="text-gray-500">{chapter.chapterContent.length}</span>
+                    <label htmlFor={`chapterBanner-${chapter.chapterId}`} className="flex items-center gap-2 cursor-pointer text-sm text-blue-600 hover:text-blue-800">
+                      <img src={assets.file_upload_icon} alt='' className='w-4 h-4' />
+                      {chapter.chapterBanner ? 'Change Banner' : 'Add Banner'}
+                      <input
+                        type='file'
+                        id={`chapterBanner-${chapter.chapterId}`}
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setChapters(chapters.map(ch => 
+                              ch.chapterId === chapter.chapterId 
+                                ? { ...ch, chapterBanner: file }
+                                : ch
+                            ));
+                          }
+                        }}
+                        accept='image/*'
+                        hidden
+                      />
+                    </label>
                     <button
                       type="button"
                       onClick={() => handleChapter('remove', chapter.chapterId)}
@@ -525,6 +663,18 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
 
                 {!chapter.collapsed && (
                   <div className="p-4">
+                    {/* Chapter Banner Preview */}
+                    {chapter.chapterBanner && (
+                      <div className='mb-4'>
+                        <p className='text-sm text-gray-600 mb-2'>Chapter Banner:</p>
+                        <img
+                          src={typeof chapter.chapterBanner === 'string' ? chapter.chapterBanner : URL.createObjectURL(chapter.chapterBanner)}
+                          alt='Chapter banner preview'
+                          className='max-h-32 w-full object-cover rounded-lg border'
+                        />
+                      </div>
+                    )}
+                    
                     {chapter.chapterContent.length === 0 ? (
                       <div className="text-gray-500 text-center py-4 border border-dashed border-gray-300 rounded-lg mb-4">
                         No lectures yet. Click "Add Lecture" to get started.
@@ -537,21 +687,6 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
                             className="flex justify-between items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
                           >
                             <div className="flex items-start gap-3 flex-1">
-                              {/* Lecture Thumbnail */}
-                              <div className="flex-shrink-0">
-                                {lecture.lectureThumbnail ? (
-                                  <img 
-                                    src={lecture.lectureThumbnail} 
-                                    alt={lecture.lectureTitle}
-                                    className="w-16 h-12 object-cover rounded border"
-                                  />
-                                ) : (
-                                  <div className="w-16 h-12 bg-gray-200 rounded border flex items-center justify-center">
-                                    <span className="text-gray-400 text-xs">No Image</span>
-                                  </div>
-                                )}
-                              </div>
-                              
                               {/* Lecture Details */}
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium text-gray-900 mb-1">
@@ -632,9 +767,13 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
 
           <button
             type="submit"
-            className="bg-black text-white w-max py-2.5 px-8 rounded my-4"
+            className="bg-black text-white w-max py-2.5 px-8 rounded my-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            disabled={loading}
           >
-            Update Course
+            {loading && (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            )}
+            <span>{loading ? 'Updating...' : 'Update Course'}</span>
           </button>
         </form>
 
@@ -682,27 +821,6 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
                 />
               </div>
 
-              <div className="mb-2">
-                <label className="block mb-1">Lecture Thumbnail</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="mt-1 block w-full border rounded py-1 px-2"
-                  onChange={(e) =>
-                    setLectureDetails({ ...lectureDetails, lectureThumbnail: e.target.files[0] })
-                  }
-                />
-                {editingLecture && editingLecture.lectureThumbnail && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600">Current thumbnail:</p>
-                    <img 
-                      src={editingLecture.lectureThumbnail} 
-                      alt="Current thumbnail" 
-                      className="w-20 h-12 object-cover rounded border"
-                    />
-                  </div>
-                )}
-              </div>
 
               <div className="mb-2 flex items-center gap-2">
                 <label>Is Preview Free?</label>
@@ -731,6 +849,36 @@ const UpdatePackagePopup = ({ course, onClose, onUpdate }) => {
                 >
                   Cancel
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-8 max-w-lg w-full mx-4">
+              <div className="text-center">
+                {/* Spinner */}
+                <div className="w-16 h-16 border-4 border-gray-300 border-t-4 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+
+                {/* Status Text */}
+                <p className="text-lg font-medium text-gray-900 mb-2">
+                  {uploadStatus}
+                </p>
+                
+                {/* Progress Percentage */}
+                <p className="text-sm text-gray-600">
+                  {Math.round(uploadProgress)}% Complete
+                </p>
               </div>
             </div>
           </div>

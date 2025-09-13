@@ -55,7 +55,7 @@ const Login = () => {
 
       if (res.data.success) {
         // Store token and user data using context function
-        storeAuthData(res.data.token, res.data.user);
+        storeAuthData(res.data.token, res.data.user, rememberMe);
         
         try {
           await fetchUserEnrolledCourses();

@@ -5,9 +5,9 @@ import Loading from '../../components/users/Loading'
 import { assets } from '../../assets/assets'
 import humanizeDuration from 'humanize-duration'
 import Footer from '../../components/users/Footer'
-import Youtube from 'react-youtube'
 import { calculateDiscountedPrice } from '../../utils/priceUtils'
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa'
+import { getProtectedYouTubeUrl, videoProtectionStyles } from '../../utils/videoProtection'
 
 const PackageDetails = () => {
   const { id } = useParams()
@@ -114,6 +114,7 @@ const PackageDetails = () => {
 
   return (
     <>
+      <style>{videoProtectionStyles}</style>
       <div className="flex md:flex-row flex-col-reverse gap-10 relative items-start justify-between md:px-36 px-8 md:pt-30 pt-20 text-left">
         <div className="absolute top-0 left-0 w-full h-section-height -z-1 bg-gradient-to-b from-red-100/70"></div>
 
@@ -236,35 +237,24 @@ const PackageDetails = () => {
           {playerData ? (
             <div>
               {/* 
-                Video Player Configuration:
-                - All sharing options disabled to prevent unauthorized sharing
-                - Configured for unlisted videos (only accessible via direct link)
-                - No related videos shown to prevent content discovery
-                - Fullscreen disabled to maintain control
-                - Modest branding to reduce YouTube branding
+                Protected Video Player:
+                - All sharing options completely disabled
+                - No YouTube branding or sharing buttons
+                - Right-click and keyboard shortcuts disabled
+                - Fullscreen and picture-in-picture disabled
+                - Video URL is protected and cannot be shared
               */}
-              <Youtube
-                videoId={playerData.videoId}
-                opts={{ 
-                  playerVars: { 
-                    autoplay: 1,
-                    'modestbranding': 1,    // Reduces YouTube branding
-                    'rel': 0,               // Disables related videos
-                    'showinfo': 0,          // Hides video info
-                    'controls': 1,          // Shows player controls
-                    'disablekb': 0,         // Enables keyboard controls
-                    'enablejsapi': 1,       // Enables JavaScript API
-                    'fs': 0,                // Disables fullscreen
-                    'cc_load_policy': 0,    // Disables captions by default
-                    'iv_load_policy': 3,    // Disables annotations
-                    'autohide': 0,          // Keeps controls visible
-                    'cc_lang_pref': 'en',   // Sets caption language
-                    'hl': 'en',             // Sets interface language
-                    'origin': window.location.origin  // Sets origin for security
-                  } 
-                }}
-                iframeClassName="w-full aspect-video"
-              />
+              <div className="w-full aspect-video video-protected" onContextMenu={(e) => e.preventDefault()}>
+                <iframe
+                  src={getProtectedYouTubeUrl(`https://www.youtube.com/watch?v=${playerData.videoId}`)}
+                  className="w-full h-full"
+                  allowFullScreen={false}
+                  title="Course Preview"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
+                />
+              </div>
             </div>
           ) : (
             <img src={courseData.courseThumbnail} alt="" />

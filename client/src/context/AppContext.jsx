@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -17,24 +17,27 @@ export const AppContextProvider = (props) => {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [userData, setUserData] = useState(null);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   // Get token from localStorage or sessionStorage
-  const getToken = () => {
+  const getToken = useCallback(() => {
     return localStorage.getItem('token') || sessionStorage.getItem('token');
-  };
+  }, []);
 
   // Store token and user data after login
-  const storeAuthData = (token, user) => {
-    localStorage.setItem('token', token);
+  const storeAuthData = useCallback((token, user, rememberMe = true) => {
+    if (rememberMe) {
+      localStorage.setItem('token', token);
+    } else {
+      sessionStorage.setItem('token', token);
+    }
     setUserData(user);
     setIsEducator(user.isAdmin || false);
     setIsSubAdmin(user.isSubAdmin || user.role === 'subadmin' || false);
-  };
-  console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
-
+  }, []);
 
   // Clear all authentication data
-  const clearAuthData = () => {
+  const clearAuthData = useCallback(() => {
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('navigated'); // Clear navigation status on logout
@@ -43,12 +46,13 @@ export const AppContextProvider = (props) => {
     setIsSubAdmin(false);
     setPendingOrdersCount(0);
     setEnrolledCourses([]);
-  };
+    setIsAuthLoading(false);
+  }, []);
   
 
 
   // Fetch pending orders count
-  const fetchPendingOrdersCount = async () => {
+  const fetchPendingOrdersCount = useCallback(async () => {
     try {
       const token = getToken();
       if (!token) return;
@@ -66,10 +70,10 @@ export const AppContextProvider = (props) => {
       console.error('Error fetching pending orders count:', error);
       setPendingOrdersCount(0);
     }
-  };
+  }, [backendUrl, getToken]);
 
   // Fetch all courses
-  const fetchAllCourses = async () => {
+  const fetchAllCourses = useCallback(async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/courses/all`);
       if (data.success) {
@@ -81,13 +85,16 @@ export const AppContextProvider = (props) => {
       console.error('Error fetching courses:', error);
       setAllCourses([]);
     }
-  };
+  }, [backendUrl]);
 
   // Fetch user data
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       const token = getToken();
-      if (!token) return;
+      if (!token) {
+        setIsAuthLoading(false);
+        return;
+      }
 
       const { data } = await axios.get(`${backendUrl}/api/users/getUserData`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -134,12 +141,14 @@ export const AppContextProvider = (props) => {
       console.error('Error fetching user data:', error);
       // Clear invalid token
       clearAuthData();
+    } finally {
+      setIsAuthLoading(false);
     }
-  };
+  }, [backendUrl, getToken, clearAuthData]);
 
 
   // Fetch enrolled courses - only for admins
-  const fetchUserEnrolledCourses = async () => {
+  const fetchUserEnrolledCourses = useCallback(async () => {
     try {
       const token = getToken();
       if (!token) return;
@@ -157,7 +166,7 @@ export const AppContextProvider = (props) => {
       console.error('Error fetching enrolled courses:', error);
       setEnrolledCourses([]);
     }
-  };
+  }, [backendUrl, getToken]);
 
   // Load enrolled courses when userData changes and user is admin or sub-admin
   useEffect(() => {
@@ -166,31 +175,44 @@ export const AppContextProvider = (props) => {
     } else {
       setEnrolledCourses([]);
     }
-  }, [userData]);
+  }, [userData, fetchUserEnrolledCourses]);
 
   // Refresh user data (useful after role changes)
-  const refreshUserData = async () => {
+  const refreshUserData = useCallback(async () => {
     await fetchUserData();
-  };
+  }, [fetchUserData]);
 
   // Function to calculate total time for a chapter
-  const calculateChapterTime = (chapter) => {
+  const calculateChapterTime = useCallback((chapter) => {
+    if (!chapter?.chapterContent) return '0h 0m';
     let time = 0;
-    chapter.chapterContent.map((lecture) => (time += lecture.lectureDuration));
+    chapter.chapterContent.forEach((lecture) => {
+      if (lecture.lectureDuration) {
+        time += lecture.lectureDuration;
+      }
+    });
     return humanizeDuration(time * 60 * 1000, { units: ["h", "m"] });
-  };
+  }, []);
 
   // Function to calculate total duration of a course
-  const calculateCourseDuration = (course) => {
+  const calculateCourseDuration = useCallback((course) => {
+    if (!course?.courseContent) return '0h 0m';
     let time = 0;
-    course.courseContent.map((chapter) =>
-      chapter.chapterContent.map((lecture) => (time += lecture.lectureDuration))
-    );
+    course.courseContent.forEach((chapter) => {
+      if (chapter.chapterContent) {
+        chapter.chapterContent.forEach((lecture) => {
+          if (lecture.lectureDuration) {
+            time += lecture.lectureDuration;
+          }
+        });
+      }
+    });
     return humanizeDuration(time * 60 * 1000, { units: ["h", "m"] });
-  };
+  }, []);
 
   // Function to count total lectures in a course
-  const calculateNoOfLectures = (course) => {
+  const calculateNoOfLectures = useCallback((course) => {
+    if (!course?.courseContent) return 0;
     let totalLectures = 0;
     course.courseContent.forEach((chapter) => {
       if (Array.isArray(chapter.chapterContent)) {
@@ -198,20 +220,22 @@ export const AppContextProvider = (props) => {
       }
     });
     return totalLectures;
-  };
+  }, []);
 
   // Initial load: fetch all courses
   useEffect(() => {
     fetchAllCourses();
-  }, []);
+  }, [fetchAllCourses]);
 
   // Load user data on mount
   useEffect(() => {
     const token = getToken();
     if (token) {
       fetchUserData();
+    } else {
+      setIsAuthLoading(false);
     }
-  }, []);
+  }, [getToken, fetchUserData]);
 
   // Load data when user data is available
   useEffect(() => {
@@ -220,7 +244,7 @@ export const AppContextProvider = (props) => {
         fetchPendingOrdersCount();
       }
     }
-  }, [userData]);
+  }, [userData, fetchPendingOrdersCount]);
 
   // Set up polling for data every 30 seconds when user is logged in
   useEffect(() => {
@@ -233,7 +257,7 @@ export const AppContextProvider = (props) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [userData]);
+  }, [userData, fetchPendingOrdersCount]);
 
   // Set isEducator and isSubAdmin when userData changes
   useEffect(() => {
@@ -243,7 +267,8 @@ export const AppContextProvider = (props) => {
     }
   }, [userData]);
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     currency,
     allCourses,
     navigate,
@@ -267,7 +292,30 @@ export const AppContextProvider = (props) => {
     calculateNoOfLectures,
     pendingOrdersCount,
     fetchPendingOrdersCount,
-  };
+    isAuthLoading,
+  }), [
+    currency,
+    allCourses,
+    navigate,
+    isEducator,
+    isSubAdmin,
+    enrolledCourses,
+    fetchUserEnrolledCourses,
+    fetchUserData,
+    refreshUserData,
+    storeAuthData,
+    backendUrl,
+    userData,
+    getToken,
+    clearAuthData,
+    fetchAllCourses,
+    calculateChapterTime,
+    calculateCourseDuration,
+    calculateNoOfLectures,
+    pendingOrdersCount,
+    fetchPendingOrdersCount,
+    isAuthLoading,
+  ]);
 
   return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;
 };

@@ -27,6 +27,10 @@ const Dashboard = () => {
   const [restrictionEmail, setRestrictionEmail] = useState('')
   const [resettingRestriction, setResettingRestriction] = useState(false)
 
+  const [showResetModal, setShowResetModal] = useState(false)
+  const [resetConfirmation, setResetConfirmation] = useState('')
+  const [resettingDatabase, setResettingDatabase] = useState(false)
+
   const fetchDashboardAndPurchases = async () => {
     try {
       const token = await getToken()
@@ -85,10 +89,10 @@ const Dashboard = () => {
         setCartsData((prevCarts) =>
           prevCarts
             .map((cart) => {
-              if (cart.user._id === userId) {
+              if (cart.user && cart.user._id === userId) {
                 return {
                   ...cart,
-                  courses: cart.courses.filter((item) => item.course._id !== courseId),
+                  courses: cart.courses.filter((item) => item.course && item.course._id !== courseId),
                 }
               }
               return cart
@@ -121,10 +125,10 @@ const Dashboard = () => {
         setCartsData((prevCarts) =>
           prevCarts
             .map((cart) => {
-              if (cart.user._id === userId) {
+              if (cart.user && cart.user._id === userId) {
                 return {
                   ...cart,
-                  courses: cart.courses.filter((item) => item.course._id !== courseId),
+                  courses: cart.courses.filter((item) => item.course && item.course._id !== courseId),
                 }
               }
               return cart
@@ -242,6 +246,41 @@ const Dashboard = () => {
     }
   }
 
+  const resetDatabase = async (e) => {
+    e.preventDefault()
+
+    if (resetConfirmation !== 'RESET DATABASE') {
+      console.error('Please type "RESET DATABASE" exactly to confirm')
+      return
+    }
+
+    try {
+      setResettingDatabase(true)
+      const token = await getToken()
+
+      const res = await axios.post(
+        `${backendUrl}/api/admin/reset-database`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      if (res.data.success) {
+        console.log('Database reset successfully')
+        console.log('Admin account preserved:', res.data.preserved?.adminAccount)
+        setResetConfirmation('')
+        setShowResetModal(false)
+        // Refresh the page to show empty state
+        window.location.reload()
+      } else {
+        console.error(res.data.message || 'Failed to reset database.')
+      }
+    } catch (error) {
+      console.error(error.response?.data?.message || error.message || 'Error resetting database.')
+    } finally {
+      setResettingDatabase(false)
+    }
+  }
+
   if (loading) return <Loading />
 
   if (!isEducator && !userData?.isSubAdmin && userData?.role !== 'subadmin') {
@@ -299,6 +338,15 @@ const Dashboard = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 Make Full Admin
+              </button>
+              <button
+                onClick={() => setShowResetModal(true)}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Reset Database
               </button>
             </div>
           )}
@@ -375,6 +423,9 @@ const Dashboard = () => {
                         .sort((a, b) => new Date(b.lastPurchase) - new Date(a.lastPurchase))
                         .slice(0, 5)
                         .map((studentData) => {
+                          if (!studentData.userDetails || !studentData.purchases || studentData.purchases.length === 0) {
+                            return null;
+                          }
                           const latestPurchase = studentData.purchases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
 
                           return (
@@ -471,6 +522,9 @@ const Dashboard = () => {
                 .sort((a, b) => new Date(b.lastPurchase) - new Date(a.lastPurchase))
                 .slice(0, 5)
                 .map((studentData) => {
+                  if (!studentData.userDetails || !studentData.purchases || studentData.purchases.length === 0) {
+                    return null;
+                  }
                   const latestPurchase = studentData.purchases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
 
                   return (
@@ -694,6 +748,88 @@ const Dashboard = () => {
                         }`}
                     >
                       {resettingRestriction ? 'Resetting...' : 'Reset Restriction'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Reset Database Modal */}
+          {showResetModal && (
+            <div
+              onClick={() => setShowResetModal(false)}
+              className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 cursor-pointer"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-red-600">DANGER: Reset Database</h2>
+                </div>
+
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <h3 className="text-lg font-semibold text-red-800 mb-2">⚠️ This action is IRREVERSIBLE!</h3>
+                  <p className="text-red-700 mb-3">This will permanently delete:</p>
+                  <ul className="list-disc list-inside text-red-700 space-y-1 mb-3">
+                    <li><strong>ALL users</strong> (except your admin account - you will remain logged in)</li>
+                    <li><strong>ALL courses</strong> and course content</li>
+                    <li><strong>ALL purchases</strong> and transaction history</li>
+                    <li><strong>ALL earnings</strong> and balance data</li>
+                    <li><strong>ALL withdrawals</strong> and payment records</li>
+                    <li><strong>ALL KYC documents</strong> and verification data</li>
+                    <li><strong>ALL cart items</strong> and pending orders</li>
+                  </ul>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
+                    <p className="text-green-800 font-semibold mb-1">✅ Your admin account will be preserved</p>
+                    <p className="text-green-700 text-sm">You will remain logged in and can continue using the system immediately after reset.</p>
+                  </div>
+                  <p className="text-red-800 font-semibold mt-3">This action cannot be undone!</p>
+                </div>
+
+                <form onSubmit={resetDatabase} className="space-y-4">
+                  <div>
+                    <label htmlFor="resetConfirmation" className="block text-sm font-medium text-gray-700 mb-2">
+                      Type <span className="font-mono bg-gray-100 px-2 py-1 rounded">RESET DATABASE</span> to confirm:
+                    </label>
+                    <input
+                      type="text"
+                      id="resetConfirmation"
+                      value={resetConfirmation}
+                      onChange={(e) => setResetConfirmation(e.target.value)}
+                      placeholder="Type RESET DATABASE here"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowResetModal(false)
+                        setResetConfirmation('')
+                      }}
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={resettingDatabase || resetConfirmation !== 'RESET DATABASE'}
+                      className={`flex-1 px-4 py-2 text-white rounded-md transition-colors ${
+                        resettingDatabase || resetConfirmation !== 'RESET DATABASE'
+                          ? 'bg-red-400 cursor-not-allowed'
+                          : 'bg-red-600 hover:bg-red-700'
+                      }`}
+                    >
+                      {resettingDatabase ? 'Resetting Database...' : 'RESET DATABASE'}
                     </button>
                   </div>
                 </form>

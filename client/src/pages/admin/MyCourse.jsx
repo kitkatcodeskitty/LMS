@@ -80,11 +80,12 @@ const MyPackages = () => {
 
   const handleCourseUpdate = (updatedCourse) => {
     console.log('Course updated:', updatedCourse);
+    console.log('Updated course content:', updatedCourse.courseContent);
     setCourses((prev) =>
       prev.map((course) => (course._id === updatedCourse._id ? updatedCourse : course))
     )
-    // Refresh the course list to ensure all changes are reflected
-    fetchCourses();
+    // Don't call fetchCourses() here as it might override the updated data
+    // The local state update above should be sufficient
   }
 
   if (!courses) {

@@ -55,7 +55,7 @@ const FAQ = () => {
         },
         {
           question: "What is your refund policy?",
-          answer: "We offer refunds within 7 days of purchase if you haven't accessed the course content. Please contact support with your transaction details for refund requests."
+          answer: "We have a strict no-refund policy. All sales are final once payment is processed. We encourage you to carefully review course descriptions and previews before purchasing to ensure the course meets your needs."
         },
         {
           question: "Why was my payment rejected?",

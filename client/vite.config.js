@@ -4,9 +4,16 @@ import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfil
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      // Enable React Fast Refresh
+      fastRefresh: true,
+      // Optimize JSX runtime
+      jsxRuntime: 'automatic',
+    })
+  ],
   server: {
-    // Force cache busting
+    // Force cache busting in development
     headers: {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
@@ -14,7 +21,8 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    force: true, // Force re-optimization
+    // Only force re-optimization in development
+    force: process.env.NODE_ENV === 'development',
     esbuildOptions: {
       define: {
         global: 'globalThis', // polyfill for global
@@ -26,20 +34,51 @@ export default defineConfig({
         }),
       ],
     },
-    // explicitly include problematic packages if needed
-    // include: ['uniqid', 'some-other-package'],
+    // Include commonly used packages for better optimization
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'axios',
+      'react-icons/fa',
+      'humanize-duration'
+    ],
   },
   build: {
+    // Production optimizations
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log in production
+        drop_debugger: true, // Remove debugger statements
+        pure_funcs: ['console.log', 'console.info', 'console.debug'], // Remove specific functions
+      },
+    },
     rollupOptions: {
       output: {
         // prevent Rollup from freezing objects (fixes "Cannot add property 0" error)
         freeze: false,
+        // Code splitting for better performance
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          icons: ['react-icons/fa'],
+          utils: ['axios', 'humanize-duration'],
+        },
+        // Optimize chunk file names
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
     },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
+    // Source maps only in development
+    sourcemap: process.env.NODE_ENV === 'development',
   },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.js',
+  // Remove test configuration as we're removing test files
+  define: {
+    // Define environment variables
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   },
 });

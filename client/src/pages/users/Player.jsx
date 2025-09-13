@@ -3,11 +3,11 @@ import { AppContext } from '../../context/AppContext'
 import { useParams } from 'react-router-dom'
 import { assets } from '../../assets/assets'
 import humanizeDuration from 'humanize-duration'
-import YouTube from 'react-youtube'
 import Footer from '../../components/users/Footer'
 import Rating from '../../components/users/Rating'
 import axios from 'axios'
 import Loading from '../../components/users/Loading'
+import { getProtectedYouTubeUrl, videoProtectionStyles } from '../../utils/videoProtection'
 
 const Player = () => {
   const { enrolledCourses, calculateChapaterTime, backendUrl, getToken, userData, fetchUserEnrolledCourses } = useContext(AppContext)
@@ -108,6 +108,7 @@ const Player = () => {
   }
   return courseData ?  (
     <>
+      <style>{videoProtectionStyles}</style>
       <div className="p-4 sm:p-10 flex flex-col-reverse md:grid md:grid-cols-2 gap-10 md:px-36">
         {/* left column */}
         <div className="text-grey-800">
@@ -207,34 +208,24 @@ const Player = () => {
           {playerData ? (
             <div>
               {/* 
-                Video Player Configuration:
-                - All sharing options disabled to prevent unauthorized sharing
-                - Configured for unlisted videos (only accessible via direct link)
-                - No related videos shown to prevent content discovery
-                - Fullscreen disabled to maintain control
-                - Modest branding to reduce YouTube branding
+                Protected Video Player:
+                - All sharing options completely disabled
+                - No YouTube branding or sharing buttons
+                - Right-click and keyboard shortcuts disabled
+                - Fullscreen and picture-in-picture disabled
+                - Video URL is protected and cannot be shared
               */}
-              <YouTube 
-                videoId={playerData.lectureUrl.split('/').pop()} 
-                iframeClassName='w-full aspect-video'
-                opts={{
-                  playerVars: {
-                    'modestbranding': 1,    // Reduces YouTube branding
-                    'rel': 0,               // Disables related videos
-                    'showinfo': 0,          // Hides video info
-                    'controls': 1,          // Shows player controls
-                    'disablekb': 0,         // Enables keyboard controls
-                    'enablejsapi': 1,       // Enables JavaScript API
-                    'fs': 0,                // Disables fullscreen
-                    'cc_load_policy': 0,    // Disables captions by default
-                    'iv_load_policy': 3,    // Disables annotations
-                    'autohide': 0,          // Keeps controls visible
-                    'cc_lang_pref': 'en',   // Sets caption language
-                    'hl': 'en',             // Sets interface language
-                    'origin': window.location.origin  // Sets origin for security
-                  }
-                }}
-              />
+              <div className="w-full aspect-video video-protected" onContextMenu={(e) => e.preventDefault()}>
+                <iframe
+                  src={getProtectedYouTubeUrl(playerData.lectureUrl)}
+                  className="w-full h-full"
+                  allowFullScreen={false}
+                  title={playerData.lectureTitle}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
+                />
+              </div>
               <div  className='flex justify-between items-center mt-1'>
               <p>
                 {playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}

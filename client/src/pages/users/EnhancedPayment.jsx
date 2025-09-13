@@ -444,7 +444,7 @@ const EnhancedPayment = ({ courseData }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-rose-50/30 to-gray-100">
       {/* Custom CSS for checkmark animation */}
-      <style jsx>{`
+      <style>{`
         @keyframes checkmark {
           0% {
             stroke-dasharray: 0 50;
