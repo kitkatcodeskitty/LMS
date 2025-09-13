@@ -32,14 +32,14 @@ const convertYouTubeToEmbed = (url) => {
 export const addCourse = async (req, res) => {
   try {
     const imageFile = req.files?.image?.[0];
-    const lectureThumbnails = req.files?.lectureThumbnails || [];
+    const chapterBanners = req.files?.chapterBanners || [];
     const userId = req.user.id;
     const body = req.body;
 
     // Debug: Log what we're receiving
     console.log('req.files:', req.files);
     console.log('imageFile:', imageFile);
-    console.log('lectureThumbnails:', lectureThumbnails);
+    console.log('chapterBanners:', chapterBanners);
 
     if (!imageFile) {
       return res.json({ success: false, message: 'Thumbnail not Attached' });
@@ -93,53 +93,48 @@ export const addCourse = async (req, res) => {
     parsedCourseData.courseThumbnail = imageUpload.secure_url;
     console.log('Course thumbnail uploaded successfully');
 
-    // Upload lecture thumbnails and update course content
-    if (lectureThumbnails.length > 0) {
-      console.log(`Uploading ${lectureThumbnails.length} lecture thumbnails...`);
-      let thumbnailIndex = 0;
+    // Upload chapter banners and update course content
+    if (chapterBanners.length > 0) {
+      console.log(`Uploading ${chapterBanners.length} chapter banners...`);
+      let bannerIndex = 0;
       
-      // Process each chapter and its lectures
+      // Process each chapter for banners
       for (let chapterIndex = 0; chapterIndex < parsedCourseData.courseContent.length; chapterIndex++) {
         const chapter = parsedCourseData.courseContent[chapterIndex];
         
-        for (let lectureIndex = 0; lectureIndex < chapter.chapterContent.length; lectureIndex++) {
-          const lecture = chapter.chapterContent[lectureIndex];
+        // Check if this chapter should have a banner
+        if (chapter.chapterBanner && bannerIndex < chapterBanners.length) {
+          const bannerFile = chapterBanners[bannerIndex];
           
-          // Check if this lecture should have a thumbnail (based on the original data)
-          // The frontend sends thumbnails in order, so we match them by order
-          if (lecture.lectureThumbnail && thumbnailIndex < lectureThumbnails.length) {
-            const thumbnailFile = lectureThumbnails[thumbnailIndex];
+          try {
+            console.log(`Uploading chapter banner ${bannerIndex + 1}/${chapterBanners.length}...`);
+            const bannerUpload = await new Promise((resolve, reject) => {
+              cloudinary.uploader.upload_stream(
+                {
+                  folder: "chapter_banners",
+                  quality: "auto",
+                  fetch_format: "auto",
+                  flags: "preserve_transparency"
+                },
+                (error, result) => {
+                  if (error) reject(error);
+                  else resolve(result);
+                }
+              ).end(bannerFile.buffer);
+            });
             
-            try {
-              console.log(`Uploading lecture thumbnail ${thumbnailIndex + 1}/${lectureThumbnails.length}...`);
-              const thumbnailUpload = await new Promise((resolve, reject) => {
-                cloudinary.uploader.upload_stream(
-                  {
-                    folder: "lecture_thumbnails",
-                    quality: "auto",
-                    fetch_format: "auto",
-                    flags: "preserve_transparency"
-                  },
-                  (error, result) => {
-                    if (error) reject(error);
-                    else resolve(result);
-                  }
-                ).end(thumbnailFile.buffer);
-              });
-              
-              // Update the lecture with the uploaded thumbnail URL
-              parsedCourseData.courseContent[chapterIndex].chapterContent[lectureIndex].lectureThumbnail = thumbnailUpload.secure_url;
-              
-              thumbnailIndex++;
-              console.log(`Lecture thumbnail ${thumbnailIndex} uploaded successfully`);
-            } catch (uploadError) {
-              console.error('Error uploading lecture thumbnail:', uploadError);
-              // Continue with other thumbnails even if one fails
-            }
+            // Update the chapter with the uploaded banner URL
+            parsedCourseData.courseContent[chapterIndex].chapterBanner = bannerUpload.secure_url;
+            
+            bannerIndex++;
+            console.log(`Chapter banner ${bannerIndex} uploaded successfully`);
+          } catch (uploadError) {
+            console.error('Error uploading chapter banner:', uploadError);
+            // Continue with other banners even if one fails
           }
         }
       }
-      console.log('All lecture thumbnails processed');
+      console.log('All chapter banners processed');
     }
 
     console.log('Creating course in database...');
@@ -153,13 +148,13 @@ export const addCourse = async (req, res) => {
         console.log('Course thumbnail file cleaned up');
       }
       
-      if (lectureThumbnails && lectureThumbnails.length > 0) {
-        lectureThumbnails.forEach(file => {
+      if (chapterBanners && chapterBanners.length > 0) {
+        chapterBanners.forEach(file => {
           if (file.path) {
             fs.unlinkSync(file.path);
           }
         });
-        console.log('Lecture thumbnail files cleaned up');
+        console.log('Chapter banner files cleaned up');
       }
     } catch (cleanupError) {
       console.error('Error cleaning up files:', cleanupError);
@@ -178,8 +173,8 @@ export const addCourse = async (req, res) => {
         fs.unlinkSync(imageFile.path);
       }
       
-      if (lectureThumbnails && lectureThumbnails.length > 0) {
-        lectureThumbnails.forEach(file => {
+      if (chapterBanners && chapterBanners.length > 0) {
+        chapterBanners.forEach(file => {
           if (file.path) {
             fs.unlinkSync(file.path);
           }
@@ -1243,6 +1238,115 @@ export const syncAllUsersEarnings = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: error.message 
+    });
+  }
+};
+
+// Reset entire database - DANGEROUS OPERATION
+export const resetDatabase = async (req, res) => {
+  try {
+    const adminId = req.user.id;
+    
+    // Verify admin permissions - only full admins can reset database
+    const admin = await User.findById(adminId);
+    if (!admin || !admin.isAdmin) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Access denied. Only full admins can reset the database.' 
+      });
+    }
+
+    console.log(`Database reset initiated by admin: ${admin.email} (${adminId})`);
+
+    // Start a transaction to ensure all deletions succeed or none do
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Delete all data in the correct order to avoid foreign key constraints
+      
+      // 1. Delete all withdrawals first (references users)
+      const withdrawalCount = await Withdrawal.countDocuments();
+      await Withdrawal.deleteMany({}, { session });
+      console.log(`Deleted ${withdrawalCount} withdrawals`);
+
+      // 2. Delete all purchases (references users and courses)
+      const purchaseCount = await Purchase.countDocuments();
+      await Purchase.deleteMany({}, { session });
+      console.log(`Deleted ${purchaseCount} purchases`);
+
+      // 3. Delete all cart items (references users and courses)
+      const cartCount = await Cart.countDocuments();
+      await Cart.deleteMany({}, { session });
+      console.log(`Deleted ${cartCount} cart items`);
+
+      // 4. Delete all KYC documents (references users)
+      const Kyc = await import('../models/Kyc.js');
+      const kycCount = await Kyc.default.countDocuments();
+      await Kyc.default.deleteMany({}, { session });
+      console.log(`Deleted ${kycCount} KYC documents`);
+
+      // 5. Delete all courses (references users)
+      const courseCount = await Course.countDocuments();
+      await Course.deleteMany({}, { session });
+      console.log(`Deleted ${courseCount} courses`);
+
+      // 6. Delete all users except the current admin
+      const userCount = await User.countDocuments();
+      const usersToDelete = userCount - 1; // Subtract 1 for the admin we're keeping
+      await User.deleteMany({ _id: { $ne: adminId } }, { session });
+      console.log(`Deleted ${usersToDelete} users (preserved admin: ${admin.email})`);
+
+      // 7. Delete all popups
+      const Popup = await import('../models/Popup.js');
+      const popupCount = await Popup.default.countDocuments();
+      await Popup.default.deleteMany({}, { session });
+      console.log(`Deleted ${popupCount} popups`);
+
+      // Commit the transaction
+      await session.commitTransaction();
+      console.log('Database reset completed successfully');
+
+      // Log the reset action
+      console.log(`Database reset completed by admin: ${admin.email} (${adminId})`);
+      console.log(`Total records deleted: ${withdrawalCount + purchaseCount + cartCount + kycCount + courseCount + usersToDelete + popupCount}`);
+
+      res.json({ 
+        success: true, 
+        message: 'Database has been completely reset. All data has been permanently deleted except your admin account.',
+        deletedRecords: {
+          withdrawals: withdrawalCount,
+          purchases: purchaseCount,
+          cartItems: cartCount,
+          kycDocuments: kycCount,
+          courses: courseCount,
+          users: usersToDelete,
+          popups: popupCount,
+          total: withdrawalCount + purchaseCount + cartCount + kycCount + courseCount + usersToDelete + popupCount
+        },
+        preserved: {
+          adminAccount: {
+            email: admin.email,
+            name: `${admin.firstName} ${admin.lastName}`,
+            id: adminId
+          }
+        }
+      });
+
+    } catch (error) {
+      // Rollback the transaction on error
+      await session.abortTransaction();
+      console.error('Database reset failed, transaction rolled back:', error);
+      throw error;
+    } finally {
+      session.endSession();
+    }
+
+  } catch (error) {
+    console.error('Database reset error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'An error occurred while resetting the database' 
     });
   }
 };

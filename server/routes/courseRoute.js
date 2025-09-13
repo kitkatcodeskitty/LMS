@@ -12,7 +12,7 @@ courseRouter.get('/:id', getCourseById);
 courseRouter.delete("/delete-course/:courseId", verify, verifyAdmin, deleteCourse);
 courseRouter.put('/update-course/:courseId', upload.fields([
   { name: 'image', maxCount: 1 },
-  { name: 'lectureThumbnails', maxCount: 50 }
+  { name: 'chapterBanners', maxCount: 50 }
 ]), updateCourse);
 
 export default courseRouter;

@@ -7,13 +7,13 @@ const lectureSchema = new mongoose.Schema({
   lectureUrl: { type: String, required: true },
   isPreviewFree: { type: Boolean, required: true },
   lectureOrder: { type: Number, required: true },
-  lectureThumbnail: { type: String }, // Optional thumbnail URL
 }, { _id: false });
 
 const chapterSchema = new mongoose.Schema({
   chapterId: { type: String, required: true },
   chapterOrder: { type: Number, required: true },
   chapterTitle: { type: String, required: true },
+  chapterBanner: { type: String }, // Optional chapter banner URL
   chapterContent: [lectureSchema]
 }, { _id: false });
 

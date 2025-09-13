@@ -13,7 +13,8 @@ import {
   rejectWithdrawal,
   editWithdrawal,
   syncAllUsersEarnings,
-  deleteUser
+  deleteUser,
+  resetDatabase
 } from '../controllers/adminController.js';
 
 import { verify, verifyAdmin, verifyAdminOrSubAdmin } from "../auth.js";
@@ -24,7 +25,7 @@ const adminRouter = express.Router();
 
 adminRouter.post('/add-course', verify, verifyAdmin, upload.fields([
   { name: 'image', maxCount: 1 },
-  { name: 'lectureThumbnails', maxCount: 50 }
+  { name: 'chapterBanners', maxCount: 50 }
 ]), addCourse);
 adminRouter.get('/dashboard', verify, verifyAdminOrSubAdmin, adminDashboardData);
 adminRouter.get('/purchased-users', verify, verifyAdminOrSubAdmin, getAllPurchasesWithUserAndCourse);
@@ -44,5 +45,8 @@ adminRouter.post('/sync-earnings', verify, verifyAdmin, syncAllUsersEarnings);
 
 // User management endpoints
 adminRouter.delete('/delete-user/:userId', verify, verifyAdminOrSubAdmin, deleteUser);
+
+// Database management endpoints
+adminRouter.post('/reset-database', verify, verifyAdmin, resetDatabase);
 
 export default adminRouter;

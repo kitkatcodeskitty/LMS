@@ -149,7 +149,7 @@ export const updateCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
     const body = req.body;
-    const lectureThumbnails = req.files?.lectureThumbnails || [];
+    const chapterBanners = req.files?.chapterBanners || [];
 
     // Parse courseData JSON string from body
     let parsedCourseData;
@@ -197,45 +197,41 @@ export const updateCourse = async (req, res) => {
       parsedCourseData.courseThumbnail = imageUpload.secure_url;
     }
 
-    // Handle lecture thumbnails if provided
-    if (lectureThumbnails.length > 0) {
-      let thumbnailIndex = 0;
+    // Handle chapter banners if provided
+    if (chapterBanners.length > 0) {
+      let bannerIndex = 0;
       
-      // Process each chapter and its lectures
+      // Process each chapter for banners
       for (let chapterIndex = 0; chapterIndex < parsedCourseData.courseContent.length; chapterIndex++) {
         const chapter = parsedCourseData.courseContent[chapterIndex];
         
-        for (let lectureIndex = 0; lectureIndex < chapter.chapterContent.length; lectureIndex++) {
-          const lecture = chapter.chapterContent[lectureIndex];
+        // Check if this chapter should have a banner
+        if (chapter.chapterBanner && bannerIndex < chapterBanners.length) {
+          const bannerFile = chapterBanners[bannerIndex];
           
-          // Check if this lecture should have a thumbnail
-          if (lecture.lectureThumbnail && thumbnailIndex < lectureThumbnails.length) {
-            const thumbnailFile = lectureThumbnails[thumbnailIndex];
+          try {
+            const bannerUpload = await new Promise((resolve, reject) => {
+              cloudinary.uploader.upload_stream(
+                {
+                  folder: "chapter_banners",
+                  quality: "auto",
+                  fetch_format: "auto",
+                  flags: "preserve_transparency"
+                },
+                (error, result) => {
+                  if (error) reject(error);
+                  else resolve(result);
+                }
+              ).end(bannerFile.buffer);
+            });
             
-            try {
-              const thumbnailUpload = await new Promise((resolve, reject) => {
-                cloudinary.uploader.upload_stream(
-                  {
-                    folder: "lecture_thumbnails",
-                    quality: "auto",
-                    fetch_format: "auto",
-                    flags: "preserve_transparency"
-                  },
-                  (error, result) => {
-                    if (error) reject(error);
-                    else resolve(result);
-                  }
-                ).end(thumbnailFile.buffer);
-              });
-              
-              // Update the lecture with the uploaded thumbnail URL
-              parsedCourseData.courseContent[chapterIndex].chapterContent[lectureIndex].lectureThumbnail = thumbnailUpload.secure_url;
-              
-              thumbnailIndex++;
-            } catch (uploadError) {
-              console.error('Error uploading lecture thumbnail:', uploadError);
-              // Continue with other thumbnails even if one fails
-            }
+            // Update the chapter with the uploaded banner URL
+            parsedCourseData.courseContent[chapterIndex].chapterBanner = bannerUpload.secure_url;
+            
+            bannerIndex++;
+          } catch (uploadError) {
+            console.error('Error uploading chapter banner:', uploadError);
+            // Continue with other banners even if one fails
           }
         }
       }
