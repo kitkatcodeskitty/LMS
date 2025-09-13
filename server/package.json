@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "start:prod": "NODE_ENV=production node server.js",
     "dev": "nodemon server.js",
+    "dev:debug": "NODE_ENV=development nodemon --inspect server.js",
     "migrate": "node scripts/migrate.js up",
     "migrate:rollback": "node scripts/migrate.js down",
-    "migrate:status": "node scripts/migrate.js status"
+    "migrate:status": "node scripts/migrate.js status",
+    "create-indexes": "node scripts/createIndexes.js",
+    "performance:test": "node -e \"require('./utils/performanceOptimizations.js').serverPerformanceMonitor.getReport()\"",
+    "memory:check": "node -e \"console.log(require('./utils/performanceOptimizations.js').memoryManagement.getMemoryUsage())\""
   },
   "keywords": [],
   "author": "",

@@ -25,7 +25,7 @@ try {
   await connectDB();
   await connectCloudinary();
 } catch (error) {
-  console.log(error);
+  console.error('Failed to connect to database or cloudinary:', error);
   process.exit(1);
 }
 
