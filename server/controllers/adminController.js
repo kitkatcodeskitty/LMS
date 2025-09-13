@@ -214,34 +214,37 @@ export const adminDashboardData = async (req, res) => {
     const enrolledStudentsData = [];
     
     allPurchases.forEach((purchase) => {
-      if (purchase.amount && purchase.amount > 0) {
-        // Calculate revenue from purchase amount
-        const purchaseRevenue = purchase.amount;
-        totalRevenue += purchaseRevenue;
-        
-        // Calculate affiliate outflow if referral code was used
-        if (purchase.referralCode || purchase.referrerId) {
-          // Calculate 60% commission for affiliate
-          const affiliateAmount = purchaseRevenue * 0.6;
-          totalAffiliateOutflow += affiliateAmount;
-        }
+      // Skip purchases with missing or invalid data
+      if (!purchase.amount || purchase.amount <= 0 || !purchase.userId || !purchase.courseId) {
+        return;
+      }
 
-        // Add to enrolled students if not already added
-        const existingStudent = enrolledStudentsData.find(
-          student => student.student._id.toString() === purchase.userId._id.toString()
-        );
-        
-        if (!existingStudent) {
-          enrolledStudentsData.push({
-            courseTitle: purchase.courseId?.courseTitle || 'Unknown Course',
-            student: { _id: purchase.userId._id },
-            referralCode: purchase.referralCode || null,
-            transactionId: purchase._id,
-            paymentScreenshot: '', // Purchase doesn't have payment screenshot
-            revenue: purchaseRevenue,
-            affiliateOutflow: (purchase.referralCode || purchase.referrerId) ? (purchaseRevenue * 0.6) : 0
-          });
-        }
+      // Calculate revenue from purchase amount
+      const purchaseRevenue = purchase.amount;
+      totalRevenue += purchaseRevenue;
+      
+      // Calculate affiliate outflow if referral code was used
+      if (purchase.referralCode || purchase.referrerId) {
+        // Calculate 60% commission for affiliate
+        const affiliateAmount = purchaseRevenue * 0.6;
+        totalAffiliateOutflow += affiliateAmount;
+      }
+
+      // Add to enrolled students if not already added
+      const existingStudent = enrolledStudentsData.find(
+        student => student.student._id.toString() === purchase.userId._id.toString()
+      );
+      
+      if (!existingStudent) {
+        enrolledStudentsData.push({
+          courseTitle: purchase.courseId?.courseTitle || 'Unknown Course',
+          student: { _id: purchase.userId._id },
+          referralCode: purchase.referralCode || null,
+          transactionId: purchase._id,
+          paymentScreenshot: '', // Purchase doesn't have payment screenshot
+          revenue: purchaseRevenue,
+          affiliateOutflow: (purchase.referralCode || purchase.referrerId) ? (purchaseRevenue * 0.6) : 0
+        });
       }
     });
 
@@ -351,7 +354,7 @@ export const getAllEnrolledStudents = async (req, res) => {
 
     // Count referrals made by each user
     purchases.forEach(purchase => {
-      if (purchase.referrerId && userPurchaseMap.has(purchase.referrerId._id.toString())) {
+      if (purchase.referrerId && purchase.referrerId._id && userPurchaseMap.has(purchase.referrerId._id.toString())) {
         userPurchaseMap.get(purchase.referrerId._id.toString()).referralCount += 1;
       }
     });
